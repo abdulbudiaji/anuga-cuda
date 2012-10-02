@@ -1,0 +1,12 @@
+2012-09-29 14:57:10,861 INFO           anuga.utilities.log:0   |Logfile is './anuga.log' with logging level of INFO, console logging level is CRITICAL
+2012-09-29 14:57:10,863 CRITICAL            generic_domain:933 |Time = 0.0000, steps=0 (0s)
+2012-09-29 14:57:19,856 CRITICAL            generic_domain:933 |Time = 50.0000, delta t in [0.30226285, 0.35367587], steps=153 (8s)
+2012-09-29 14:57:28,167 CRITICAL            generic_domain:933 |Time = 100.0000, delta t in [0.35158018, 0.36300107], steps=141 (8s)
+2012-09-29 14:57:36,314 CRITICAL            generic_domain:933 |Time = 150.0000, delta t in [0.35691316, 0.37639179], steps=138 (8s)
+2012-09-29 14:57:44,132 CRITICAL            generic_domain:933 |Time = 200.0000, delta t in [0.35598565, 0.39096778], steps=132 (7s)
+2012-09-29 14:57:52,345 CRITICAL            generic_domain:933 |Time = 250.0000, delta t in [0.35893422, 0.39002138], steps=133 (8s)
+2012-09-29 14:58:01,297 CRITICAL            generic_domain:933 |Time = 300.0000, delta t in [0.31178936, 0.38347544], steps=145 (8s)
+2012-09-29 14:58:09,985 CRITICAL            generic_domain:933 |Time = 350.0000, delta t in [0.33029840, 0.35719558], steps=146 (8s)
+2012-09-29 14:58:17,959 CRITICAL            generic_domain:933 |Time = 400.0000, delta t in [0.35733010, 0.39491337], steps=134 (7s)
+2012-09-29 14:58:25,351 CRITICAL            generic_domain:933 |Time = 450.0000, delta t in [0.37373566, 0.42716094], steps=124 (7s)
+2012-09-29 14:58:32,101 CRITICAL            generic_domain:933 |Time = 500.0000, delta t in [0.41125398, 0.46304765], steps=113 (6s)
