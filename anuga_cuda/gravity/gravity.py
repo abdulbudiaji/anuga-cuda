@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 def gravity( domain ):
     N = domain.number_of_elements
     W = 32
@@ -26,6 +28,7 @@ def gravity( domain ):
 
     threadInBlock_gpu = cuda.mem_alloc(numpy.float32.nbytes)
     cuda.memcpy_htod(threadInBlock_gpu, W*W)
+	
 
     gravity_mod = SourceModule("""
         __global__ void gravity(double *bed_vertex_values_gpu, double *stage_centroid_values_gpu, double *bed_centroid_values_gpu, double *vertex_coordinates_gpu, double * xmom_explicit_update_gpu, double *ymom_explicit_update_gpu, g_gpu, threadInBlock_gpu)
@@ -60,26 +63,40 @@ def gravity( domain ):
             xmom_explicit_update_gpu[i] += -g * zx * avg_h;
             ymom_explicit_update_gpu[i] += -g * zy * avg_h;
         }
-    """)
+    	""")
+	
+	#print domain.quantities['xmomentum'].explicit_update
+	#print domain.quantities['ymomentum'].explicit_update
 
     gravity_func = gravity_mod.get_function("gravity")
-    gravity_func(
-            bed_vertex_values_gpu, 
-            stage_centroid_values_gpu,
-            bed_centroid_values_gpu,
-            vertex_coordinates_gpu,
-            xmom_explicit_update_gpu,
-            ymom_explicit_update_gpu,
-            g_gpu,
-            threadInBlock_gpu,
-            block = ( W, W, 1),
-            grid = ( (N + W*W -1 ) / (W*W), 1)
-            )
+    gravity_func( bed_vertex_values_gpu, stage_centroid_values_gpu, bed_centroid_values_gpu, vertex_coordinates_gpu, xmom_explicit_update_gpu, ymom_explicit_update_gpu, g_gpu, threadInBlock_gpu, block = ( W, W, 1), grid = ( (N + W*W -1 ) / (W*W), 1) )
     
+
     cuda.memcpy_dtoh(domain.quantities['xmomentum'].explicit_update, xmom_explicit_update_gpu)
     cuda.memcpy_dtoh(domain.quantities['ymomentum'].explicit_update, ymom_explicit_update_gpu)
+	
+	#print "--------- after cuda copy ---------------"
+
+	#print domain.quantities['xmomentum'].explicit_update
+
+	#print "-----------------------------------------"
+
+	#print domain.quantities['ymomentum'].explicit_update
+
+
 
 if __name__ == '__main__':
 	from anuga_cuda.merimbula_data.generate_domain import *
+	
 	domain=domain_create()
-	print domain.number_of_elements
+
+	print domain.quantities['xmomentum'].explicit_update
+	print domain.quantities['ymomentum'].explicit_update
+
+	import pycuda.driver as cuda
+	import pycuda.autpinit
+	from pcuda.compiler import SourceModule
+	gravity(domain)
+
+	print domain.quantities['xmomentum'].explicit_update
+	print domain.quantities['ymomentum'].explicit_update
