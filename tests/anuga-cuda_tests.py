@@ -1,5 +1,5 @@
 from nose.tools import *
-import anuga-cuda
+import anuga_cuda
 
 def setup():
     print "SETUP!"
