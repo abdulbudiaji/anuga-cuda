@@ -33,7 +33,7 @@ from anuga import Transmissive_boundary
 from anuga import rectangular_cross
 from anuga import create_domain_from_file
 
-
+from anuga_cuda.config import merimbula_tsh_file
 
 
 #--------------------------------------------------------------------------
@@ -41,7 +41,7 @@ from anuga import create_domain_from_file
 #--------------------------------------------------------------------------
 
 #mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+mesh_filename = merimbula_tsh_file   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
 yieldstep = 50

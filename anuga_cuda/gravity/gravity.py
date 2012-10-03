@@ -79,4 +79,7 @@ def gravity( domain ):
     cuda.memcpy_dtoh(domain.quantities['xmomentum'].explicit_update, xmom_explicit_update_gpu)
     cuda.memcpy_dtoh(domain.quantities['ymomentum'].explicit_update, ymom_explicit_update_gpu)
 
-
+if __name__ == '__main__':
+	from anuga_cuda.merimbula_data.generate_domain import *
+	domain=domain_create()
+	print domain.number_of_elements
