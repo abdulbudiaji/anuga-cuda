@@ -186,14 +186,14 @@ if __name__ == "__main__":
    fd=open("merimbula_43200.tsh")
 
    import profile
-   profile.run("_read_triangulation(fd)", "newread.txt")
+   profile.run("_read_triangulation(fd)", "newread_profilling.txt")
    fd.seek(0)
 
    import pstats
-   p = pstats.Stats("newread.txt")
+   p = pstats.Stats("newread_profilling.txt")
    p.sort_stats("cumulative").print_stats()
 
-   profile.run("_read_triangulation_old(fd)", "oldread.txt")
-   q = pstats.Stats("oldread.txt")
+   profile.run("_read_triangulation_old(fd)", "oldread_profilling.txt")
+   q = pstats.Stats("oldread_profilling.txt")
    q.sort_stats("cumulative").print_stats()
 
