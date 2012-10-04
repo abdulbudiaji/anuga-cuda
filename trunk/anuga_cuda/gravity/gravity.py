@@ -1,45 +1,47 @@
 #!/usr/bin/env python
 
+import pycuda.driver as cuda
+import pycuda.autoinit
 from pycuda.compiler import SourceModule
 
- gravity_mod = SourceModule("""
-        __global__ void gravity(double *bed_vertex_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, float g)
-        {
-            int i = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
-            int k3 = 3*i,
-                k6 = 6*i;
-            double 
-                z0 = bed_vertex_values[k3],
-                z1 = bed_vertex_values[k3 + 1],
-                z2 = bed_vertex_values[k3 + 2],
+gravity_mod = SourceModule("""
+	__global__ void gravity(double *bed_vertex_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, float g)
+	{
+		int i = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
+        int k3 = 3*i,
+            k6 = 6*i;
+        double 
+			z0 = bed_vertex_values[k3],
+			z1 = bed_vertex_values[k3 + 1],
+            z2 = bed_vertex_values[k3 + 2],
 
-                avg_h = stage_centroid_values[i] - bed_centroid_values[i],
+			avg_h = stage_centroid_values[i] - bed_centroid_values[i],
 
-                x0 = vertex_coordinates[k6],
-                y0 = vertex_coordinates[k6 + 1],
-                x1 = vertex_coordinates[k6 + 2],
-                y1 = vertex_coordinates[k6 + 3],
-                x2 = vertex_coordinates[k6 + 4],
-                y2 = vertex_coordinates[k6 + 5],
-                
-                zx, zy, det;
+            x0 = vertex_coordinates[k6],
+            y0 = vertex_coordinates[k6 + 1],
+            x1 = vertex_coordinates[k6 + 2],
+            y1 = vertex_coordinates[k6 + 3],
+            x2 = vertex_coordinates[k6 + 4],
+            y2 = vertex_coordinates[k6 + 5],
+            
+            zx, zy, det;
 
-            det = (y2 - y0)*(x1 - x0) - (y1 - y0)*(x2 - x0);
+        det = (y2 - y0)*(x1 - x0) - (y1 - y0)*(x2 - x0);
 
-            zx = (y2 -y0)*(z1 - z0) - (y1 - y0)*(z2 -z0);
-            zx /= det;
+        zx = (y2 -y0)*(z1 - z0) - (y1 - y0)*(z2 -z0);
+        zx /= det;
 
-            zy = (x1 - x0)*(z2 - z0) - (x2 - x0)*(z1 -z0);
-            zy /= det;
+        zy = (x1 - x0)*(z2 - z0) - (x2 - x0)*(z1 -z0);
+        zy /= det;
 
-            xmom_explicit_update[i] += -g * zx * avg_h;
-            ymom_explicit_update[i] += -g * zy * avg_h;
-        }
-    	""")
+        xmom_explicit_update[i] += -g * zx * avg_h;
+        ymom_explicit_update[i] += -g * zy * avg_h;
+    }
+	""")
 
 
 
- gravity_wb_mod = SourceModule( """
+gravity_wb_mod = SourceModule( """
     __global__ void gravity_wb(double *stage_vertex_values, double *stage_edge_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, double * normals, double *areas, double * edgelength,float g)
     {
         int k = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
@@ -102,8 +104,6 @@ from pycuda.compiler import SourceModule
     """)
  
 def gravity(domain):
-    import pycuda.driver as cuda
-    import pycuda.autoinit
     
     W = 32
 
@@ -116,8 +116,8 @@ def gravity(domain):
             cuda.In( domain.quantities['stage'].centroid_values), \
             cuda.In( domain.quantities['elevation'].centroid_values), \
             cuda.In( domain.vertex_coordinates), \
-            cuda.In( domain.quantities['xmomentum'].explicit_update),\
-            cuda.In( domain.quantities['ymomentum'].explicit_update),\
+            cuda.InOut( domain.quantities['xmomentum'].explicit_update),\
+            cuda.InOut( domain.quantities['ymomentum'].explicit_update),\
             cuda.In( domain.g),\
             block = ( W, W, 1),\
             grid = ( (N + W*W -1 ) / (W*W), 1) )
@@ -126,8 +126,6 @@ def gravity(domain):
     print domain.quantities['ymomentum'].explicit_update
  
 def gravity_wb(domain):
-    import pycuda.driver as cuda
-    import pycuda.autoinit
     
     W = 32
 
@@ -202,7 +200,6 @@ def gravity_old( domain ):
 
 	#print domain.quantities['ymomentum'].explicit_update
 
-def gravity_wb(domain):
 
 
 if __name__ == '__main__':
@@ -213,9 +210,6 @@ if __name__ == '__main__':
 	print domain.quantities['xmomentum'].explicit_update
 	print domain.quantities['ymomentum'].explicit_update
 
-	import pycuda.driver as cuda
-	import pycuda.autpinit
-	from pcuda.compiler import SourceModule
 	gravity(domain)
 
 	print domain.quantities['xmomentum'].explicit_update
