@@ -1,0 +1,63 @@
+#!/bin/bash
+# simple script for accessing the Xe for anuga-cuda project
+# useage : runXecuda [-m m] [-t t] [-profile] command
+
+p=3
+np=1
+ngpu=2
+t_max=10
+mem=300
+if [ "$1" = "-m" ] ; then
+	mem="$2"
+	shift; shift
+fi
+t=2
+if [ "$1" = "-t" ] ; then
+	t="$2"
+	shift; shift
+fi
+profile=false
+if [ "$1" = "-profile" ]; then
+	profile=true
+	shift
+fi
+
+if [ $t -gt $t_max ]; then
+	t=$t_max
+fi
+t=$((60 * $t))
+
+cmdXe="$*"
+
+qsub -l walltime=$t,ncpus=$np,ngpus=$ngpus /home/659/zxw659/anuga-cuda/scripts/subXecuda -v cmdXe="$cmdXe",profile=$profile > .qsubXe.out
+
+jobid=`awk -F. '{print $1}' .qsubXe.out`
+jobofile=subXecuda.o$jobid
+
+outputfile=`echo $cmdXe | tr ' ' '_' | tr -d ' /;<>&#()'`
+outputfile=outputXecuda.$outputfile.$jobid
+
+#echo -n "waiting for job $jobid to complete:"
+#r=0
+#while ( [ ! -r $jobofile ] || [ ! -r $outputfile ] ) && [ $r -lt 10 ]; do
+#	sleep $p
+#	echo -n "."
+#	r=$(( $r + 1))
+#done
+
+sleep 1
+echo ""
+if [ -r $jobofile ] && [ -r $outputfile ]; then
+	echo "done. Program out put follows:-"
+	echo "-------------------------------"
+	cat $outputfile
+	echo "-------------------------------"
+	echo "PBS info follows:-"
+	echo "-------------------------------"
+	cat $jobofile
+	rm $jobofile $outputfile
+else
+	echo "job $jobid not completed after 20s. Program out will go into $outputfile, PBS info in $jobofile"
+	nqstat -u $USER
+fi
+
