@@ -33,11 +33,12 @@
     ymom_explicit_update[i] += -g * zy * avg_h;
 }
         
-__global__ void gravity_wb(double *stage_vertex_values, double *stage_edge_values, double *stage_centroid_values, double *bed_centroid_values, double *bed_edge_values,  double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, double * normals, double *areas, double * edgelength,float g)
+__global__ void gravity_wb(double *stage_vertex_values, double *stage_edge_values, double *stage_centroid_values, double *bed_centroid_values, double *bed_edge_values,  double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, double * normals, double *areas, double * edgelengths,float g)
 {            
 	int k = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
     int k3 = 3*k,
-        k6 = 6*k;
+        k6 = 6*k
+        i=0;
             
     double 
         w0 = stage_vertex_values[k3],
@@ -77,8 +78,8 @@ __global__ void gravity_wb(double *stage_vertex_values, double *stage_edge_value
             
     for ( i = 0 ; i < 3 ; i++ )
     {
-        n0 = normal[k6 + 2*i];
-        n1 = normal[k6 + 2*i + 1];
+        n0 = normals[k6 + 2*i];
+        n1 = normals[k6 + 2*i + 1];
                 
         fact =  -0.5 * g * hh[i] * hh[i] * edgelengths[k3 + i];
         sidex = sidex + fact*n0;
