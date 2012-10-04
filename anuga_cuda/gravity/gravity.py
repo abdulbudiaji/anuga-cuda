@@ -1,11 +1,5 @@
 #!/usr/bin/env python
 
-import pycuda.driver as cuda
-import pycuda.autoinit
-from pycuda.compiler import SourceModule
-import numpy
-
-
 
 def gravity(domain):
     
@@ -244,14 +238,14 @@ def gravity_old( domain ):
 
 
 if __name__ == '__main__':
-	from anuga_cuda.merimbula_data.generate_domain import *
-	
-	domain=domain_create()
-
-	print domain.quantities['xmomentum'].explicit_update
-	print domain.quantities['ymomentum'].explicit_update
-
-	gravity(domain)
-
-	print domain.quantities['xmomentum'].explicit_update
-	print domain.quantities['ymomentum'].explicit_update
+    from anuga_cuda.merimbula_data.generate_domain import *
+    domain=domain_create()
+    print domain.quantities['xmomentum'].explicit_update
+    print domain.quantities['ymomentum'].explicit_update
+    import pycuda.driver as cuda
+    import pycuda.autoinit
+    from pycuda.compiler import SourceModule
+    import numpy
+    gravity_old(domain)
+    print domain.quantities['xmomentum'].explicit_update
+    print domain.quantities['ymomentum'].explicit_update
