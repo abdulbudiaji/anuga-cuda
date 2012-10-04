@@ -249,5 +249,5 @@ if __name__ == '__main__':
     gravity_old(domain)
     print domain.quantities['xmomentum'].explicit_update
     print domain.quantities['ymomentum'].explicit_update
+    gravity(domain)
 
-	gravity(domain)
