@@ -1,0 +1,21 @@
+./test_pycuda_con.py:20: UserWarning: The CUDA compiler suceeded, but said the following:
+cc1: warning: command line option "-fpermissive" is valid for C++/ObjC++ but not for C
+cc1: warning: command line option "-fpermissive" is valid for C++/ObjC++ but not for C
+
+  """)
+
+
+=============================================================================
+                                     Resource usage:
+                                       CPU time:              00:00:03
+   JobId:      413231.xepbs            Elapsed time:          00:00:06
+   Project:             v29            Requested time:        00:20:00
+   Service Units:      0.00 
+                                       Max physical memory:       55MB
+                                       Max virtual memory:        55MB
+                                       Requested memory:         500MB
+
+                                       Max jobfs disk use:       0.0GB
+                                       Requested jobfs:          1.0GB
+=============================================================================
+

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/jobfs/pbs/mom_priv/jobs/414255.xepb.SC", line 4, in <module>
+    import pycuda.autoinit
+  File "/home/659/zxw659/.local/lib/python2.7/site-packages/pycuda-2012.1-py2.7-linux-x86_64.egg/pycuda/autoinit.py", line 4, in <module>
+    cuda.init()
+pycuda._driver.RuntimeError: cuInit failed: no device
