@@ -1,3 +1,4 @@
+#include "gravity.h"
 #define    W = 32
 
  __global__ void gravity(double *bed_vertex_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, float g)
@@ -37,7 +38,7 @@ __global__ void gravity_wb(double *stage_vertex_values, double *stage_edge_value
 {            
 	int k = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
     int k3 = 3*k,
-        k6 = 6*k
+        k6 = 6*k,
         i=0;
             
     double 
