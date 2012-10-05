@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 
-
 def gravity(domain):
     
-    W = 32
+    W = 16
 
     print domain.quantities['xmomentum'].explicit_update
     print domain.quantities['ymomentum'].explicit_update
     
     mod = SourceModule("""
-        __global__ void gravity(double *bed_vertex_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, float g)
+        __global__ void gravity(double *bed_vertex_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, float *g)
         {
-            int i = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
+            int i = threadIdx.x + threadIdx.y + blockIdx.x * 16 * 16;
             int k3 = 3*i,
                 k6 = 6*i;
             double 
@@ -38,12 +37,14 @@ def gravity(domain):
             zy = (x1 - x0)*(z2 - z0) - (x2 - x0)*(z1 -z0);
             zy /= det;
     
-            xmom_explicit_update[i] += -g * zx * avg_h;
-            ymom_explicit_update[i] += -g * zy * avg_h;
+            xmom_explicit_update[i] += -g[0] * zx * avg_h;
+            ymom_explicit_update[i] += -g[0] * zy * avg_h;
         }
         """)
 
-
+    g_gpu = numpy.random.rand(1)
+    g_gpu = g_gpu.astype(numpy.float32)
+    g_gpu[0] = domain.g
     
     gravity_func = mod.get_function("gravity")
     gravity_func( \
@@ -53,7 +54,7 @@ def gravity(domain):
             cuda.In( domain.vertex_coordinates), \
             cuda.InOut( domain.quantities['xmomentum'].explicit_update),\
             cuda.InOut( domain.quantities['ymomentum'].explicit_update),\
-            cuda.In( domain.g),\
+            cuda.In( g_gpu),\
             block = ( W, W, 1),\
             grid = ( (N + W*W -1 ) / (W*W), 1) )
     
@@ -62,16 +63,16 @@ def gravity(domain):
  
 def gravity_wb(domain):
     
-    W = 32
+    W = 16
 
     print domain.quantities['xmomentum'].explicit_update
     print domain.quantities['ymomentum'].explicit_update
     
     
     mod = SourceModule( """
-        __global__ void gravity_wb(double *stage_vertex_values, double *stage_edge_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, double * normals, double *areas, double * edgelength,float g)
+        __global__ void gravity_wb(double *stage_vertex_values, double *stage_edge_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, double * normals, double *areas, double * edgelength,float *g)
         {
-            int k = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
+            int k = threadIdx.x + threadIdx.y + blockIdx.x * 16 * 16;
             int k3 = 3*k,
                 k6 = 6*k;
                 
@@ -103,8 +104,8 @@ def gravity_wb(domain):
             wy = (x1 - x0)*(w2 - w0) - (x2 - x0)*(w1 -w0);
             wy /= det;
     
-            xmom_explicit_update[k] += -g * wx * avg_h;
-            ymom_explicit_update[k] += -g * wy * avg_h;
+            xmom_explicit_update[k] += -g[0] * wx * avg_h;
+            ymom_explicit_update[k] += -g[0] * wy * avg_h;
     
             hh[0] = stage_edge_values[k3] - bed_edge_values[k3];
             hh[1] = stage_edge_values[k3+1] - bed_edge_values[k3+1];
@@ -118,7 +119,7 @@ def gravity_wb(domain):
                 n0 = normal[k6 + 2*i];
                 n1 = normal[k6 + 2*i + 1];
                 
-                fact =  -0.5 * g * hh[i] * hh[i] * edgelengths[k3 + i];
+                fact =  -0.5 * g[0] * hh[i] * hh[i] * edgelengths[k3 + i];
                 sidex = sidex + fact*n0;
                 sidey = sidey + fact*n1;
             }
@@ -129,7 +130,10 @@ def gravity_wb(domain):
                 
         }
         """)
- 
+
+    g_gpu = numpy.random.rand(1)
+    g_gpu = g_gpu.astype(numpy.float32)
+    g_gpu[0] = domain.g
     
     gravity_wb_func = mod.get_function("gravity_wb")
     gravity_wb_func( \
@@ -138,12 +142,12 @@ def gravity_wb(domain):
             cuda.In( domain.quantities['stage'].centroid_values), \
             cuda.In( domain.quantities['elevation'].centroid_values), \
             cuda.In( domain.vertex_coordinates), \
-            cuda.In( domain.quantities['xmomentum'].explicit_update),\
-            cuda.In( domain.quantities['ymomentum'].explicit_update),\
+            cuda.InOut( domain.quantities['xmomentum'].explicit_update),\
+            cuda.InOut( domain.quantities['ymomentum'].explicit_update),\
             cuda.In( domain.normals),\
             cuda.In( domain.areas),\
             cuda.In( domain.edgelength),\
-            cuda.In( domain.g),\
+            cuda.In( g_gpu),\
             block = ( W, W, 1),\
             grid = ( (N + W*W -1 ) / (W*W), 1) )
     
@@ -154,12 +158,12 @@ def gravity_wb(domain):
 
 def gravity_old( domain ):
     N = domain.number_of_elements
-    W = 32
+    W = 16
     
     mod = SourceModule("""
-        __global__ void gravity(double *bed_vertex_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, float g)
+        __global__ void gravity(double *bed_vertex_values, double *stage_centroid_values, double *bed_centroid_values, double *vertex_coordinates, double * xmom_explicit_update, double *ymom_explicit_update, float *g)
         {
-            int i = threadIdx.x + threadIdx.y + blockIdx.x * 32*32;
+            int i = threadIdx.x + threadIdx.y + blockIdx.x * 16 * 16;
             int k3 = 3*i,
                 k6 = 6*i;
             double 
@@ -186,8 +190,8 @@ def gravity_old( domain ):
             zy = (x1 - x0)*(z2 - z0) - (x2 - x0)*(z1 -z0);
             zy /= det;
     
-            xmom_explicit_update[i] += -g * zx * avg_h;
-            ymom_explicit_update[i] += -g * zy * avg_h;
+            xmom_explicit_update[i] += -g[0] * zx * avg_h;
+            ymom_explicit_update[i] += -g[0] * zy * avg_h;
         }
         """)
     
@@ -209,8 +213,12 @@ def gravity_old( domain ):
     ymom_explicit_update_gpu = cuda.mem_alloc(domain.quantities['ymomentum'].explicit_update.nbytes)
     cuda.memcpy_htod(ymom_explicit_update_gpu, domain.quantities['ymomentum'].explicit_update)
 
-    g_gpu = cuda.mem_alloc(4)
-    cuda.memcpy_htod(g_gpu, domain.g)
+	# Since transimiting to gpu needs array
+    a = numpy.random.randn(1)
+    a = a.astype(numpy.float32)
+    a[0] = domain.g
+    g_gpu = cuda.mem_alloc(a.nbytes)
+    cuda.memcpy_htod(g_gpu, a)
 
     threadInBlock_gpu = cuda.mem_alloc(numpy.float32.nbytes)
     cuda.memcpy_htod(threadInBlock_gpu, W*W)
