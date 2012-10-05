@@ -14,6 +14,7 @@ def pycuda_Doubled():
 	mod=SourceModule("""
 		__global__ void doublify(float *a)  
 		{    
+			int b = max(1,3);
 			int idx = threadIdx.x + threadIdx.y*4;    
 			a[idx] *= 2;  
 		}  
