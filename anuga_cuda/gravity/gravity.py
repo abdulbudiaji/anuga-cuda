@@ -220,10 +220,6 @@ def gravity_old( domain ):
     g_gpu = cuda.mem_alloc(a.nbytes)
     cuda.memcpy_htod(g_gpu, a)
 
-    threadInBlock_gpu = cuda.mem_alloc(numpy.float32.nbytes)
-    cuda.memcpy_htod(threadInBlock_gpu, W*W)
-	
-
    	
 	#print domain.quantities['xmomentum'].explicit_update
 	#print domain.quantities['ymomentum'].explicit_update
