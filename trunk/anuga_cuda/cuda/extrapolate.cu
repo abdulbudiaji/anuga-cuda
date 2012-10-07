@@ -27,35 +27,6 @@ __global__ void _extrapolate_second_order_sw_old(int number_of_elements,
  {
 
 
-  // Domain Variables
-    int number_of_elements;
-    double epsilon;
-    double minimum_allowed_height;
-    double beta_w;
-    double beta_w_dry;
-    double beta_uh;
-    double beta_uh_dry;
-    double beta_vh;
-    double beta_vh_dry;
-    long* surrogate_neighbours;
-    long* number_of_boundaries;
-    double* centroid_coordinates;
-    double* stage_centroid_values;
-    double* xmom_centroid_values;
-    double* ymom_centroid_values;
-    double* bed_centroid_values;
-    double* edge_coordinates;
-    double* vertex_coordinates;
-    double* stage_edge_values;
-    double* xmom_edge_values;
-    double* ymom_edge_values;
-    double* bed_edge_values;
-    double* stage_vertex_values;
-    double* xmom_vertex_values;
-    double* ymom_vertex_values;
-    double* bed_vertex_values;
-    int optimise_dry_cells;
-    int extrapolate_velocity_second_order;
 
     // Local variables
     double a, b; // Gradient vector used to calculate edge values from centroids
@@ -70,86 +41,8 @@ __global__ void _extrapolate_second_order_sw_old(int number_of_elements,
     double *xmom_centroid_store, *ymom_centroid_store, *stage_centroid_store;
 
 
-    // Associate memory location of Domain varialbe with local aliases
-    number_of_elements     = D->number_of_elements;
-    epsilon                = D->epsilon;
-    minimum_allowed_height = D->minimum_allowed_height;
-    beta_w                 = D->beta_w;
-    beta_w_dry             = D->beta_w_dry;
-    beta_uh                = D->beta_uh;
-    beta_uh_dry            = D->beta_uh_dry;
-    beta_vh                = D->beta_vh;
-    beta_vh_dry            = D->beta_vh_dry;
-    optimise_dry_cells     = D->optimise_dry_cells;
-    extrapolate_velocity_second_order = D->extrapolate_velocity_second_order;
-
-    surrogate_neighbours      = D->surrogate_neighbours;
-    number_of_boundaries      = D->number_of_boundaries;
-    centroid_coordinates      = D->centroid_coordinates;
-    stage_centroid_values     = D->stage_centroid_values;
-    xmom_centroid_values      = D->xmom_centroid_values;
-    ymom_centroid_values      = D->ymom_centroid_values;
-    bed_centroid_values       = D->bed_centroid_values;
-    edge_coordinates          = D->edge_coordinates;
-    vertex_coordinates        = D->vertex_coordinates;
-    stage_edge_values         = D->stage_edge_values;
-    xmom_edge_values          = D->xmom_edge_values;
-    ymom_edge_values          = D->ymom_edge_values;
-    bed_edge_values           = D->bed_edge_values;
-    stage_vertex_values       = D->stage_vertex_values;
-    xmom_vertex_values        = D->xmom_vertex_values;
-    ymom_vertex_values        = D->ymom_vertex_values;
-    bed_vertex_values         = D->bed_vertex_values;
-
-
-
-
-/*
-int _extrapolate_second_order_sw(int number_of_elements,
-        double epsilon,
-        double minimum_allowed_height,
-        double beta_w,
-        double beta_w_dry,
-        double beta_uh,
-        double beta_uh_dry,
-        double beta_vh,
-        double beta_vh_dry,
-        long* surrogate_neighbours,
-        long* number_of_boundaries,
-        double* centroid_coordinates,
-        double* stage_centroid_values,
-        double* xmom_centroid_values,
-        double* ymom_centroid_values,
-        double* elevation_centroid_values,
-        double* vertex_coordinates,
-        double* stage_vertex_values,
-        double* xmom_vertex_values,
-        double* ymom_vertex_values,
-        double* elevation_vertex_values,
-        int optimise_dry_cells,
-        int extrapolate_velocity_second_order) {
-
-
-
-    // Local variables
-    double a, b; // Gradient vector used to calculate vertex values from centroids
-    int k, k0, k1, k2, k3, k6, coord_index, i;
-    double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
-    double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
-    double dqv[3], qmin, qmax, hmin, hmax;
-    double hc, h0, h1, h2, beta_tmp, hfactor;
-    double xmom_centroid_store[number_of_elements], ymom_centroid_store[number_of_elements], dk, dv0, dv1, dv2;
-*/
-
-   // Use malloc to avoid putting these variables on the stack, which can cause
-   // segfaults in large model runs
-    xmom_centroid_store = malloc(number_of_elements*sizeof(double));
-    ymom_centroid_store = malloc(number_of_elements*sizeof(double));
-    stage_centroid_store = malloc(number_of_elements*sizeof(double));
 
     if (extrapolate_velocity_second_order == 1) {
-        // Replace momentum centroid with velocity centroid to allow velocity
-        // extrapolation This will be changed back at the end of the routine
         for (k = 0; k < number_of_elements; k++) {
 
             dk = max(stage_centroid_values[k] - bed_centroid_values[k], minimum_allowed_height);
@@ -625,18 +518,12 @@ int _extrapolate_second_order_sw(int number_of_elements,
     }
 
 
-    free(xmom_centroid_store);
-    free(ymom_centroid_store);
-    free(stage_centroid_store);
-
-
-    return 0;
 }
 
 
 // Computational routine
 //__global__ int _extrapolate_second_order_edge_sw(struct domain *D) 
-int _extrapolate_second_order_edge_sw(int number_of_elements,
+__global__ void _extrapolate_second_order_edge_sw(int number_of_elements,
         double epsilon,
         double minimum_allowed_height,
         double beta_w,
@@ -658,38 +545,12 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
         double* ymom_vertex_values,
         double* elevation_vertex_values,
         int optimise_dry_cells,
-        int extrapolate_velocity_second_order)
+        int extrapolate_velocity_second_order,
+        double *xmom_centroid_store, 
+        double *ymom_centroid_store,
+        double *stage_centroid_store)
 {
 
-
-  // Domain Variables
-    int number_of_elements;
-    double epsilon;
-    double minimum_allowed_height;
-    double beta_w;
-    double beta_w_dry;
-    double beta_uh;
-    double beta_uh_dry;
-    double beta_vh;
-    double beta_vh_dry;
-    long* surrogate_neighbours;
-    long* number_of_boundaries;
-    double* centroid_coordinates;
-    double* stage_centroid_values;
-    double* xmom_centroid_values;
-    double* ymom_centroid_values;
-    double* bed_centroid_values;
-    double* edge_coordinates;
-    double* stage_edge_values;
-    double* xmom_edge_values;
-    double* ymom_edge_values;
-    double* bed_edge_values;
-    double* stage_vertex_values;
-    double* xmom_vertex_values;
-    double* ymom_vertex_values;
-    double* bed_vertex_values;
-    int optimise_dry_cells;
-    int extrapolate_velocity_second_order;
 
     // Local variables
     double a, b; // Gradient vector used to calculate edge values from centroids
@@ -701,46 +562,7 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
     //double dk, dv0, dv1, dv2, de[3], demin, dcmax, r0scale;
     double dk, de[3];
 
-    double *xmom_centroid_store, *ymom_centroid_store, *stage_centroid_store;
 
-
-    // Associate memory location of Domain varialbe with local aliases
-    number_of_elements     = D->number_of_elements;
-    epsilon                = D->epsilon;
-    minimum_allowed_height = D->minimum_allowed_height;
-    beta_w                 = D->beta_w;
-    beta_w_dry             = D->beta_w_dry;
-    beta_uh                = D->beta_uh;
-    beta_uh_dry            = D->beta_uh_dry;
-    beta_vh                = D->beta_vh;
-    beta_vh_dry            = D->beta_vh_dry;
-    optimise_dry_cells     = D->optimise_dry_cells;
-    extrapolate_velocity_second_order = D->extrapolate_velocity_second_order;
-
-    surrogate_neighbours      = D->surrogate_neighbours;
-    number_of_boundaries      = D->number_of_boundaries;
-    centroid_coordinates      = D->centroid_coordinates;
-    stage_centroid_values     = D->stage_centroid_values;
-    xmom_centroid_values      = D->xmom_centroid_values;
-    ymom_centroid_values      = D->ymom_centroid_values;
-    bed_centroid_values       = D->bed_centroid_values;
-    edge_coordinates          = D->edge_coordinates;
-    stage_edge_values         = D->stage_edge_values;
-    xmom_edge_values          = D->xmom_edge_values;
-    ymom_edge_values          = D->ymom_edge_values;
-    bed_edge_values           = D->bed_edge_values;
-    stage_vertex_values       = D->stage_vertex_values;
-    xmom_vertex_values        = D->xmom_vertex_values;
-    ymom_vertex_values        = D->ymom_vertex_values;
-    bed_vertex_values         = D->bed_vertex_values;
-
-
-
-  // Use malloc to avoid putting these variables on the stack, which can cause
-  // segfaults in large model runs
-  xmom_centroid_store = malloc(number_of_elements*sizeof(double));
-  ymom_centroid_store = malloc(number_of_elements*sizeof(double));
-  stage_centroid_store = malloc(number_of_elements*sizeof(double));
 
   if(extrapolate_velocity_second_order==1){
       // Replace momentum centroid with velocity centroid to allow velocity
@@ -1290,15 +1112,6 @@ int _extrapolate_second_order_edge_sw(int number_of_elements,
               xmom_vertex_values[k3+i]=xmom_vertex_values[k3+i]*de[i];
               ymom_vertex_values[k3+i]=ymom_vertex_values[k3+i]*de[i];
           }
-
       }
-
-
   }
-
-  free(xmom_centroid_store);
-  free(ymom_centroid_store);
-  free(stage_centroid_store);
-
-  return 0;
 }
