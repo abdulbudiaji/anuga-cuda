@@ -144,14 +144,14 @@ def gravity_wb(domain):
             cuda.In( domain.quantities['stage'].vertex_values), \
             cuda.In( domain.quantities['stage'].edge_values), \
             cuda.In( domain.quantities['stage'].centroid_values), \
-			cuda.In( domain.quantities['elevation'].ege_values), \
+			cuda.In( domain.quantities['elevation'].edge_values), \
             cuda.In( domain.quantities['elevation'].centroid_values), \
             cuda.In( domain.vertex_coordinates), \
             cuda.InOut( domain.quantities['xmomentum'].explicit_update),\
             cuda.InOut( domain.quantities['ymomentum'].explicit_update),\
             cuda.In( domain.normals),\
             cuda.In( domain.areas),\
-            cuda.In( domain.edgelength),\
+            cuda.In( domain.edgelengths),\
             cuda.In( g_gpu),\
             block = ( W, W, 1),\
             grid = ( (N + W*W -1 ) / (W*W), 1) )

@@ -18,18 +18,12 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
 
     mod = SourceModule("""
         __global__ void extrapolate_second_order_sw(
-            	double elements[0],
-		        double elements[1],
-        		double elements[2],
-		        double elements[3],
-		        double elements[4],
-        		double elements[5],
-		        double elements[6],
-        		double elements[7],
+            	double* elements,
 		        long* surrogate_neighbours,
         		long* number_of_boundaries,
 		        double* centroid_coordinates,
         		double* stage_centroid_values,
+				double* bed_centroid_values,
 		        double* xmom_centroid_values,
         		double* ymom_centroid_values,
 		        double* elevation_centroid_values,
@@ -37,12 +31,10 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
 		        double* stage_vertex_values,
         		double* xmom_vertex_values,
 		        double* ymom_vertex_values,
-        		double* elevation_vertex_values,
-		        int elements[8],
-        		int extrapolate_velocity_second_order )
-        {
+        		double* elevation_vertex_values)
+		{
             int k = threadIdx.x + threadIdx.y;
-                k3 = 3*k,
+            int k3 = 3*k,
                 k6 = 6*k;
 
             double a, b;
@@ -58,7 +50,7 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
             
             // extrapolate_velocity_second_order == 1 
                 
-            dk = max(stage_centroid_values[k], - bed_centroid_values[k], elements[1])
+            dk = max(stage_centroid_values[k], - bed_centroid_values[k], elements[1]);
             xmom_centroid_store[k] = xmom_centroid_values[k];
             xmom_centroid_values[k] = xmom_centroid_values / dk;
 
@@ -68,7 +60,7 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
             
             // Begin extrapolation routine
 
-            if ( number_of_boundaries[k] == 3 )
+			if ( number_of_boundaries[k] == 3 )
             {
                 stage_vertex_values[k3] = stage_centroid_values[k];
                 stage_vertex_values[k3 +1] = stage_centroid_values[k];
@@ -502,7 +494,7 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
         }
     """)
 
-	extro_func = mod.get_function("extrapolate_second_order_sw")
+    extro_func = mod.get_function("extrapolate_second_order_sw")
     extro_func( \
     		cudaInOut( elements ), \
     		cudaInOut( domain.surrogate_neighbours ), \
@@ -983,7 +975,7 @@ def extrapolate_second_order_sw_cuda_FALSE_second_order(domain=None):
     """)
 
 
-	extro_func = mod.get_function("extrapolate_second_order_sw")
+    extro_func = mod.get_function("extrapolate_second_order_sw")
     extro_func( \
     		cudaInOut( elements ), \
     		cudaInOut( domain.surrogate_neighbours ), \
