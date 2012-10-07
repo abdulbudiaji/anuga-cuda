@@ -1,5 +1,106 @@
+#include<Python.h>
 #include "extrapolate.h"
-#define    W = 32
+
+#define    W = 16
+#define P_ERROR_BUFFER_SIZE 65
+
+void report_python_error(const char *location, const char *msg)
+{
+
+    char buf[P_ERROR_BUFFER_SIZE];
+    
+    snprintf(buf, P_ERROR_BUFFER_SIZE, "Error at %s: %s\n", location, msg);
+
+    PyErr_SetString(PyExc_RuntimeError, buf);
+}
+
+__device__ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w) {
+    // Given provisional jumps dqv from the FV triangle centroid to its
+    // vertices and jumps qmin (qmax) between the centroid of the FV
+    // triangle and the minimum (maximum) of the values at the centroid of
+    // the FV triangle and the auxiliary triangle vertices,
+    // calculate a multiplicative factor phi by which the provisional
+    // vertex jumps are to be limited
+
+    int i;
+    double r = 1000.0, r0 = 1.0, phi = 1.0;
+    static double TINY = 1.0e-100; // to avoid machine accuracy problems.
+    // FIXME: Perhaps use the epsilon used elsewhere.
+
+    // Any provisional jump with magnitude < TINY does not contribute to
+    // the limiting process.
+    for (i = 0; i < 3; i++) {
+        if (dqv[i]<-TINY)
+            r0 = qmin / dqv[i];
+
+        if (dqv[i] > TINY)
+            r0 = qmax / dqv[i];
+
+        r = min(r0, r);
+    }
+
+    phi = min(r*beta_w, 1.0);
+    //for (i=0;i<3;i++)
+    dqv[0] = dqv[0] * phi;
+    dqv[1] = dqv[1] * phi;
+    dqv[2] = dqv[2] * phi;
+
+    return 0;
+}
+
+__device__ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
+        double *qmin, double *qmax) {
+    // Considering the centroid of an FV triangle and the vertices of its
+    // auxiliary triangle, find
+    // qmin=min(q)-qc and qmax=max(q)-qc,
+    // where min(q) and max(q) are respectively min and max over the
+    // four values (at the centroid of the FV triangle and the auxiliary
+    // triangle vertices),
+    // and qc is the centroid
+    // dq0=q(vertex0)-q(centroid of FV triangle)
+    // dq1=q(vertex1)-q(vertex0)
+    // dq2=q(vertex2)-q(vertex0)
+
+    if (dq0 >= 0.0) {
+        if (dq1 >= dq2) {
+            if (dq1 >= 0.0)
+                *qmax = dq0 + dq1;
+            else
+                *qmax = dq0;
+
+            *qmin = dq0 + dq2;
+            if (*qmin >= 0.0) *qmin = 0.0;
+        } else {// dq1<dq2
+            if (dq2 > 0)
+                *qmax = dq0 + dq2;
+            else
+                *qmax = dq0;
+
+            *qmin = dq0 + dq1;
+            if (*qmin >= 0.0) *qmin = 0.0;
+        }
+    } else {//dq0<0
+        if (dq1 <= dq2) {
+            if (dq1 < 0.0)
+                *qmin = dq0 + dq1;
+            else
+                *qmin = dq0;
+
+            *qmax = dq0 + dq2;
+            if (*qmax <= 0.0) *qmax = 0.0;
+        } else {// dq1>dq2
+            if (dq2 < 0.0)
+                *qmin = dq0 + dq2;
+            else
+                *qmin = dq0;
+
+            *qmax = dq0 + dq1;
+            if (*qmax <= 0.0) *qmax = 0.0;
+        }
+    }
+    return 0;
+}
+
 
 __global__ void _extrapolate_second_order_sw_old(int number_of_elements,
         double epsilon,
@@ -13,11 +114,13 @@ __global__ void _extrapolate_second_order_sw_old(int number_of_elements,
         long* surrogate_neighbours,
         long* number_of_boundaries,
         double* centroid_coordinates,
+        double* bed_centroid_coordinates,
         double* stage_centroid_values,
         double* xmom_centroid_values,
         double* ymom_centroid_values,
         double* elevation_centroid_values,
         double* vertex_coordinates,
+        double* bed_vertex_values,
         double* stage_vertex_values,
         double* xmom_vertex_values,
         double* ymom_vertex_values,
@@ -342,7 +445,8 @@ __global__ void _extrapolate_second_order_sw_old(int number_of_elements,
             if ((k2 == k3 + 3)) {
                 // If we didn't find an internal neighbour
                 report_python_error(AT, "Internal neighbour not found");
-                return -1;
+                //return -1;
+                return;
             }
 
             k1 = surrogate_neighbours[k2];
@@ -538,12 +642,16 @@ __global__ void _extrapolate_second_order_edge_sw(int number_of_elements,
         double* stage_centroid_values,
         double* xmom_centroid_values,
         double* ymom_centroid_values,
-        double* elevation_centroid_values,
+        double* bed_centroid_values,
         double* vertex_coordinates,
         double* stage_vertex_values,
         double* xmom_vertex_values,
         double* ymom_vertex_values,
         double* elevation_vertex_values,
+        double* edge_coordinates,
+        double* stage_edge_values,
+        double* xmom_edge_values,
+        double* ymom_edge_values,
         int optimise_dry_cells,
         int extrapolate_velocity_second_order,
         double *xmom_centroid_store, 
