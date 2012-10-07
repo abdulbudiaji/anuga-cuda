@@ -10,11 +10,11 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
     elements[1] = domain.minimum_allowed_height
     elements[2] = domain.beta_w
     elements[3] = domain.beta_w_dry
-	elements[4] = domain.beta_uh
-	elements[5] = domain.beta_uh_dry
-	elements[6] = domain.beta_vh
-	elements[7] = domain.beta_vh_dry
-	elements[8] = domain.optimise_dry_cells
+    elements[4] = domain.beta_uh
+    elements[5] = domain.beta_uh_dry
+    elements[6] = domain.beta_vh
+    elements[7] = domain.beta_vh_dry
+    elements[8] = domain.optimise_dry_cells
 	
     extro_func = mod.get_function("extrapolate_second_order_sw")
     extro_func( \
@@ -532,14 +532,14 @@ def extrapolate_second_order_sw_cuda_FALSE_second_order(domain=None):
 
 
 if __name__ == '__main__':
+    from anuga_cuda.merimbula_data.generate_domain import domain_create
+
+    domain = domain_create()
+
     import pycuda.driver as cuda
     import pycuda.autoinit
     from pycuda.compiler import SourceModule
     import numpy
-
-    from anuga_cuda.merimbula_data.generate_domain import domain_create
-
-    domain = domain_create()
 
     if ( domain.extrapolate_velocity_second_order == 1):
     	print "-----extrapolate velocity second order == 1-------"
