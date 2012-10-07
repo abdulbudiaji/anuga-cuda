@@ -4,20 +4,61 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
     N = domain.number_of_elements
     W = 16
     
+    elements = numpy.random.randn(9)
+    elements = elements.astype(numpy.float64)
+    elements[0] = domain.epsilon
+    elements[1] = domain.minimum_allowed_height
+    elements[2] = domain.beta_w
+    elements[3] = domain.beta_w_dry
+	elements[4] = domain.beta_uh
+	elements[5] = domain.beta_uh_dry
+	elements[6] = domain.beta_vh
+	elements[7] = domain.beta_vh_dry
+	elements[8] = domain.optimise_dry_cells
+	
+    extro_func = mod.get_function("extrapolate_second_order_sw")
+    extro_func( \
+    		cudaInOut( elements ), \
+    		cudaInOut( domain.surrogate_neighbours ), \
+    		cudaInOut( domain.number_of_boundaries ), \
+    		cudaInOut( domain.centroid_coordinates ), \
+    		cudaInOut( domain.quantities['stage'].centroid_values ), \
+    		cudaInOut( domain.quantities['xmomentum'].centroid_values ), \
+    		cudaInOut( domain.quantities['ymomentum'].centroid_values ), \
+    		cudaInOut( domain.quantities['elevation'].centroid_values ), \
+    		cudaInOut( domain.vertex_coordinates ), \
+    		cudaInOut( domain.quantities['stage'].vertex_values ), \
+    		cudaInOut( domain.quantities['xmomentum'].vertex_values ), \
+    		cudaInOut( domain.quantities['ymomentum'].vertex_values ), \
+    		cudaInOut( domain.quantities['elevation'].vertex_values ), \
+            block = ( W, W, 1),\
+            grid = ( (N + W*W -1 ) / (W*W), 1) 
+    		)
+
     mod = SourceModule("""
-        __global__ void doublify(
-            	double *stage_centroid_values,
-            	double *stage_vertex_values,
-            	double *bed_centroid_values,
-            	// single one
-            	double *minimum_allowed_height,
-            	// store
-            	double *xmom_centroid_store,
-            	double *ymom_centroid_store,
-            	double *xmom_vertex_values,
-            	double *ymom_vertex_values,
-            	// int array
-         	   int *number_of_boundaries)
+        __global__ void extrapolate_second_order_sw(
+            	double epsilon,
+		        double minimum_allowed_height,
+        		double beta_w,
+		        double beta_w_dry,
+		        double beta_uh,
+        		double beta_uh_dry,
+		        double beta_vh,
+        		double beta_vh_dry,
+		        long* surrogate_neighbours,
+        		long* number_of_boundaries,
+		        double* centroid_coordinates,
+        		double* stage_centroid_values,
+		        double* xmom_centroid_values,
+        		double* ymom_centroid_values,
+		        double* elevation_centroid_values,
+        		double* vertex_coordinates,
+		        double* stage_vertex_values,
+        		double* xmom_vertex_values,
+		        double* ymom_vertex_values,
+        		double* elevation_vertex_values,
+		        int optimise_dry_cells,
+        		int extrapolate_velocity_second_order )
         {
             int k = threadIdx.x + threadIdx.y;
                 k3 = 3*k,
