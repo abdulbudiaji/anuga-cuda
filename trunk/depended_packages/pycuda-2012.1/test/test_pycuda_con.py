@@ -10,21 +10,24 @@ def pycuda_Doubled():
 	a = numpy.random.randn(4,4)
 
 	a = a.astype(numpy.float32)
-
 	mod=SourceModule("""
+		#define W 16
+
 		__global__ void doublify(float *a)  
 		{    
 			int b = max(1,3);
 			int idx = threadIdx.x + threadIdx.y*4;    
-			a[idx] *= 2;  
+			a[idx] = W;  
 		}  
 		""")
 	
 	print a
 	func = mod.get_function("doublify")
 	func(cuda.InOut(a), block=(4,4,1))
+	print a
 
-
+	
+	func(cuda.InOut(a), block=(4,4,1))
 	print a
 
 if __name__ == "__main__":
