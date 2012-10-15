@@ -484,6 +484,7 @@ def compute_fluxes_central_structure_cuda(domain):
 
     mod = SourceModule("""
 #include "math.h"
+#define Dtimestep 0
 #define Depsilon 1
 #define DH0 2
 #define Dg 3
@@ -684,8 +685,20 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
     return 0;
 }
 
+__device__ double cuda_atomicAdd(double *address, double val)
+{
+    double assumed,old=*address;
+    do {
+        assumed=old;
+        old= __longlong_as_double(atomicCAS((unsigned long long int*)address,
+                    __double_as_longlong(assumed),
+                    __double_as_longlong(val+assumed)));
+    }while (assumed!=old);
 
-__global__ void compute_fluxes_central_structure(
+    return old;
+}
+
+__global__ void compute_fluxes_central_structure_1(
         double * elements,
         double * timestep,
         long * neighbours,
@@ -787,18 +800,26 @@ __global__ void compute_fluxes_central_structure(
 
 
 
-        stage_explicit_update[k] -= edgeflux[0];
-        xmom_explicit_update[k] -= edgeflux[1];
-        ymom_explicit_update[k] -= edgeflux[2];
+        //stage_explicit_update[k] -= edgeflux[0];
+        //xmom_explicit_update[k] -= edgeflux[1];
+        //ymom_explicit_update[k] -= edgeflux[2];
+        
+        cuda_atomicAdd( stage_explicit_update + k, -edgeflux[0] );
+        cuda_atomicAdd( xmom_explicit_update + k, -edgeflux[1] );
+        cuda_atomicAdd( ymom_explicit_update + k, -edgeflux[2] );
+
 
         already_computed_flux[ki] = elements[Dcall]; // #k Done
 
 
 
         if (n >= 0) {
-            stage_explicit_update[n] += edgeflux[0];
-            xmom_explicit_update[n] += edgeflux[1];
-            ymom_explicit_update[n] += edgeflux[2];
+            //stage_explicit_update[n] += edgeflux[0];
+            //xmom_explicit_update[n] += edgeflux[1];
+            //ymom_explicit_update[n] += edgeflux[2];
+            cuda_atomicAdd( stage_explicit_update+n, edgeflux[0] );
+            cuda_atomicAdd( xmom_explicit_update+n, edgeflux[1] );
+            cuda_atomicAdd( ymom_explicit_update+n, edgeflux[2] );
 
             already_computed_flux[nm] = elements[Dcall]; // #n Done
             max_speed_array[n] = max_speed;
@@ -819,36 +840,221 @@ __global__ void compute_fluxes_central_structure(
 
     } // End edge i (and neighbour n)
 
-    __syncthreads();
+    //__syncthreads();
 
     
-    inv_area = 1.0 / areas[k];
-    stage_explicit_update[k] *= inv_area;
-    xmom_explicit_update[k] *= inv_area;
-    ymom_explicit_update[k] *= inv_area;
+    //inv_area = 1.0 / areas[k];
+    //stage_explicit_update[k] *= inv_area;
+    //xmom_explicit_update[k] *= inv_area;
+    //ymom_explicit_update[k] *= inv_area;
 
     max_speed_array[k] = max(max_speed_array[k], max_speed);
 
     //return timestep;
 }
 
+// sequential version
+__global__ void compute_fluxes_central_structure(
+        double * elements,
+        double * timestep,
+        long * neighbours,
+        long * neighbour_edges,
+        double * normals,
+        double * edgelengths,
+        double * radii,
+        double * areas,
+        double * tri_full_flag,
+        double * stage_edge_values,
+        double * xmom_edge_values,
+        double * ymom_edge_values,
+        double * bed_edge_values,
+        double * stage_boundary_values,
+        double * xmom_boundary_values,
+        double * ymom_boundary_values,
+        double * stage_explicit_update,
+        double * xmom_explicit_update,
+        double * ymom_explicit_update, 
+        long * already_computed_flux,
+        double * max_speed_array)
+{
+    int k ;//= threadIdx.x + threadIdx.y + blockIdx.x * blockDim.x + blockIdx.y *blockDim.y;
+
+    // Local variables
+    double max_speed, length, inv_area, zl, zr;
+
+    double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
+
+    double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
+    // threshold for performance reasons.
+    // See ANUGA manual under flux limiting
+    int i, m, n;
+    int ki, nm = 0, ki2; // Index shorthands
+
+
+    // Workspace (making them static actually made function slightly slower (Ole))
+    double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
+
+    //static long call = 1; // Static local variable flagging already computed flux
+
+    // Start computation
+    //call++; // Flag 'id' of flux calculation for this timestep
+
+for(k=0;k<43200;k++)
+{
+    // Loop through neighbours and compute edge flux for each
+    for (i = 0; i < 3; i++) {
+        ki = k * 3 + i; // Linear index to edge i of triangle k
+
+        if (already_computed_flux[ki] == elements[Dcall]) {
+            // We've already computed the flux across this edge
+            continue;
+            
+        }
+
+        // Get left hand side values from triangle k, edge i
+        ql[0] = stage_edge_values[ki];
+        ql[1] = xmom_edge_values[ki];
+        ql[2] = ymom_edge_values[ki];
+        zl = bed_edge_values[ki];
+
+        // Get right hand side values either from neighbouring triangle
+        // or from boundary array (Quantities at neighbour on nearest face).
+        n = neighbours[ki];
+        if (n < 0) {
+            // Neighbour is a boundary condition
+            m = -n - 1; // Convert negative flag to boundary index
+
+            qr[0] = stage_boundary_values[m];
+            qr[1] = xmom_boundary_values[m];
+            qr[2] = ymom_boundary_values[m];
+            zr = zl; // Extend bed elevation to boundary
+        } else {
+            // Neighbour is a real triangle
+            m = neighbour_edges[ki];
+            nm = n * 3 + m; // Linear index (triangle n, edge m)
+
+            qr[0] = stage_edge_values[nm];
+            qr[1] = xmom_edge_values[nm];
+            qr[2] = ymom_edge_values[nm];
+            zr = bed_edge_values[nm];
+        }
+
+        // Now we have values for this edge - both from left and right side.
+
+        if (elements[Doptimise_dry_cells]) {
+            // Check if flux calculation is necessary across this edge
+            // This check will exclude dry cells.
+            // This will also optimise cases where zl != zr as
+            // long as both are dry
+
+            if (fabs(ql[0] - zl) < elements[Depsilon] &&
+                    fabs(qr[0] - zr) < elements[Depsilon]) {
+                // Cell boundary is dry
+
+                already_computed_flux[ki] = elements[Dcall]; // #k Done
+                if (n >= 0) {
+                    already_computed_flux[nm] = elements[Dcall]; // #n Done
+                }
+
+                max_speed = 0.0;
+                continue;
+                
+            }
+        }
+
+
+        /*
+           if (fabs(zl - zr) > 1.0e-10) {
+           report_python_error(AT, "Discontinuous Elevation");
+           return 0.0;
+           }
+         */
+
+        // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
+        ki2 = 2 * ki; //k*6 + i*2
+
+        // Edge flux computation (triangle k, edge i)
+        _flux_function_central(ql, qr, zl, zr,
+                normals[ki2], normals[ki2 + 1],
+                elements[Depsilon], h0, limiting_threshold, elements[Dg],
+                edgeflux, &max_speed);
+
+
+        // Multiply edgeflux by edgelength
+        length = edgelengths[ki];
+        edgeflux[0] *= length;
+        edgeflux[1] *= length;
+        edgeflux[2] *= length;
+
+
+        // Update triangle k with flux from edge i
+        stage_explicit_update[k] -= edgeflux[0];
+        xmom_explicit_update[k] -= edgeflux[1];
+        ymom_explicit_update[k] -= edgeflux[2];
+
+        already_computed_flux[ki] = elements[Dcall]; // #k Done
+
+
+        // Update neighbour n with same flux but reversed sign
+        if (n >= 0) {
+            stage_explicit_update[n] += edgeflux[0];
+            xmom_explicit_update[n] += edgeflux[1];
+            ymom_explicit_update[n] += edgeflux[2];
+
+            already_computed_flux[nm] = elements[Dcall]; // #n Done
+        }
+
+        // Update timestep based on edge i and possibly neighbour n
+        if (tri_full_flag[k] == 1) {
+            if (max_speed > elements[Depsilon]) {
+                // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+
+                // CFL for triangle k
+                elements[Dtimestep] = min(elements[Dtimestep], radii[k] / max_speed);
+
+                if (n >= 0) {
+                    // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
+                    elements[Dtimestep] = min(elements[Dtimestep], radii[n] / max_speed);
+                }
+
+                // Ted Rigby's suggested less conservative version
+                //if (n>=0) {
+                //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
+                //} else {
+                //  timestep = min(timestep, radii[k]/max_speed);
+                // }
+            }
+        }
+
+    } // End edge i (and neighbour n)
+
+
+    // Normalise triangle k by area and store for when all conserved
+    // quantities get updated
+    inv_area = 1.0 / areas[k];
+    stage_explicit_update[k] *= inv_area;
+    xmom_explicit_update[k] *= inv_area;
+    ymom_explicit_update[k] *= inv_area;
+
+
+    // Keep track of maximal speeds
+    max_speed_array[k] = max_speed;
+}
+    //return timestep;
+}
+
+
     """)
     
     elements = numpy.random.randn(6)
     elements = elements.astype(numpy.float64)
-    elements[0] = domain.timestep
+    elements[0] = domain.evolve_max_timestep
     elements[1] = domain.epsilon
     elements[2] = domain.H0
     elements[3] = domain.g
     elements[4] = domain.optimise_dry_cells
     elements[5] = compute_fluxes_central_structure_call
     
-    if (elements[0] != domain.timestep) :
-        print 1
-    if (elements[4] != domain.optimise_dry_cells):
-        print 4
-    if (elements[5] != compute_fluxes_central_structure_call ):
-        print 5
 
     timestep_array = numpy.zeros( (domain.number_of_elements) , dtype=numpy.float64)
     
@@ -868,10 +1074,39 @@ __global__ void compute_fluxes_central_structure(
     else:
         raise Exception('N can not be splited')
 
+    a= 2
+    if a == 1:
+        compute_fluxes_central_function = mod.get_function('compute_fluxes_central_structure')
+        compute_fluxes_central_function( \
+                cuda.InOut( elements ), \
+                cuda.InOut( timestep_array ), \
+                cuda.In( domain.neighbours ), \
+                cuda.In( domain.neighbour_edges ),\
+                cuda.In( domain.normals ), \
+                cuda.In( domain.edgelengths ), \
+                cuda.In( domain.radii ), \
+                cuda.In( domain.areas ), \
+                cuda.In( domain.tri_full_flag ),\
+                cuda.In( domain.quantities['stage'].edge_values ), \
+                cuda.In( domain.quantities['xmomentum'].edge_values ), \
+                cuda.In( domain.quantities['ymomentum'].edge_values ), \
+                cuda.In( domain.quantities['elevation'].edge_values ), \
+                cuda.In( domain.quantities['stage'].boundary_values ), \
+                cuda.In( domain.quantities['xmomentum'].boundary_values ), \
+                cuda.In( domain.quantities['ymomentum'].boundary_values ), \
+                cuda.InOut( domain.quantities['stage'].explicit_update ), \
+                cuda.InOut( domain.quantities['xmomentum'].explicit_update ), \
+                cuda.InOut( domain.quantities['ymomentum'].explicit_update ), \
+                cuda.InOut( domain.already_computed_flux ), \
+                cuda.InOut( domain.max_speed), \
+                block = ( 1, 1, 1),\
+                grid = ( 1 , 1) )
 
-    compute_fluxes_central_function = mod.get_function('compute_fluxes_central_structure')
-    compute_fluxes_central_function( \
-            cuda.In( elements ), \
+        print elements[0];
+    else:
+        compute_fluxes_central_function = mod.get_function('compute_fluxes_central_structure_1')
+        compute_fluxes_central_function( \
+            cuda.InOut( elements ), \
             cuda.InOut( timestep_array ), \
             cuda.In( domain.neighbours ), \
             cuda.In( domain.neighbour_edges ),\
@@ -893,13 +1128,18 @@ __global__ void compute_fluxes_central_structure(
             cuda.InOut( domain.already_computed_flux ), \
             cuda.InOut( domain.max_speed), \
             block = ( W1, W2, 1),\
-            grid = ( (N + W1*W2 -1 ) / (W1*W2), 1) )
+            grid = ( (N + W1*W2 -1)/(W1*W2) , 1) )
 
-    print "-------- time step array"
-    b = numpy.argsort(timestep_array)
-    print timestep_array[b[0]]
-    domain.flux_timestep = timestep_array[b[0]] 
-    print "----------------"
+
+        for k in range(N):
+            inv_area = 1.0 / domain.areas[k];
+            domain.quantities['stage'].explicit_update[k] *= inv_area;
+            domain.quantities['xmomentum'].explicit_update[k] *= inv_area;
+            domain.quantities['ymomentum'].explicit_update[k] *= inv_area;
+    
+        b = numpy.argsort(timestep_array)
+        domain.flux_timestep = timestep_array[b[0]] 
+    
 
 
 def test_domain1():
@@ -1064,6 +1304,7 @@ if __name__ == '__main__':
     for i in range(domain1.number_of_elements):
         if ( domain1.quantities['xmomentum'].explicit_update[i] != domain2.quantities['xmomentum'].explicit_update[i]):
             counter += 1
+            #print i, domain1.quantities['xmomentum'].explicit_update[i], domain2.quantities['xmomentum'].explicit_update[i]
     print "---------> # of differences: %d" % counter
 
     
