@@ -792,6 +792,14 @@ __global__ void compute_fluxes_central_structure_1(
                 elements[Depsilon], h0, limiting_threshold, elements[Dg],
                 edgeflux, &max_speed);
 
+        /////////////////////////////////////////////////////////////////////
+
+
+
+        
+
+
+        /////////////////////////////////////////////////////////////////////
 
         length = edgelengths[ki];
         edgeflux[0] *= length;
