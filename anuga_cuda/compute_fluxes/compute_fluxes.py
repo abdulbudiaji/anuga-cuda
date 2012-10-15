@@ -1312,7 +1312,8 @@ if __name__ == '__main__':
     for i in range(domain1.number_of_elements):
         if ( domain1.quantities['xmomentum'].explicit_update[i] != domain2.quantities['xmomentum'].explicit_update[i]):
             counter += 1
-            #print i, domain1.quantities['xmomentum'].explicit_update[i], domain2.quantities['xmomentum'].explicit_update[i]
+            if counter < 30:
+                print i, domain1.quantities['xmomentum'].explicit_update[i], domain2.quantities['xmomentum'].explicit_update[i]
     print "---------> # of differences: %d" % counter
 
     
