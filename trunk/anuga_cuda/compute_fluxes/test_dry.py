@@ -17,7 +17,7 @@ def is_dry(domain, k, i = 0):
         qr.append( domain.quantities['ymomentum'].boundary_values[m] )
         zr = zl
     else:
-        m = domain.neighbour_edges[ki];
+        m = domain.neighbour_edges[k][i];
         
 
         qr.append( domain.quantities['stage'].edge_values[n][m] )
