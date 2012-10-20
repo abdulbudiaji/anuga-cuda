@@ -880,7 +880,7 @@ __global__ void _compute_fluxes_central_structure(
         long * already_computed_flux,
         double * max_speed_array)
 {
-    int k = threadIdx.x + threadIdx.y + blockIdx.x * blockDim.x + blockIdx.y *blockDim.y;
+    int k ;//= threadIdx.x + threadIdx.y + blockIdx.x * blockDim.x + blockIdx.y *blockDim.y;
 
     // Local variables
     double max_speed, length, inv_area, zl, zr;
@@ -902,7 +902,8 @@ __global__ void _compute_fluxes_central_structure(
     // Start computation
     //call++; // Flag 'id' of flux calculation for this timestep
 
-
+for(k=0;k<43200;k++)
+{
     // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++) {
         ki = k * 3 + i; // Linear index to edge i of triangle k
@@ -1030,7 +1031,7 @@ __global__ void _compute_fluxes_central_structure(
 
     } // End edge i (and neighbour n)
 
-
+}
     // Normalise triangle k by area and store for when all conserved
     // quantities get updated
     inv_area = 1.0 / areas[k];
@@ -1086,16 +1087,21 @@ __global__ void compute_fluxes_central_structure_cuda(
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
 
+    double temp=0;
+
+
+    double w_left, h_left, uh_left, vh_left, u_left;
+    double w_right, h_right, uh_right, vh_right, u_right;
+    double s_min, s_max, soundspeed_left, soundspeed_right;
+    double denom, inverse_denominator, z;
+    
+    double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
+
      // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++) {
         ki = k * 3 + i; // Linear index to edge i of triangle k
 
         n = neighbours[ki];
-
-        if (already_computed_flux[ki] == elements[Dcall] || n >= 0 && n < k) {
-            // We've already computed the flux across this edge
-            continue;
-        }
 
         // Get left hand side values from triangle k, edge i
         ql[0] = stage_edge_values[ki];
@@ -1137,11 +1143,6 @@ __global__ void compute_fluxes_central_structure_cuda(
                     fabs(qr[0] - zr) < elements[Depsilon]) {
                 // Cell boundary is dry
 
-                already_computed_flux[ki] = elements[Dcall]; // #k Done
-                if (n >= 0) {
-                    already_computed_flux[nm] = elements[Dcall]; // #n Done
-                }
-
                 max_speed = 0.0;
                 continue;
             }
@@ -1152,11 +1153,155 @@ __global__ void compute_fluxes_central_structure_cuda(
         // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
         ki2 = 2 * ki; //k*6 + i*2
 
+        /*
         // Edge flux computation (triangle k, edge i)
         _flux_function_central(ql, qr, zl, zr,
-                normals[ki2], normals[ki2 + 1],
+               normals[ki2], normals[ki2 + 1],
                 elements[Depsilon], h0, limiting_threshold, elements[Dg],
                 edgeflux, &max_speed);
+        */
+
+
+        q_left_rotated[0] = ql[0];
+        q_right_rotated[0] = qr[0];
+    q_left_rotated[1] = ql[1];
+    q_right_rotated[1] = qr[1];
+    q_left_rotated[2] = ql[2];
+    q_right_rotated[2] = qr[2];
+        //_rotate(double *q, double n1, double n2)
+
+        
+        temp = q_left_rotated[1];
+        q_left_rotated[1] = normals[ki2] * q_left_rotated[1] + normals[ki2+1]*q_left_rotated[2];
+        q_left_rotated[2] = -normals[ki2+1] * temp + normals[ki2]*q_left_rotated[2];
+
+        temp = q_right_rotated[1];
+        q_right_rotated[1] = normals[ki2] * q_right_rotated[1] + normals[ki2+1]*q_right_rotated[2];
+        q_right_rotated[2] = -normals[ki2+1] * temp + normals[ki2]*q_right_rotated[2];
+        
+        z = 0.5 * (zl + zr);
+
+        
+    h_left =  q_left_rotated[0] - z;
+    uh_left = q_left_rotated[1];
+    //u_left = _compute_speed(&uh_left, &h_left,
+    //        epsilon, h0, limiting_threshold);
+    if( h_left < limiting_threshold)
+    {
+        if(h_left < elements[Depsilon] )
+        {
+            h_left = 0.0;
+            u_left = 0.0;
+        }
+        else 
+            u_left = uh_left/ (h_left + h0/h_left);
+        uh_left = u_left * h_left;
+    }
+    else
+        u_left = uh_left / h_left;
+
+
+
+    
+    h_right = q_right_rotated[0] - z;
+    uh_right = q_right_rotated[1];
+    //u_right = _compute_speed(&uh_right, &h_right,
+    //        epsilon, h0, limiting_threshold);
+    if( h_right < limiting_threshold)
+    {
+        if(h_right < elements[Depsilon] )
+        {
+            h_right = 0.0;
+            u_right = 0.0;
+        }
+        else 
+            u_right = uh_right/ (h_right + h0/h_right);
+        uh_right = u_right * h_right;
+    }
+    else
+        u_right = uh_right / h_right;
+
+
+    
+    vh_left = q_left_rotated[2];
+    vh_right = q_right_rotated[2];
+    
+    //_compute_speed(&vh_left, &h_left,
+    //        epsilon, h0, limiting_threshold);
+    if( h_left < limiting_threshold)
+    {
+        if(h_left < elements[Depsilon] )
+        {
+            h_left = 0.0;
+            temp = 0.0;
+        }
+        else 
+            temp = vh_left/ (h_left + h0/h_left);
+        vh_left = u_left * h_left;
+    }
+
+    //_compute_speed(&vh_right, &h_right,
+    //        epsilon, h0, limiting_threshold);
+    if( h_right < limiting_threshold)
+    {
+        if(h_right < elements[Depsilon] )
+        {
+            h_right = 0.0;
+            temp = 0.0;
+        }
+        else 
+            temp = vh_right/ (h_right + h0/h_right);
+        vh_right = temp * h_right;
+    }
+
+
+    soundspeed_left = sqrt(elements[Dg] * h_left);
+    soundspeed_right = sqrt(elements[Dg] * h_right);
+
+    s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+    if (s_max < 0.0) {
+        s_max = 0.0;
+    }
+
+    s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+    if (s_min > 0.0) {
+        s_min = 0.0;
+    }
+
+    // Flux formulas
+    flux_left[0] = u_left*h_left;
+    flux_left[1] = u_left * uh_left + 0.5 * elements[Dg] * h_left*h_left;
+    flux_left[2] = u_left*vh_left;
+
+    flux_right[0] = u_right*h_right;
+    flux_right[1] = u_right * uh_right + 0.5 * elements[Dg] * h_right*h_right;
+    flux_right[2] = u_right*vh_right;
+
+    // Flux computation
+    denom = s_max - s_min;
+    if (denom < elements[Depsilon]) { // FIXME (Ole): Try using h0 here
+        memset(edgeflux, 0, 3 * sizeof (double));
+        max_speed = 0.0;
+    }
+    else {
+        inverse_denominator = 1.0 / denom;
+        for (i = 0; i < 3; i++) {
+            edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
+            edgeflux[i] += s_max * s_min * (q_right_rotated[i] - q_left_rotated[i]);
+            edgeflux[i] *= inverse_denominator;
+        }
+
+        // Maximal wavespeed
+        max_speed = max(fabs(s_max), fabs(s_min));
+
+        // Rotate back
+        //_rotate(edgeflux, n1, -n2);
+        temp = edgeflux[1];
+        edgeflux[1] = normals[ki2] * edgeflux[1] + normals[ki2+1]*edgeflux[2];
+        edgeflux[2] = -normals[ki2+1] * temp + normals[ki2]*edgeflux[2];
+
+    }
+
 
 
         // Multiply edgeflux by edgelength
@@ -1171,19 +1316,7 @@ __global__ void compute_fluxes_central_structure_cuda(
         xmom_explicit_update[k] -= edgeflux[1];
         ymom_explicit_update[k] -= edgeflux[2];
 
-        already_computed_flux[ki] = elements[Dcall]; // #k Done
 
-
-        if (n >= 0) {
-            stage_explicit_update[n] += edgeflux[0];
-            xmom_explicit_update[n] += edgeflux[1];
-            ymom_explicit_update[n] += edgeflux[2];
-
-            already_computed_flux[n] = elements[Dcall]; // #n Done
-
-            // weng from sequential to parallel
-            max_speed_array[nm] = max_speed;
-        }
 
 
         if (tri_full_flag[k] == 1) {
@@ -1197,16 +1330,18 @@ __global__ void compute_fluxes_central_structure_cuda(
 
     } // End edge i (and neighbour n)
 
-    __syncthreads();
 
     inv_area = 1.0 / areas[k];
     stage_explicit_update[k] *= inv_area;
     xmom_explicit_update[k] *= inv_area;
     ymom_explicit_update[k] *= inv_area;
 
-    max_speed_array[k] = max(max_speed_array[k], max_speed);
+    max_speed_array[k] = max_speed;
 
 }
+
+
+
 
 /*
  * elements[0] = _timestep
