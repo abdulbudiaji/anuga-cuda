@@ -67,60 +67,10 @@ def gravity(domain):
     print domain.quantities['xmomentum'].explicit_update
     print domain.quantities['ymomentum'].explicit_update
  
-def gravity_wb(domain):
+def gravity_wb(domain, temp_array):
     N = domain.number_of_elements
     
-
-    
-    
     mod = SourceModule( """
-
-        __device__ int _gradient(double x0, double y0, 
-                double x1, double y1, 
-                double x2, double y2, 
-                double q0, double q1, double q2, 
-                double *a, double *b) 
-        {
-
-            /*Compute gradient (a,b) based on three points (x0,y0), (x1,y1) and (x2,y2) 
-              with values q0, q1 and q2.
-
-              Extrapolation formula (q0 is selected as an arbitrary origin)
-              q(x,y) = q0 + a*(x-x0) + b*(y-y0)                    (1)
-
-              Substituting the known values for q1 and q2 into (1) yield the 
-              equations for a and b 
-
-              q1-q0 = a*(x1-x0) + b*(y1-y0)                      (2)
-              q2-q0 = a*(x2-x0) + b*(y2-y0)                      (3)      
-
-              or in matrix form
-
-              /               \  /   \   /       \  
-              |  x1-x0  y1-y0 |  | a |   | q1-q0 |
-              |               |  |   | = |       | 
-              |  x2-x0  y2-y0 |  | b |   | q2-q0 |
-              \               /  \   /   \       /
-
-             which is solved using the standard determinant technique    
-
-            */
-
-
-            double det;
-
-            det = (y2-y0)*(x1-x0) - (y1-y0)*(x2-x0);
-
-            *a = (y2-y0)*(q1-q0) - (y1-y0)*(q2-q0);
-            *a /= det;
-
-            *b = (x1-x0)*(q2-q0) - (x2-x0)*(q1-q0);
-            *b /= det;
-
-            return 0;
-        }
-
-        
         __global__ void gravity_wb(
                 double * stage_vertex_values, 
                 double * stage_edge_values, 
@@ -133,34 +83,36 @@ def gravity_wb(domain):
                 double * normals, 
                 double * areas, 
                 double * edgelengths,
-                double * g)
+                double * g,
+                double * temp_array)
         {
             const int k = threadIdx.x + (blockIdx.x )*blockDim.x;
 
-            int k3 = 3*k,
-                k6 = 6*k;
-                
             int i;
             
-            double 
-                w0 = stage_vertex_values[k3],
-                w1 = stage_vertex_values[k3 + 1],
-                w2 = stage_vertex_values[k3 + 2],
-    
-                avg_h = stage_centroid_values[k] - bed_centroid_values[k],
-    
-                x0 = vertex_coordinates[k6],
-                y0 = vertex_coordinates[k6 + 1],
-                x1 = vertex_coordinates[k6 + 2],
-                y1 = vertex_coordinates[k6 + 3],
-                x2 = vertex_coordinates[k6 + 4],
-				y2 = vertex_coordinates[k6 + 5],
+            double w0, w1, w2, 
+                    x0, y0, x1, y1, x2, y2,
+                    avg_h;
                     
-                wx, wy, det,
-                hh[3],
-                sidex, sidey, area, n0, n1, fact;
+            double wx, wy, det,
+                hh[3];
+            double sidex, sidey, area, n0, n1, fact;
+
     
+            w0 = stage_vertex_values[3*k + 0];
+            w1 = stage_vertex_values[3*k + 1];
+            w2 = stage_vertex_values[3*k + 2];
+
+            x0 = vertex_coordinates[k*6 + 0];
+            y0 = vertex_coordinates[k*6 + 1];
+            x1 = vertex_coordinates[k*6 + 2];
+            y1 = vertex_coordinates[k*6 + 3];
+            x2 = vertex_coordinates[k*6 + 4];
+            y2 = vertex_coordinates[k*6 + 5];
+
+        
             //_gradient(x0, y0, x1, y1, x2, y2, w0, w1, w2, &wx, &wy);
+
             det = (y2 - y0)*(x1 - x0) - (y1 - y0)*(x2 - x0);
     
             wx = (y2 -y0)*(w1 - w0) - (y1 - y0)*(w2 -w0);
@@ -170,30 +122,39 @@ def gravity_wb(domain):
             wy /= det;
     
 
+            avg_h = stage_centroid_values[k] - bed_centroid_values[k];
 
             xmom_explicit_update[k] += -g[0] * wx * avg_h;
             ymom_explicit_update[k] += -g[0] * wy * avg_h;
     
-            hh[0] = stage_edge_values[k3] - bed_edge_values[k3];
-            hh[1] = stage_edge_values[k3+1] - bed_edge_values[k3+1];
-            hh[2] = stage_edge_values[k3+2] - bed_edge_values[k3+2];
-            
+
+            hh[0] = stage_edge_values[k*3] - bed_edge_values[k*3];
+            hh[1] = stage_edge_values[k*3+1] - bed_edge_values[k*3+1];
+            hh[2] = stage_edge_values[k*3+2] - bed_edge_values[k*3+2];
+
             sidex = 0.0;
             sidey = 0.0;
-            
+            area = areas[k];
+
             for ( i = 0 ; i < 3 ; i++ )
             {
-                n0 = normals[k6 + 2*i];
-                n1 = normals[k6 + 2*i + 1];
+                n0 = normals[k*6 + 2*i];
+                n1 = normals[k*6 + 2*i + 1];
                 
-                fact =  -0.5 * g[0] * hh[i] * hh[i] * edgelengths[k3 + i];
-                sidex = sidex + fact*n0;
-                sidey = sidey + fact*n1;
+                fact =  -0.5 * g[0] * hh[i] * hh[i] * edgelengths[k*3 + i];
+                
+                sidex += fact*n0;
+                sidey += fact*n1;
+                //if ( i== 0 )
+                //{
+                    temp_array[k*6 + 2*i] = fact*n0;
+                    temp_array[k*6 + 2*i + 1] = fact*n1;
+                //    return;
+                //}
             }
             
-            area = areas[k];
-            xmom_explicit_update[k] += -sidex / area;
-            ymom_explicit_update[k] += -sidey / area;
+            //xmom_explicit_update[k] += -sidex / area;
+            //ymom_explicit_update[k] += -sidey / area;
                 
         }
         """)
@@ -207,27 +168,30 @@ def gravity_wb(domain):
 
     g_gpu = numpy.zeros(1, dtype=numpy.float64)
     g_gpu[0] = domain.g
-    
+
+        
     gravity_wb_func = mod.get_function("gravity_wb")
-    gravity_wb_func( \
-            cuda.In( domain.quantities['stage'].vertex_values), \
-            cuda.In( domain.quantities['stage'].edge_values), \
-            cuda.In( domain.quantities['stage'].centroid_values), \
-			cuda.In( domain.quantities['elevation'].edge_values), \
-            cuda.In( domain.quantities['elevation'].centroid_values), \
-            cuda.In( domain.vertex_coordinates), \
-            cuda.InOut( domain.quantities['xmomentum'].explicit_update),\
-            cuda.InOut( domain.quantities['ymomentum'].explicit_update),\
-            cuda.In( domain.normals),\
-            cuda.In( domain.areas),\
-            cuda.In( domain.edgelengths),\
-            cuda.In( g_gpu),\
-            block = ( W1, 1, 1),\
+    gravity_wb_func( 
+            cuda.In( domain.quantities['stage'].vertex_values), 
+            cuda.In( domain.quantities['stage'].edge_values), 
+            cuda.In( domain.quantities['stage'].centroid_values), 
+			cuda.In( domain.quantities['elevation'].edge_values), 
+            cuda.In( domain.quantities['elevation'].centroid_values), 
+            cuda.In( domain.vertex_coordinates), 
+            cuda.InOut( domain.quantities['xmomentum'].explicit_update),
+            cuda.InOut( domain.quantities['ymomentum'].explicit_update),
+            cuda.In( domain.normals),
+            cuda.In( domain.areas),
+            cuda.In( domain.edgelengths),
+            cuda.In( g_gpu),
+            cuda.InOut(temp_array),
+            block = ( W1, 1, 1),
             grid = ( (N + W1 -1 ) / W1, 1) )
     
     #print "----------Gravity_wb------------------------"
-    #print domain.quantities['xmomentum'].explicit_update
-    #print domain.quantities['ymomentum'].explicit_update
+    
+
+
 
 
 
@@ -320,9 +284,13 @@ def gravity_old( domain ):
     print domain.quantities['ymomentum'].explicit_update
 
 
+
+
 from anuga_cuda.merimbula_data.generate_domain import *
-domain=domain_create()
-def gravity_single(domain, k=0):
+#domain=domain_create()
+
+
+def gravity_single(domain, k=0, flag = 4):
     import numpy
     w0 = domain.quantities['stage'].vertex_values[k][0]
     w1 = domain.quantities['stage'].vertex_values[k][1]
@@ -344,19 +312,27 @@ def gravity_single(domain, k=0):
     wy = (x1 - x0)*(w2 - w0) - (x2 - x0)*(w1 -w0)
     wy /= det
 
-    avg_h = domain.quantities['stage'].centroid_values[k] - domain.quantities['elevation'].centroid_values[k]
+    avg_h = domain.quantities['stage'].centroid_values[k] -\
+            domain.quantities['elevation'].centroid_values[k]
 
     
     domain.quantities['xmomentum'].explicit_update[k] += -domain.g * wx*avg_h
     domain.quantities['ymomentum'].explicit_update[k] += -domain.g * wy*avg_h
+    
+    if flag == 3:
+        return
 
     hh = numpy.zeros(3, dtype=numpy.float64)
 
-    hh[0] = domain.quantities['stage'].edge_values[k][0] - domain.quantities['elevation'].edge_values[k][0]
-    hh[1] = domain.quantities['stage'].edge_values[k][1] - domain.quantities['elevation'].edge_values[k][1]
-    hh[2] = domain.quantities['stage'].edge_values[k][2] - domain.quantities['elevation'].edge_values[k][2]
+    hh[0] = domain.quantities['stage'].edge_values[k][0] -\
+            domain.quantities['elevation'].edge_values[k][0]
+    hh[1] = domain.quantities['stage'].edge_values[k][1] -\
+            domain.quantities['elevation'].edge_values[k][1]
+    hh[2] = domain.quantities['stage'].edge_values[k][2] -\
+            domain.quantities['elevation'].edge_values[k][2]
 
-
+    
+    
     sidex = 0.0
     sidey = 0.0
     for i in range(3): 
@@ -364,9 +340,20 @@ def gravity_single(domain, k=0):
         n1 = domain.normals[k][2 * i + 1]
 
         fact = -0.5 * domain.g * hh[i] * hh[i] * domain.edgelengths[k][i]
+        
+        
         sidex = sidex + fact*n0
         sidey = sidey + fact*n1
 
+        if i == flag or ( i == 2 and flag == 5):
+            domain.quantities['xmomentum'].explicit_update[k] = fact*n0
+            domain.quantities['ymomentum'].explicit_update[k] = fact*n1
+            if flag == 5:
+                area = domain.areas[k]
+                domain.quantities['xmomentum'].explicit_update[k] = sidex / area
+                domain.quantities['ymomentum'].explicit_update[k] = sidey / area
+            return
+            
     area = domain.areas[k]
     domain.quantities['xmomentum'].explicit_update[k] += -sidex / area
     domain.quantities['ymomentum'].explicit_update[k] += -sidey / area
@@ -375,6 +362,11 @@ def gravity_single(domain, k=0):
 if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import *
     domain1 = domain_create()
+
+    domain2 = domain_create()
+
+    domain3 = domain_create()
+
 
     if domain1.compute_fluxes_method == 'original':
         from shallow_water_ext import gravity as gravity_c
@@ -405,7 +397,8 @@ if __name__ == '__main__':
     from pycuda.compiler import SourceModule
     import numpy
 
-    domain2 = domain_create()
+    
+    temp_array = numpy.zeros((domain1.number_of_elements, 3,2), dtype=numpy.float64)
 
 
     if domain2.compute_fluxes_method == 'original':
@@ -415,7 +408,7 @@ if __name__ == '__main__':
         gravity(domain2)
 
     elif domain2.compute_fluxes_method == 'wb_2':
-        gravity_wb(domain2)
+        gravity_wb(domain2, temp_array)
 
     elif domain2.compute_fluxes_method == 'wb_3':
 
@@ -424,25 +417,70 @@ if __name__ == '__main__':
     else:
         raise Exception('unknown compute_fluxes_method')
 
+    for i in range(domain2.number_of_elements):
+        area = domain2.areas[i]
+        temp = temp_array[i][0][0] + temp_array[i][1][0] + temp_array[i][2][0]
+        domain2.quantities['xmomentum'].explicit_update[i] += -temp / area 
+        temp = temp_array[i][0][1] + temp_array[i][1][1] + temp_array[i][2][1]
+        domain2.quantities['ymomentum'].explicit_update[i] += -temp / area
+
+
 
     print "******* xmom_explicit_update"
-    print domain1.quantities['xmomentum'].explicit_update
-    print domain2.quantities['xmomentum'].explicit_update
+    #print domain1.quantities['xmomentum'].explicit_update
+    #print domain2.quantities['xmomentum'].explicit_update
     counter = 0
     for i in range(domain1.number_of_elements):
-        if ( domain1.quantities['xmomentum'].explicit_update[i] != domain2.quantities['xmomentum'].explicit_update[i]):
+        if  abs(domain1.quantities['xmomentum'].explicit_update[i] -\
+                domain2.quantities['xmomentum'].explicit_update[i]) >\
+                    abs(domain1.quantities['xmomentum'].explicit_update[i])*pow(10,-6):
             counter += 1
-            if counter < 30:
-                print i, domain1.quantities['xmomentum'].explicit_update[i], domain2.quantities['xmomentum'].explicit_update[i]
+            if counter < 10:
+                print i, domain1.quantities['xmomentum'].explicit_update[i],\
+                        domain2.quantities['xmomentum'].explicit_update[i]
     print "---------> # of differences: %d" % counter
 
 
     print "******* ymom_explicit_update"
-    print domain1.quantities['ymomentum'].explicit_update
-    print domain2.quantities['ymomentum'].explicit_update
+    #print domain1.quantities['ymomentum'].explicit_update
+    #print domain2.quantities['ymomentum'].explicit_update
     counter = 0
     for i in range(domain1.number_of_elements):
-        if ( domain1.quantities['ymomentum'].explicit_update[i] != domain2.quantities['ymomentum'].explicit_update[i]):
+        if abs( domain1.quantities['ymomentum'].explicit_update[i] -\
+                domain2.quantities['ymomentum'].explicit_update[i]) >\
+                    abs(domain1.quantities['ymomentum'].explicit_update[i])*pow(10,-6):
             counter += 1
     print "---------> # of differences: %d" % counter
 
+    
+    
+    
+    print "~~~~~~~~~~~~~ domain3  mom_explicit_update ~~~~~~~"
+    flag = 4
+
+    counter=0 
+    for i in range(domain2.number_of_elements):
+        gravity_single(domain3,i,flag)
+        #if temp_array[i][flag][0]!= domain3.quantities['xmomentum'].explicit_update[i]:
+        if abs(domain2.quantities['xmomentum'].explicit_update[i] -\
+                domain3.quantities['xmomentum'].explicit_update[i]) >\
+                abs(domain1.quantities['xmomentum'].explicit_update[i])*pow(10,-6):
+            counter +=1
+            if counter < 10:
+                print i , domain2.quantities['xmomentum'].explicit_update[i] ,\
+                        domain3.quantities['xmomentum'].explicit_update[i]
+    print  "---------> # of differences: %d" % counter
+
+
+    counter = 0
+    for i in range(domain2.number_of_elements):
+        #gravity_single(domain3,i,flag)
+        #if temp_array[i][flag][1] != domain3.quantities['ymomentum'].explicit_update[i]:
+        if abs(domain2.quantities['ymomentum'].explicit_update[i] -\
+                domain3.quantities['ymomentum'].explicit_update[i]) >\
+                abs(domain1.quantities['ymomentum'].explicit_update[i])*pow(10,-6):
+            counter +=1
+            if counter < 10:
+                print i , domain2.quantities['ymomentum'].explicit_update[i] ,\
+                        domain3.quantities['ymomentum'].explicit_update[i]
+    print  "---------> # of differences: %d" % counter
