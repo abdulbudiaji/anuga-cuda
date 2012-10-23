@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+
+"""
+    This var is used for testing the sequential functions
+"""
 compute_fluxes_central_call = 1
 compute_fluxes_central_structure_call = 1
 
@@ -722,6 +726,7 @@ def compute_fluxes_central_structure_cuda(domain, parallelFlag = 1):
     }
 
 
+    // The parallel CUDA compute fluex function
     __global__ void compute_fluxes_central_structure_CUDA(
             double * elements,
             double * timestep,
@@ -1546,6 +1551,13 @@ def _flux_function_central(q_left, q_right, z_left, z_right, n1, n2, epsilon, h0
 
 
 def spe_bubble_sort( _list , neighbours, k):
+    """
+        In the case of the original C function, all the triangles is calculated
+        in their index order. 
+
+        Here we put the valid neighbour (not the boundary) with smaller index 
+        number than the current one's ahead
+    """
     if neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and \
             (neighbours[ _list[1] ]<0 or neighbours[ _list[2] ] <neighbours [_list[1] ]):
         _list[2], _list[1] = _list[1], _list[2]
