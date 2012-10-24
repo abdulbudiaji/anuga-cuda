@@ -148,6 +148,8 @@ def domain_evolve( domain ):
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 	    domain.write_time()
 
+def domain_evolve_single_step(domain):
+    domain.evolve(yieldstep=yieldstep, finaltime=finaltime)
 
 #barrier()
 
