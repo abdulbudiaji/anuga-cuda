@@ -1,23 +1,89 @@
 #!/usr/bin/env python
 
 def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
-    N = domain.number_of_elements
-    W = 16
-    
-    elements = numpy.random.randn(9)
-    elements = elements.astype(numpy.float64)
-    elements[0] = domain.epsilon
-    elements[1] = domain.minimum_allowed_height
-    elements[2] = domain.beta_w
-    elements[3] = domain.beta_w_dry
-    elements[4] = domain.beta_uh
-    elements[5] = domain.beta_uh_dry
-    elements[6] = domain.beta_vh
-    elements[7] = domain.beta_vh_dry
-    elements[8] = domain.optimise_dry_cells
-
+   
     mod = SourceModule("""
-        __global__ void extrapolate_second_order_sw(
+
+        #define Eepsilon                0
+        #define Eminimum_allowed_height 1
+        #define Ebeta_w                 2
+        #define Ebeta_w_dry             3
+        #define Ebeta_uh                4
+        #define Ebeta_uh_dry            5
+        #define Ebeta_vh                6
+        #define Ebeta_vh_dry            7
+        #define Eoptimise_dry_cells     8
+
+
+        __device__ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w) 
+        {
+           int i;
+           double r = 1000.0, r0 = 1.0, phi = 1.0;
+           double TINY = 1.0e-100; // to avoid machine accuracy problems.
+
+           for (i = 0; i < 3; i++) {
+               if (dqv[i]<-TINY)
+                   r0 = qmin / dqv[i];
+
+               if (dqv[i] > TINY)
+                   r0 = qmax / dqv[i];
+
+               r = min(r0, r);
+           }
+
+           phi = min(r*beta_w, 1.0);
+           //for (i=0;i<3;i++)
+           dqv[0] = dqv[0] * phi;
+           dqv[1] = dqv[1] * phi;
+           dqv[2] = dqv[2] * phi;
+
+           return 0;
+        }   
+
+        __device__ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
+            double *qmin, double *qmax) 
+        {
+            if (dq0 >= 0.0) {
+                if (dq1 >= dq2) {
+                    if (dq1 >= 0.0)
+                        *qmax = dq0 + dq1;
+                    else
+                        *qmax = dq0;
+        
+                    *qmin = dq0 + dq2;
+                    if (*qmin >= 0.0) *qmin = 0.0;
+                } else {// dq1<dq2
+                    if (dq2 > 0)
+                        *qmax = dq0 + dq2;
+                    else
+                        *qmax = dq0;
+        
+                    *qmin = dq0 + dq1;
+                    if (*qmin >= 0.0) *qmin = 0.0;
+                }
+            } else {//dq0<0
+                if (dq1 <= dq2) {
+                    if (dq1 < 0.0)
+                        *qmin = dq0 + dq1;
+                    else
+                        *qmin = dq0;
+        
+                    *qmax = dq0 + dq2;
+                    if (*qmax <= 0.0) *qmax = 0.0;
+                } else {// dq1>dq2
+                    if (dq2 < 0.0)
+                        *qmin = dq0 + dq2;
+                    else
+                        *qmin = dq0;
+        
+                    *qmax = dq0 + dq1;
+                    if (*qmax <= 0.0) *qmax = 0.0;
+                }
+            }
+            return 0;
+        }
+
+        __global__ void extrapolate_second_order_sw (
             	double* elements,
 		        long* surrogate_neighbours,
         		long* number_of_boundaries,
@@ -26,33 +92,35 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
 				double* bed_centroid_values,
 		        double* xmom_centroid_values,
         		double* ymom_centroid_values,
-		        double* elevation_centroid_values,
         		double* vertex_coordinates,
 		        double* stage_vertex_values,
         		double* xmom_vertex_values,
 		        double* ymom_vertex_values,
-        		double* elevation_vertex_values)
+        		double* bed_vertex_values,
+                double* stage_centroid_store,
+                double* xmom_centroid_store,
+                double* ymom_centroid_store)
 		{
-            int k = threadIdx.x + threadIdx.y;
+            const int k = threadIdx.x + blockIdx.x * blockDim.x;
+
             int k3 = 3*k,
                 k6 = 6*k;
 
             double a, b;
+            int k0, k1, k2, coord_index, i;
             double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2;
-            double dx1, dx2, dy1, dy2, 
-            		dxv0, dxv1, dxv2, 
-            		dyv0, dyv1, dyv2, 
-            		dq0, dq1, dq2, 
-            		area2, inv_area2;
+            double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
             double dqv[3], qmin, qmax, hmin, hmax;
             double hc, h0, h1, h2, beta_tmp, hfactor;
+    
+            double dk, dv0, dv1, dv2;
             
             
             // extrapolate_velocity_second_order == 1 
                 
-            dk = max(stage_centroid_values[k], - bed_centroid_values[k], elements[1]);
+            dk = max(stage_centroid_values[k] - bed_centroid_values[k], elements[Eminimum_allowed_height]);
             xmom_centroid_store[k] = xmom_centroid_values[k];
-            xmom_centroid_values[k] = xmom_centroid_values / dk;
+            xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
 
             ymom_centroid_store[k] = ymom_centroid_values[k];
             ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
@@ -205,11 +273,7 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
                 //if (hmin>elements[1])
                 beta_tmp = elements[3] + (elements[2] - elements[3]) * hfactor;
 
-                //printf("min_alled_height = %f\n",elements[1]);
-                //printf("hmin = %f\n",hmin);
-                //printf("elements[2] = %f\n",elements[2]);
-                //printf("beta_tmp = %f\n",beta_tmp);
-                // Limit the gradient
+                
                 limit_gradient(dqv, qmin, qmax, beta_tmp);
 
                 //for (i=0;i<3;i++)
@@ -320,11 +384,7 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
                     }
                 }
 
-                if ((k2 == k3 + 3)) {
-                    // If we didn't find an internal neighbour
-                    report_python_error(AT, "Internal neighbour not found");
-                    return -1;
-                }
+                
 
                 k1 = surrogate_neighbours[k2];
 
@@ -489,29 +549,54 @@ def extrapolate_second_order_sw_cuda_TRUE_second_order(domain=None):
             ymom_vertex_values[k3] = ymom_vertex_values[k3] * dv0;
             ymom_vertex_values[k3 + 1] = ymom_vertex_values[k3 + 1] * dv1;
             ymom_vertex_values[k3 + 2] = ymom_vertex_values[k3 + 2] * dv2;
-                    
-    
         }
     """)
+    
+    elements = numpy.zeros(9, dtype=numpy.float64)
+    elements[0] = domain.epsilon
+    elements[1] = domain.minimum_allowed_height
+    elements[2] = domain.beta_w
+    elements[3] = domain.beta_w_dry
+    elements[4] = domain.beta_uh
+    elements[5] = domain.beta_uh_dry
+    elements[6] = domain.beta_vh
+    elements[7] = domain.beta_vh_dry
+    elements[8] = domain.optimise_dry_cells
+
+    N = domain.number_of_elements
+
+    if N % 32 == 0:
+        W1 = 32
+    else:
+        raise Exception('N can not be splited')
+    
+    xmom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
+    ymom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
+    stage_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
 
     extro_func = mod.get_function("extrapolate_second_order_sw")
-    extro_func( \
-    		cudaInOut( elements ), \
-    		cudaInOut( domain.surrogate_neighbours ), \
-    		cudaInOut( domain.number_of_boundaries ), \
-    		cudaInOut( domain.centroid_coordinates ), \
-    		cudaInOut( domain.quantities['stage'].centroid_values ), \
-    		cudaInOut( domain.quantities['xmomentum'].centroid_values ), \
-    		cudaInOut( domain.quantities['ymomentum'].centroid_values ), \
-    		cudaInOut( domain.quantities['elevation'].centroid_values ), \
-    		cudaInOut( domain.vertex_coordinates ), \
-    		cudaInOut( domain.quantities['stage'].vertex_values ), \
-    		cudaInOut( domain.quantities['xmomentum'].vertex_values ), \
-    		cudaInOut( domain.quantities['ymomentum'].vertex_values ), \
-    		cudaInOut( domain.quantities['elevation'].vertex_values ), \
-            block = ( W, W, 1),\
-            grid = ( (N + W*W -1 ) / (W*W), 1) 
-    		)	
+    
+    extro_func( 
+    		cuda.InOut( elements ), 
+    		cuda.In( domain.surrogate_neighbours ), 
+    		cuda.In( domain.number_of_boundaries ), 
+    		cuda.In( domain.centroid_coordinates ), 
+    		cuda.In( domain.quantities['stage'].centroid_values ), 
+    		cuda.In( domain.quantities['elevation'].centroid_values ), 
+    		cuda.In( domain.quantities['xmomentum'].centroid_values ), 
+    		cuda.In( domain.quantities['ymomentum'].centroid_values ), 
+    		cuda.InOut( domain.vertex_coordinates ), 
+    		cuda.InOut( domain.quantities['stage'].vertex_values ), 
+    		cuda.InOut( domain.quantities['xmomentum'].vertex_values ),
+    		cuda.InOut( domain.quantities['ymomentum'].vertex_values ), 
+    		cuda.InOut( domain.quantities['elevation'].vertex_values ), 
+            cuda.In( stage_centroid_store ),
+            cuda.In( xmom_centroid_store ),
+            cuda.In( ymom_centroid_store ),
+            block = ( W1, 1, 1),
+            grid = ( (N + W1 -1 ) / W1, 1) )
+
+    		
 
 def extrapolate_second_order_sw_cuda_FALSE_second_order(domain=None):
     N = domain.number_of_elements
@@ -995,25 +1080,88 @@ def extrapolate_second_order_sw_cuda_FALSE_second_order(domain=None):
     		)
 
 
+
+def approx_cmp(a,b):
+    if abs(a-b) > abs(a)*pow(10,-6):
+        return True
+    else:
+        return False
+
+
 if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create
 
-    domain = domain_create()
+    domain2 = domain_create()
 
     import pycuda.driver as cuda
     import pycuda.autoinit
     from pycuda.compiler import SourceModule
     import numpy
 
-    #if ( domain.extrapolate_velocity_second_order == 1):
-    print "-----extrapolate velocity second order == 1-------"
-    extrapolate_second_order_sw_cuda_TRUE_second_order(domain)
-    #else:
-    print "-----extrapolate velocity second order !! 1-------"
-    extrapolate_second_order_sw_cuda_FALSE_second_order(domain)
+    if ( domain2.extrapolate_velocity_second_order == 1):
+        print "-----extrapolate velocity second order == 1-------"
+        extrapolate_second_order_sw_cuda_TRUE_second_order(domain2)
+    else:
+        print "-----extrapolate velocity second order !! 1-------"
+        extrapolate_second_order_sw_cuda_FALSE_second_order(domain2)
     
     
-    
+    domain1 = domain_create()
+    domain1.distribute_to_vertices_and_edges()
+
+    stage_h1= domain1.quantities['stage']
+    xmom_h1 = domain1.quantities['xmomentum']
+    ymom_h1 = domain1.quantities['ymomentum']
+
+    stage_h2= domain2.quantities['stage']
+    xmom_h2 = domain2.quantities['xmomentum']
+    ymom_h2 = domain2.quantities['ymomentum']
+
+    counter_s_vv = 0
+    counter_x_cv = 0
+    counter_y_cv = 0
+    counter_x_vv = 0
+    counter_y_vv = 0
+    print "------------- stage_vertex_values ---------"
+    print stage_h1.vertex_values
+    print stage_h2.vertex_values
+    print "------------- xmom_centroid_values ---------"
+    print xmom_h1.centroid_values
+    print xmom_h2.centroid_values
+    print "------------- xmom_vertex_values ---------"
+    print xmom_h1.vertex_values
+    print xmom_h2.vertex_values
+    print "------------- ymom_centroid_values ---------"
+    print ymom_h1.centroid_values
+    print ymom_h2.centroid_values
+    print "------------- ymom_vertex_values ---------"
+    print ymom_h1.vertex_values
+    print ymom_h2.vertex_values
+    svv1 = stage_h1.vertex_values
+    svv2 = stage_h2.vertex_values
+    for i in range(domain1.number_of_elements):
+        if approx_cmp(svv1[i][0], svv2[i][0]) or \
+                approx_cmp(svv1[i][1], svv2[i][1]) or \
+                approx_cmp(svv1[i][2], svv2[i][2]):
+            counter_s_vv += 1
+            if counter_s_vv < 10:
+                print i, stage_h1.vertex_values[i], stage_h2.vertex_values[i],\
+                        (stage_h1.vertex_values[i] == stage_h2.vertex_values[i])
+
+        if xmom_h1.centroid_values[i] != xmom_h2.centroid_values[i]:
+            counter_x_cv += 1
+
+        if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
+            counter_x_vv += 1
+
+        if ymom_h1.centroid_values[i] != ymom_h2.centroid_values[i]:
+            counter_y_cv += 1
+
+        if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
+            counter_y_vv += 1
+
+    print "*** # diff %d %d %d %d %d" % \
+            (counter_s_vv, counter_x_cv, counter_x_vv, counter_y_cv, counter_y_vv)
     
     
     
