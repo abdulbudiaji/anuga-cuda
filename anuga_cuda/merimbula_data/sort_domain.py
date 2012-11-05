@@ -2,7 +2,7 @@
 
 def swap_domain(domain, i, j, k):
     neighbours = domain.neighbours[i]
-    n_edges = domain.neighbour_edges[i]
+    neighbour_edges = domain.neighbour_edges[i]
     s_neighbours = domain.surrogate_neighbours[i]
     normals = domain.normals[i]
     edgelengths = domain.edgelengths[i]
@@ -24,7 +24,14 @@ def swap_domain(domain, i, j, k):
 
     neighbours[j], neighbours[k] = neighbours[k], neighbours[j]
 
-    n_edges[j], n_edges[k] = n_edges[k], n_edges[j]
+    neighbour_edges[j], neighbour_edges[k] = neighbour_edges[k], neighbour_edges[j]
+    n1 = domain.neighbours[neighbours[j]]
+    n2 = domain.neighbours[neighbours[k]]
+    for index in range(3):
+        if n1[index] == i:
+            domain.neighbour_edges[neighbours[j]] = k
+        if n2[index] == i:
+            domain.neighbour_edges[neighbours[k]] = j
 
     s_neighbours[j], s_neighbours[k] = s_neighbours[k], s_neighbours[j]
 
@@ -65,7 +72,6 @@ def sort_domain(domain):
                 (neighbours[0]<0 or neighbours[1]<neighbours[0]):
             swap_domain(domain, i, 0, 1)
 
-            # changes
         if neighbours[2]>=0 and neighbours[2]<i and \
                (neighbours[1]<0 or neighbours[2]<neighbours[1]):
             swap_domain(domain, i, 2, 1)
