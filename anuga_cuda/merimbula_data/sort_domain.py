@@ -2,7 +2,7 @@
 
 def swap_domain(domain, i, j, k):
     neighbours = domain.neighbours[i]
-    neighbour_edges = domain.neighbour_edges[i]
+    
     s_neighbours = domain.surrogate_neighbours[i]
     normals = domain.normals[i]
     edgelengths = domain.edgelengths[i]
@@ -23,15 +23,6 @@ def swap_domain(domain, i, j, k):
     
 
     neighbours[j], neighbours[k] = neighbours[k], neighbours[j]
-
-    neighbour_edges[j], neighbour_edges[k] = neighbour_edges[k], neighbour_edges[j]
-    n1 = domain.neighbours[neighbours[j]]
-    n2 = domain.neighbours[neighbours[k]]
-    for index in range(3):
-        if n1[index] == i:
-            domain.neighbour_edges[neighbours[j]] = k
-        if n2[index] == i:
-            domain.neighbour_edges[neighbours[k]] = j
 
     s_neighbours[j], s_neighbours[k] = s_neighbours[k], s_neighbours[j]
 
@@ -76,6 +67,19 @@ def sort_domain(domain):
                (neighbours[1]<0 or neighbours[2]<neighbours[1]):
             swap_domain(domain, i, 2, 1)
     
+    
+    for i in range(doman.number_of_elements):
+        n1, n2, n3 = domain.neighbours[i]
+        
+        for index in range(3):
+            if domain.neighbours[n1][index] == i:
+                domain.neighbour_edges[n1][index] = 0
+            if domain.neighbours[n2][index] == i:
+                domain.neighbour_edges[n2][index] = 1
+            if domain.neighbours[n3][index] == i:
+                domain.neighbour_edges[n3][index] = 2
+                
+                    
 
 
 def rearrange_domain(domain):
