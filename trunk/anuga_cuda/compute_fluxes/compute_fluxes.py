@@ -764,12 +764,13 @@ def compute_fluxes_central_structure_cuda(domain, parallelFlag = 1):
         double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
         
 
-        int b[3]={0,1,2};
+//        int b[3]={0,1,2};
 
-        spe_bubble_sort( b, neighbours+k*3, k);
+//        spe_bubble_sort( b, neighbours+k*3, k);
 
-        for (j = 0; j < 3; j++) {
-            i = b[j];
+//        for (j = 0; j < 3; j++) {
+//            i = b[j];
+        for ( i = 0; i < 3; i++) {
 
             ki = k * 3 + i; // Linear index to edge i of triangle k
     
@@ -1182,63 +1183,6 @@ def compute_fluxes_central_structure_cuda(domain, parallelFlag = 1):
 
     }
     
-
-
-    /*****************************************/
-    /*          Single function only         */
-    /*****************************************/
-
-    __global__ void compute_fluxes_central_structure_1(
-            double * elements,
-            double * timestep,
-            long * neighbours,
-            long * neighbour_edges,
-            double * normals,
-            double * edgelengths,
-            double * radii,
-            double * areas,
-            long * tri_full_flag,
-            double * stage_edge_values,
-            double * xmom_edge_values,
-            double * ymom_edge_values,
-            double * bed_edge_values,
-            double * stage_boundary_values,
-            double * xmom_boundary_values,
-            double * ymom_boundary_values,
-            double * stage_explicit_update,
-            double * xmom_explicit_update,
-            double * ymom_explicit_update, 
-            long * already_computed_flux,
-            double * max_speed_array)
-    {
-        //int k = threadIdx.x + threadIdx.y + blockIdx.x * blockDim.x + blockIdx.y *blockDim.y;
-        int k = threadIdx.x + threadIdx.y*blockDim.x + (blockIdx.x + blockIdx.y)*blockDim.x *blockDim.y;
-    
-    
-        // Local variables
-        double max_speed, length, inv_area, zl, zr;
-    
-        double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
-    
-        double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
-        // threshold for performance reasons.
-        // See ANUGA manual under flux limiting
-        int i, m, n;
-        int ki, nm = 0, ki2; // Index shorthands
-    
-    
-        // Workspace (making them static actually made function slightly slower (Ole))
-        double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
-    
-        double temp=0;
-    
-    
-        double w_left, h_left, uh_left, vh_left, u_left;
-        double w_right, h_right, uh_right, vh_right, u_right;
-        double s_min, s_max, soundspeed_left, soundspeed_right;
-        double denom, inverse_denominator, z;
-        
-    
     """)
     
     elements = numpy.random.randn(6)
@@ -1379,6 +1323,9 @@ def compute_fluxes_central_structure_cuda(domain, parallelFlag = 1):
            
         b = numpy.argsort(timestep_array)
         domain.flux_timestep = timestep_array[b[0]] 
+
+
+
 
 
 def _rotate(q,  n1,  n2) :
@@ -1613,11 +1560,12 @@ if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
     
     from anuga_cuda.merimbula_data.sort_domain import sort_domain
+
     domain2 = domain_create()
-    sort_domain(domain2)
-    domain5 = domain_create()
-    sort_domain(domain5)
     
+    sort_domain(domain2)
+    
+        
     if domain2.compute_fluxes_method == 'original':
 
         compute_fluxes_central_structure_cuda(domain2)
@@ -1824,92 +1772,101 @@ if __name__ == '__main__':
 
 
 
-#    print "\n~~~~~~~~~~~~~ domain 4 ~~~~~~~~~~~~"
-#    domain4 = domain_create()
-#
-#    compute_fluxex_central_structure_single(domain4)
-#
-#
-#    counter_stage = 0
-#    counter_xmom = 0
-#    counter_ymom = 0
-#    for i in range(domain1.number_of_elements):
-#        if abs(domain1.quantities['stage'].explicit_update[i] != \
-#                domain4.quantities['stage'].explicit_update[i]) > \
-#                abs(domain1.quantities['stage'].explicit_update[i])*pow(10,-6):
-#            counter_stage += 1
-#
-#        if abs(domain1.quantities['xmomentum'].explicit_update[i] != \
-#                domain4.quantities['xmomentum'].explicit_update[i]) > \
-#                abs(domain1.quantities['xmomentum'].explicit_update[i])*pow(10,-6):
-#            counter_xmom += 1
-#            if counter_xmom < 30:
-#                print i, domain1.quantities['xmomentum'].explicit_update[i], \
-#                        domain4.quantities['xmomentum'].explicit_update[i]
-#
-#        if abs(domain1.quantities['ymomentum'].explicit_update[i] != \
-#                domain4.quantities['ymomentum'].explicit_update[i]) > \
-#                abs(domain1.quantities['ymomentum'].explicit_update[i])*pow(10,-6):
-#            counter_ymom += 1
-#    print "------- # of diff with domain1 :%d, %d, %d\n" % \
-#            (counter_stage, counter_xmom, counter_ymom)
-#    
-#
-#
-#
-#    counter_stage = 0
-#    counter_xmom = 0
-#    counter_ymom = 0
-#    for i in range(domain2.number_of_elements):
-#        if domain2.quantities['stage'].explicit_update[i] != \
-#                domain4.quantities['stage'].explicit_update[i]:
-#            counter_stage += 1
-#
-#        if domain2.quantities['xmomentum'].explicit_update[i] != \
-#                domain4.quantities['xmomentum'].explicit_update[i]:
-#            counter_xmom += 1
-#            if counter_xmom < 10:
-#                print i, domain2.quantities['xmomentum'].explicit_update[i], \
-#                        domain4.quantities['xmomentum'].explicit_update[i]
-#
-#        if domain2.quantities['ymomentum'].explicit_update[i] != \
-#                domain4.quantities['ymomentum'].explicit_update[i]:
-#            counter_ymom += 1
-#    print "------- # of diff with domain2 :%d, %d, %d\n" % \
-#            (counter_stage, counter_xmom, counter_ymom)
+    print "\n~~~~~~~~~~~~~ domain 4 ~~~~~~~~~~~~"
+    domain4 = domain_create()
+
+    sort_domain(domain4)
+
+    compute_fluxex_central_structure_single(domain4)
 
 
-    
-
-
-
-    """
-        anuga_gpu function
-    """
-    print "\n~~~~~~~~~~~~~ domain 5 ~~~~~~~~~~~~"
-    domain5 = domain_create()
-    
-    from anuga_cuda.anuga_gpu.gpu_python_glue import compute_fluxes_ext_central_new_gpu 
-
-    compute_fluxes_ext_central_new_gpu(domain5)
-
-    cnt_seu = 0
-    cnt_xeu = 0
-    cnt_yeu = 0
+    counter_stage = 0
+    counter_xmom = 0
+    counter_ymom = 0
     for i in range(domain1.number_of_elements):
-        if domain1.quantities['stage'].explicit_update[i] != \
-                domain5.quantities['stage'].explicit_update[i]:
-            cnt_seu += 1
-            if cnt_seu < 10:
-                print i, domain1.quantities['stage'].explicit_update[i],\
-                        domain5.quantities['stage'].explicit_update[i]
-        
-        if domain1.quantities['xmomentum'].explicit_update[i] != \
-                domain5.quantities['xmomentum'].explicit_update[i]:
-            cnt_xeu += 1
+        if abs(domain1.quantities['stage'].explicit_update[i] != \
+                domain4.quantities['stage'].explicit_update[i]) > \
+                abs(domain1.quantities['stage'].explicit_update[i])*pow(10,-6):
+            counter_stage += 1
 
-        if domain1.quantities['ymomentum'].explicit_update[i] != \
-                domain5.quantities['ymomentum'].explicit_update[i]:
-            cnt_yeu += 1
-    print "***** # of diff 1 - 5  %d, %d, %d" % (cnt_seu, cnt_seu, cnt_seu)
+        if abs(domain1.quantities['xmomentum'].explicit_update[i] != \
+                domain4.quantities['xmomentum'].explicit_update[i]) > \
+                abs(domain1.quantities['xmomentum'].explicit_update[i])*pow(10,-6):
+            counter_xmom += 1
+            if counter_xmom < 30:
+                print i, domain1.quantities['xmomentum'].explicit_update[i], \
+                        domain4.quantities['xmomentum'].explicit_update[i]
+
+        if abs(domain1.quantities['ymomentum'].explicit_update[i] != \
+                domain4.quantities['ymomentum'].explicit_update[i]) > \
+                abs(domain1.quantities['ymomentum'].explicit_update[i])*pow(10,-6):
+            counter_ymom += 1
+    print "-------  of diff with domain1 :%d, %d, %d\n" % \
+            (counter_stage, counter_xmom, counter_ymom)
+    
+
+
+    counter_stage = 0
+    counter_xmom = 0
+    counter_ymom = 0
+    for i in range(domain2.number_of_elements):
+        if domain2.quantities['stage'].explicit_update[i] != \
+                domain4.quantities['stage'].explicit_update[i]:
+            counter_stage += 1
+
+        if domain2.quantities['xmomentum'].explicit_update[i] != \
+                domain4.quantities['xmomentum'].explicit_update[i]:
+            counter_xmom += 1
+            if counter_xmom < 10:
+                print i, domain2.quantities['xmomentum'].explicit_update[i], \
+                        domain4.quantities['xmomentum'].explicit_update[i]
+
+        if domain2.quantities['ymomentum'].explicit_update[i] != \
+                domain4.quantities['ymomentum'].explicit_update[i]:
+            counter_ymom += 1
+    print "-------  of diff with domain2 :%d, %d, %d\n" % \
+            (counter_stage, counter_xmom, counter_ymom)
+
+
+    
+
+
+
+#    """
+#        anuga_gpu function
+#    """
+#    print "\n~~~~~~~~~~~~~ domain 5 ~~~~~~~~~~~~"
+#    domain5 = domain_create()
+#    
+#    from anuga_cuda.anuga_gpu.gpu_python_glue import compute_fluxes_ext_central_new_gpu 
+#
+#    compute_fluxes_ext_central_new_gpu(domain5.timestep, 
+#            domain5, 
+#            domain5.quantities['stage'], 
+#            domain1.quantities['xmomentum'], 
+#            domain5.quantities['ymomentum'], 
+#            domain5.quantities['elevation'])
+#
+#    cnt_seu = 0
+#    cnt_xeu = 0
+#    cnt_yeu = 0
+#    for i in range(domain1.number_of_elements):
+#        if domain1.quantities['stage'].explicit_update[i] != \
+#                domain5.quantities['stage'].explicit_update[i]:
+#            cnt_seu += 1
+#            if cnt_seu < 10:
+#                print i, domain1.quantities['stage'].explicit_update[i],\
+#                        domain5.quantities['stage'].explicit_update[i]
+#        
+#        if domain1.quantities['xmomentum'].explicit_update[i] != \
+#                domain5.quantities['xmomentum'].explicit_update[i]:
+#            cnt_xeu += 1
+#
+#        if domain1.quantities['ymomentum'].explicit_update[i] != \
+#                domain5.quantities['ymomentum'].explicit_update[i]:
+#            cnt_yeu += 1
+#    print "***** # of diff 1 - 5  %d, %d, %d" % (cnt_seu, cnt_seu, cnt_seu)
+
+
+
 
