@@ -286,8 +286,16 @@ def gravity_old( domain ):
 
 
 
-from anuga_cuda.merimbula_data.generate_domain import *
-#domain=domain_create()
+	"""
+		Flag =
+		0: in first loop
+		1: in second loop
+		2: in third loop
+		3: after first explicate_update assigned values
+		4: no effect -- i.e. normal function
+		5: check loop finished values
+	"""
+
 
 
 def gravity_single(domain, k=0, flag = 4):

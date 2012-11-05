@@ -1,0 +1,7 @@
+threadblocksize
+dynsmemperblock
+stasmemperblock
+regperthread
+instructions
+memtransferdir
+memtransfersize
