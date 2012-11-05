@@ -1742,25 +1742,25 @@ if __name__ == '__main__':
     """
 
 
-#    print "\n~~~~~~~~~~~~~~~~~~~ domain 3 ~~~~~~~~~~~~~~~~~"
-#    domain3 = domain_create()
-#
-#    compute_fluxes_central_structure_cuda(domain3,2)
-#    counter_stage = 0
-#    counter_xmom = 0
-#    counter_ymom = 0
-#    for i in range(domain3.number_of_elements):
-#        if domain2.quantities['stage'].explicit_update[i] != \
-#                domain3.quantities['stage'].explicit_update[i]:
-#            counter_stage += 1
-#        if domain2.quantities['xmomentum'].explicit_update[i] != \
-#               domain3.quantities['xmomentum'].explicit_update[i]:
-#            counter_xmom += 1
-#        if domain2.quantities['ymomentum'].explicit_update[i] != \
-#                domain3.quantities['ymomentum'].explicit_update[i]:
-#            counter_ymom += 1
-#
-#    print "******* # of diff %d, %d, %d" % (counter_stage, counter_xmom, counter_ymom)
+    print "\n~~~~~~~~~~~~~~~~~~~ domain 3 ~~~~~~~~~~~~~~~~~"
+    domain3 = domain_create()
+
+    compute_fluxes_central_structure_cuda(domain3,2)
+    counter_stage = 0
+    counter_xmom = 0
+    counter_ymom = 0
+    for i in range(domain3.number_of_elements):
+        if domain2.quantities['stage'].explicit_update[i] != \
+                domain3.quantities['stage'].explicit_update[i]:
+            counter_stage += 1
+        if domain2.quantities['xmomentum'].explicit_update[i] != \
+               domain3.quantities['xmomentum'].explicit_update[i]:
+            counter_xmom += 1
+        if domain2.quantities['ymomentum'].explicit_update[i] != \
+                domain3.quantities['ymomentum'].explicit_update[i]:
+            counter_ymom += 1
+
+    print "*******  of diff %d, %d, %d" % (counter_stage, counter_xmom, counter_ymom)
     
 
 

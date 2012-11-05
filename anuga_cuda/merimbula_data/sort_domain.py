@@ -68,7 +68,7 @@ def sort_domain(domain):
             swap_domain(domain, i, 2, 1)
     
     
-    for i in range(doman.number_of_elements):
+    for i in range(domain.number_of_elements):
         n1, n2, n3 = domain.neighbours[i]
         
         for index in range(3):

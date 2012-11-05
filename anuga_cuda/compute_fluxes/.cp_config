@@ -1,7 +1,3 @@
-gpustarttimestamp
-gpuendtimestamp
-timestamp
-gridsize
 threadblocksize
 dynsmemperblock
 stasmemperblock
@@ -9,12 +5,3 @@ regperthread
 instructions
 memtransferdir
 memtransfersize
-memtransferhostmemtype
-shared_load
-shared_store
-l1_global_load_hit
-l1_global_load_miss
-l1_local_load_hit
-l1_local_load_miss
-l1_local_store_hit
-l1_local_store_miss
