@@ -1081,15 +1081,11 @@ def extrapolate_second_order_sw_cuda_FALSE_second_order(domain=None):
 
 
 
-def approx_cmp(a,b):
-    if abs(a-b) > abs(a)*pow(10,-6):
-        return True
-    else:
-        return False
 
 
 if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create
+    from anuga_cuda.merimbula_data.utility import approx_cmp
 
     domain2 = domain_create()
 
