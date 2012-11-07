@@ -466,16 +466,12 @@ def compute_fluxes_central_cuda(domain):
             grid = ( (N + W*W -1 ) / (W*W), 1) )
 
 
-    for i in range(N):
-        pass
-
-def mem_all_cpy(a):
-    a_gpu = cuda.mem_alloc(a.nbytes)
-    cuda.memcpy_htod(a_gpu, a)
-    return a_gpu
 
 
-def compute_fluxes_central_structure_cuda(domain, parallelFlag = 1, name = "compute_fluxes_central_structure_CUDA"):
+def compute_fluxes_central_structure_cuda(
+		domain, 
+		parallelFlag = 1, 
+		name = "compute_fluxes_central_structure_CUDA"):
 
     import pycuda.driver as cuda
     import pycuda.autoinit
@@ -1550,6 +1546,8 @@ def compute_fluxes_central_structure_cuda(domain, parallelFlag = 1, name = "comp
         """
         compute_fluxes_central_function = mod.get_function(name)
 
+		from anuga_cuda.merimbula_data.utility import mem_all_cpy
+
         # facilities vertors
         timestep_array_gpu = mem_all_cpy(timestep_array )
         
@@ -2061,7 +2059,7 @@ if __name__ == '__main__':
     print "\n~~~~~~~~~~~~~~~~~~~ domain 3 ~~~~~~~~~~~~~~~~~"
     domain3 = domain_create()
 
-    compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
+    compute_fluxes_central_structure_cuda(domain3, parallelFlag=1, \
 			name= "_flux_function_central_2")
     #compute_fluxes_central_structure_cuda(domain3, parallelFlag=1, \
 	#		name= "compute_fluxes_central_structure_MeCo")
