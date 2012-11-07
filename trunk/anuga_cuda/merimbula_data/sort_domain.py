@@ -193,15 +193,10 @@ def rearrange_domain(domain):
         bed_vertex_values[(i+2*N)/3][(i+2*N)%3] = temp_dom.bed_vertex_values[i][2]
 
 
-if __name__ == "__main__":
+def sort_domain_check(domain2):
     from anuga_cuda.merimbula_data.generate_domain import domain_create
 
-    from anuga_cuda.compute_fluxes.compute_fluxes import spe_bubble_sort
-
-    domain1 = domain_create()
-    domain2 = domain_create()
-    
-    sort_domain(domain2)
+    domain1 = domain_create
 
     for k in range(domain1.number_of_elements):
         b = [0,1,2]
@@ -211,9 +206,6 @@ if __name__ == "__main__":
                 print "###### tri: %ld, edge: %d - %d " % (k, b[i], i)
                 continue
             
-            if domain1.neighbour_edges[k][ b[i] ] != domain2.neighbour_edges[k][i]:
-                print "tri: %ld, edge: %d - %d @ neighbour_edges " % (k, b[i], i)
-
             if domain1.surrogate_neighbours[k][ b[i] ] != domain2.surrogate_neighbours[k][i]:
                 print "tri: %ld, edge: %d - %d @ surrogate_neighbours " % (k, b[i], i)
                 
@@ -267,4 +259,15 @@ if __name__ == "__main__":
                     domain2.quantities['elevation'].vertex_values[k][i]:
                 print "tri: %ld, vertex: %ld - %d @ bed_vertex_values " % (k, b[i], i)
 
+
+if __name__ == "__main__":
+    from anuga_cuda.merimbula_data.generate_domain import domain_create
+
+    from anuga_cuda.compute_fluxes.compute_fluxes import spe_bubble_sort
+
+    domain1 = domain_create()
+    domain2 = domain_create()
+    
+    sort_domain(domain2)
+    sort_domain_check(domain2)
 

@@ -1349,6 +1349,22 @@ __global__ void compute_fluxes_central_structure_cuda(
     /*****************************************/
 
 #define COMPUTE_FLUXES_CENTRAL_STRUCTURE_SHARED_MEMORY_LENGTH
+/*
+ * elements[0] = _timestep
+ * elements[1] = _epsilon
+ * elements[2] = _H0
+ * elements[3] = _g
+ * elements[4] = _optimise_dry_cells
+ * elements[5] = _compute_fluxes_central_structure_call
+ * elements[6] = _evolve_max_timestep
+ */
+#define Dtimestep 0
+#define Depsilon 1
+#define DH0 2
+#define Dg 3
+#define Doptimise_dry_cells 4
+#define Dnumber_of_elements 5
+
 
 __global__ void compute_fluxes_central_structure_MeCo(
         double * elements,
@@ -1388,86 +1404,87 @@ __global__ void compute_fluxes_central_structure_MeCo(
 //    double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
 
 
-    __shared__ double shared_var[COMPUTE_FLUXES_CENTRAL_STRUCTURE_SHARED_MEMORY_LENGTH];
+    extern __shared__ double shared_var[]; // empty [] array:(byte)size defined by kernel call
 
 
-        for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++) {
 
 
-            ki = k * 3 + i; // Linear index to edge i of triangle k
+        //ki = k * 3 + i; // Linear index to edge i of triangle k
+        ki = k+ i + i*elements[Dnumber_of_elements];
 
-            n = neighbours[ki];
+        n = neighbours[ki];
 
-            ql[0] = stage_edge_values[ki];
-            ql[1] = xmom_edge_values[ki];
-            ql[2] = ymom_edge_values[ki];
-            zl = bed_edge_values[ki];
+        ql[0] = stage_edge_values[ki];
+        ql[1] = xmom_edge_values[ki];
+        ql[2] = ymom_edge_values[ki];
+        zl = bed_edge_values[ki];
 
-            if (n < 0) {
-                m = -n - 1; // Convert negative flag to boundary index
+        if (n < 0) {
+            m = -n - 1; // Convert negative flag to boundary index
 
-                qr[0] = stage_boundary_values[m];
-                qr[1] = xmom_boundary_values[m];
-                qr[2] = ymom_boundary_values[m];
-                zr = zl; // Extend bed elevation to boundary
-            } else {
-                m = neighbour_edges[ki];
-                nm = n * 3 + m; // Linear index (triangle n, edge m)
+            qr[0] = stage_boundary_values[m];
+            qr[1] = xmom_boundary_values[m];
+            qr[2] = ymom_boundary_values[m];
+            zr = zl; // Extend bed elevation to boundary
+        } else {
+            m = neighbour_edges[ki];
+            nm = n * 3 + m; // Linear index (triangle n, edge m)
 
-                qr[0] = stage_edge_values[nm];
-                qr[1] = xmom_edge_values[nm];
-                qr[2] = ymom_edge_values[nm];
-                zr = bed_edge_values[nm];
+            qr[0] = stage_edge_values[nm];
+            qr[1] = xmom_edge_values[nm];
+            qr[2] = ymom_edge_values[nm];
+            zr = bed_edge_values[nm];
+        }
+
+        if (elements[Doptimise_dry_cells]) {
+            if (fabs(ql[0] - zl) < elements[Depsilon] &&
+                    fabs(qr[0] - zr) < elements[Depsilon]) {
+
+                max_speed = 0.0;
+                continue;
             }
+        }
 
-            if (elements[Doptimise_dry_cells]) {
-                if (fabs(ql[0] - zl) < elements[Depsilon] &&
-                        fabs(qr[0] - zr) < elements[Depsilon]) {
+        ki2 = 2 * ki; //k*6 + i*2
 
-                    max_speed = 0.0;
-                    continue;
+
+        _flux_function_central(ql, qr, zl, zr,
+                normals[ki2], normals[ki2 + 1],
+                elements[Depsilon], h0, limiting_threshold, elements[Dg],
+                edgeflux, &max_speed);
+
+
+
+        length = edgelengths[ki];
+        edgeflux[0] *= length;
+        edgeflux[1] *= length;
+        edgeflux[2] *= length;
+
+
+
+        stage_explicit_update[k] -= edgeflux[0];
+        xmom_explicit_update[k] -= edgeflux[1];
+        ymom_explicit_update[k] -= edgeflux[2];
+
+        //cuda_atomicAdd( stage_explicit_update + k, -edgeflux[0] );
+        //cuda_atomicAdd( xmom_explicit_update + k, -edgeflux[1] );
+        //cuda_atomicAdd( ymom_explicit_update + k, -edgeflux[2] );
+
+
+        if (tri_full_flag[k] == 1) {
+            if (max_speed > elements[Depsilon]) {
+                timestep[k] = min(timestep[k], radii[k] / max_speed);
+
+                if (n >= 0) {
+                    timestep[k] = min(timestep[k], radii[n] / max_speed);
                 }
             }
+        }
 
-            ki2 = 2 * ki; //k*6 + i*2
-
-
-            _flux_function_central(ql, qr, zl, zr,
-                    normals[ki2], normals[ki2 + 1],
-                    elements[Depsilon], h0, limiting_threshold, elements[Dg],
-                    edgeflux, &max_speed);
-
-
-
-            length = edgelengths[ki];
-            edgeflux[0] *= length;
-            edgeflux[1] *= length;
-            edgeflux[2] *= length;
-
-
-
-            stage_explicit_update[k] -= edgeflux[0];
-            xmom_explicit_update[k] -= edgeflux[1];
-            ymom_explicit_update[k] -= edgeflux[2];
-
-            //cuda_atomicAdd( stage_explicit_update + k, -edgeflux[0] );
-            //cuda_atomicAdd( xmom_explicit_update + k, -edgeflux[1] );
-            //cuda_atomicAdd( ymom_explicit_update + k, -edgeflux[2] );
-
-
-            if (tri_full_flag[k] == 1) {
-                if (max_speed > elements[Depsilon]) {
-                    timestep[k] = min(timestep[k], radii[k] / max_speed);
-
-                    if (n >= 0) {
-                        timestep[k] = min(timestep[k], radii[n] / max_speed);
-                    }
-                }
-            }
-
-        } // End edge i (and neighbour n)
+    } // End edge i (and neighbour n)
     
-
+}
 
 
 /*
