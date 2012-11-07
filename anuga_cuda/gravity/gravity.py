@@ -67,7 +67,7 @@ def gravity(domain):
     print domain.quantities['xmomentum'].explicit_update
     print domain.quantities['ymomentum'].explicit_update
  
-def gravity_wb(domain, temp_array):
+def gravity_wb(domain):
     N = domain.number_of_elements
     
     mod = SourceModule( """
@@ -83,8 +83,7 @@ def gravity_wb(domain, temp_array):
                 double * normals, 
                 double * areas, 
                 double * edgelengths,
-                double * g,
-                double * temp_array)
+                double * g)
         {
             const int k = threadIdx.x + (blockIdx.x )*blockDim.x;
 
@@ -96,7 +95,9 @@ def gravity_wb(domain, temp_array):
                     
             double wx, wy, det,
                 hh[3];
-            double sidex, sidey, area, n0, n1, fact;
+            double area, n0, n1, fact;
+
+			__shared__ double sh_data[32*6];
 
     
             w0 = stage_vertex_values[3*k + 0];
@@ -132,8 +133,6 @@ def gravity_wb(domain, temp_array):
             hh[1] = stage_edge_values[k*3+1] - bed_edge_values[k*3+1];
             hh[2] = stage_edge_values[k*3+2] - bed_edge_values[k*3+2];
 
-            sidex = 0.0;
-            sidey = 0.0;
             area = areas[k];
 
             for ( i = 0 ; i < 3 ; i++ )
@@ -143,18 +142,12 @@ def gravity_wb(domain, temp_array):
                 
                 fact =  -0.5 * g[0] * hh[i] * hh[i] * edgelengths[k*3 + i];
                 
-                sidex += fact*n0;
-                sidey += fact*n1;
-                //if ( i== 0 )
-                //{
-                    temp_array[k*6 + 2*i] = fact*n0;
-                    temp_array[k*6 + 2*i + 1] = fact*n1;
-                //    return;
-                //}
+                sh_data[threadIdx.x + i*blockDim.x] = fact*n0;
+                sh_data[threadIdx.x + (i+3)*blockDim.x] = fact*n1;
             }
             
-            //xmom_explicit_update[k] += -sidex / area;
-            //ymom_explicit_update[k] += -sidey / area;
+            xmom_explicit_update[k] += -(sh_data[threadIdx.x]+sh_data[threadIdx.x+blockDim.x]+sh_data[threadIdx.x+2*blockDim.x]) / area;
+            ymom_explicit_update[k] += -(sh_data[threadIdx.x+3*blockDim.x]+sh_data[threadIdx.x+4*blockDim.x]+sh_data[threadIdx.x+5*blockDim.x]) / area;
                 
         }
         """)
@@ -184,11 +177,9 @@ def gravity_wb(domain, temp_array):
             cuda.In( domain.areas),
             cuda.In( domain.edgelengths),
             cuda.In( g_gpu),
-            cuda.InOut(temp_array),
             block = ( W1, 1, 1),
             grid = ( (N + W1 -1 ) / W1, 1) )
     
-    #print "----------Gravity_wb------------------------"
     
 
 
@@ -286,18 +277,18 @@ def gravity_old( domain ):
 
 
 
-	"""
-		Flag =
-		0: in first loop
-		1: in second loop
-		2: in third loop
-		3: after first explicate_update assigned values
-		4: no effect -- i.e. normal function
-		5: check loop finished values
-	"""
 
 
 
+
+#Flag =
+#0: in first loop
+#1: in second loop
+#2: in third loop
+#3: after first explicate_update assigned values
+#4: no effect -- i.e. normal function
+#5: check loop finished values
+	
 def gravity_single(domain, k=0, flag = 4):
     import numpy
     w0 = domain.quantities['stage'].vertex_values[k][0]
@@ -406,7 +397,7 @@ if __name__ == '__main__':
     import numpy
 
     
-    temp_array = numpy.zeros((domain1.number_of_elements, 3,2), dtype=numpy.float64)
+    #temp_array = numpy.zeros((domain1.number_of_elements, 3,2), dtype=numpy.float64)
 
 
     if domain2.compute_fluxes_method == 'original':
@@ -416,7 +407,7 @@ if __name__ == '__main__':
         gravity(domain2)
 
     elif domain2.compute_fluxes_method == 'wb_2':
-        gravity_wb(domain2, temp_array)
+        gravity_wb(domain2)
 
     elif domain2.compute_fluxes_method == 'wb_3':
 
@@ -425,12 +416,12 @@ if __name__ == '__main__':
     else:
         raise Exception('unknown compute_fluxes_method')
 
-    for i in range(domain2.number_of_elements):
-        area = domain2.areas[i]
-        temp = temp_array[i][0][0] + temp_array[i][1][0] + temp_array[i][2][0]
-        domain2.quantities['xmomentum'].explicit_update[i] += -temp / area 
-        temp = temp_array[i][0][1] + temp_array[i][1][1] + temp_array[i][2][1]
-        domain2.quantities['ymomentum'].explicit_update[i] += -temp / area
+    #for i in range(domain2.number_of_elements):
+    #    area = domain2.areas[i]
+    #    temp = temp_array[i][0][0] + temp_array[i][1][0] + temp_array[i][2][0]
+    #    domain2.quantities['xmomentum'].explicit_update[i] += -temp / area 
+    #    temp = temp_array[i][0][1] + temp_array[i][1][1] + temp_array[i][2][1]
+    #    domain2.quantities['ymomentum'].explicit_update[i] += -temp / area
 
 
 
