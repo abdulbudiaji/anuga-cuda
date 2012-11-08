@@ -466,8 +466,7 @@ def compute_fluxes_central_cuda(domain):
             grid = ( (N + W*W -1 ) / (W*W), 1) )
 
 
-
-
+#"""
 def compute_fluxes_central_structure_cuda(
 		domain, 
 		parallelFlag = 1, 
@@ -596,13 +595,14 @@ def compute_fluxes_central_structure_cuda(
         double edgeflux[3],  max_speed;
         double length, inv_area;
         
-        int i, m, n;
-        int ki, nm, ki2;
+        int i, m, n, N= blockDim.x*gridDim.x;
+        int ki, nm;
 
 		__shared__ double sh_data[32*9];
 
         for (i=0; i<3; i++) {
-            ki = k*3 + i;
+
+            ki = k + i*N;
             n = neighbours[ki];
 
             q_left[0] = stage_edge_values[ki];
@@ -619,7 +619,8 @@ def compute_fluxes_central_structure_cuda(
                 z_right = z_left;
             } else {
                 m = neighbour_edges[ki];
-                nm = n*3 +m;
+                nm = n + m*N;
+
                 q_right[0] = stage_edge_values[nm];
                 q_right[1] = xmom_edge_values[nm];
                 q_right[2] = ymom_edge_values[nm];
@@ -634,161 +635,162 @@ def compute_fluxes_central_structure_cuda(
                 }
             }
 
-            ki2 = 2*ki;
 
-            n1 = normals[ki2];
-            n2 = normals[ki2 + 1];
-
-
-        /////////////////////////////////////////////////////////
+            n1 = normals[k + 2*i*N];
+            n2 = normals[k + (2*i+1)*N];
 
 
-        // Copy conserved quantities to protect from modification
-        q_left_rotated[0] = q_left[0];
-        q_right_rotated[0] = q_right[0];
-        q_left_rotated[1] = q_left[1];
-        q_right_rotated[1] = q_right[1];
-        q_left_rotated[2] = q_left[2];
-        q_right_rotated[2] = q_right[2];
+       		/////////////////////////////////////////////////////////
+
+
+       	 	// Copy conserved quantities to protect from modification
+       	 	q_left_rotated[0] = q_left[0];
+       	 	q_right_rotated[0] = q_right[0];
+       	 	q_left_rotated[1] = q_left[1];
+       	 	q_right_rotated[1] = q_right[1];
+       	 	q_left_rotated[2] = q_left[2];
+       	 	q_right_rotated[2] = q_right[2];
     
-        // Align x- and y-momentum with x-axis
-        //_rotate(q_left_rotated, n1, n2);
-        q_left_rotated[1] = n1*q_left[1] + n2*q_left[2];
-        q_left_rotated[2] = -n2*q_left[1] + n1*q_left[2];
+       	 	// Align x- and y-momentum with x-axis
+       	 	//_rotate(q_left_rotated, n1, n2);
+       	 	q_left_rotated[1] = n1*q_left[1] + n2*q_left[2];
+       	 	q_left_rotated[2] = -n2*q_left[1] + n1*q_left[2];
 
-        //_rotate(q_right_rotated, n1, n2);
-        q_right_rotated[1] = n1*q_right[1] + n2*q_right[2];
-        q_right_rotated[2] = -n2*q_right[1] + n1*q_right[2];
-        
+       	 	//_rotate(q_right_rotated, n1, n2);
+       	 	q_right_rotated[1] = n1*q_right[1] + n2*q_right[2];
+       	 	q_right_rotated[2] = -n2*q_right[1] + n1*q_right[2];
+       	 	
     
-        if (fabs(z_left - z_right) > 1.0e-10) {
-            //report_python_error(AT, "Discontinuous Elevation");
-            //return 0.0;
+       	 	if (fabs(z_left - z_right) > 1.0e-10) {
+       	 	    //report_python_error(AT, "Discontinuous Elevation");
+       	 	    //return 0.0;
+       	 	}
+       	 	z = 0.5 * (z_left + z_right); // Average elevation values.
+    
+       	 	// Compute speeds in x-direction
+       	 	w_left = q_left_rotated[0];
+       	 	h_left = w_left - z;
+       	 	uh_left = q_left_rotated[1];
+       	 	//u_left = _compute_speed(&uh_left, &h_left,
+       	 	//        epsilon, h0, limiting_threshold);
+       	 	
+       	 	if (h_left < limiting_threshold) {   
+       	 	    
+       	 	    if (h_left < epsilon) {
+       	 	        h_left = 0.0;  // Could have been negative
+       	 	        u_left = 0.0;
+       	 	    } else {
+       	 	        u_left = uh_left/(h_left + h0/ h_left);    
+       	 	    }
+
+       	 	    uh_left = u_left * h_left;
+       	 	} else {
+       	 	    u_left = uh_left/ h_left;
+       	 	}
+    
+       	 	w_right = q_right_rotated[0];
+       	 	h_right = w_right - z;
+       	 	uh_right = q_right_rotated[1];
+       	 	//u_right = _compute_speed(&uh_right, &h_right,
+       	 	//        epsilon, h0, limiting_threshold);
+
+       	 	if (h_right < limiting_threshold) {   
+       	 	    
+       	 	    if (h_right < epsilon) {
+       	 	        h_right = 0.0;  // Could have been negative
+       	 	        u_right = 0.0;
+       	 	    } else {
+       	 	        u_right = uh_right/(h_right + h0/ h_right);    
+       	 	    }
+
+       	 	    uh_right = u_right * h_right;
+       	 	} else {
+       	 	    u_right = uh_right/ h_right;
+       	 	}
+
+
+
+    
+       	 	// Momentum in y-direction
+       	 	vh_left = q_left_rotated[2];
+       	 	vh_right = q_right_rotated[2];
+    
+       	 	soundspeed_left = sqrt(g * h_left);
+       	 	soundspeed_right = sqrt(g * h_right);
+    
+       	 	s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+       	 	if (s_max < 0.0) {
+       	 	    s_max = 0.0;
+       	 	}
+    
+       	 	s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+       	 	if (s_min > 0.0) {
+       	 	    s_min = 0.0;
+       	 	}
+    
+       	 	// Flux formulas
+       	 	flux_left[0] = u_left*h_left;
+       	 	flux_left[1] = u_left * uh_left + 0.5 * g * h_left*h_left;
+       	 	flux_left[2] = u_left*vh_left;
+    
+       	 	flux_right[0] = u_right*h_right;
+       	 	flux_right[1] = u_right * uh_right + 0.5 * g * h_right*h_right;
+       	 	flux_right[2] = u_right*vh_right;
+    
+       	 	// Flux computation
+       	 	denom = s_max - s_min;
+       	 	if (denom < epsilon) { // FIXME (Ole): Try using h0 here
+       	 	    memset(edgeflux, 0, 3 * sizeof (double));
+       	 	    max_speed = 0.0;
+       	 	}
+       	 	else {
+       	 	    inverse_denominator = 1.0 / denom;
+       	 	    for (j = 0; j < 3; j++) {
+       	 	        edgeflux[j] = s_max * flux_left[j] - s_min * flux_right[j];
+       	 	        edgeflux[j] += s_max * s_min * (q_right_rotated[j] - q_left_rotated[j]);
+       	 	        edgeflux[j] *= inverse_denominator;
+       	 	    }
+    
+       	 	    // Maximal wavespeed
+       	 	    max_speed = max(fabs(s_max), fabs(s_min));
+    
+       	 	    // Rotate back
+       	 	    //_rotate(edgeflux, n1, -n2);
+       	 	    temp = edgeflux[1];
+       	 	    edgeflux[1] = n1* temp -n2*edgeflux[2];
+       	 	    edgeflux[2] = n2*temp + n1*edgeflux[2];
+       	 	}
+    
+       	 	//////////////////////////////////////////////////////
+
+       	 	length = edgelengths[ki];
+       	 	edgeflux[0] *= length;
+       	 	edgeflux[1] *= length;
+       	 	edgeflux[2] *= length;
+
+	   	 	sh_data[threadIdx.x + i*blockDim.x]= -edgeflux[0];
+	   	 	sh_data[threadIdx.x + (i+3)*blockDim.x]= -edgeflux[1];
+	   	 	sh_data[threadIdx.x + (i+6)*blockDim.x]= -edgeflux[2];
+	   	 	__syncthreads();
+
+
+       	 	//stage_explicit_update[k] -= edgeflux[0];
+       	 	//xmom_explicit_update[k] -= edgeflux[1];
+       	 	//ymom_explicit_update[k] -= edgeflux[2];
+
+       	 	if (tri_full_flag[k] == 1) {
+       	 	    if (max_speed > elements[Depsilon]) {
+       	 	        timestep[k] = min(timestep[k], radii[k]/ max_speed);
+
+       	 	        if (n>=0){
+       	 	            timestep[k] = min(timestep[k], radii[n]/max_speed);
+       	 	        }
+       	 	    }
+       	 	}
+
         }
-        z = 0.5 * (z_left + z_right); // Average elevation values.
-    
-        // Compute speeds in x-direction
-        w_left = q_left_rotated[0];
-        h_left = w_left - z;
-        uh_left = q_left_rotated[1];
-        //u_left = _compute_speed(&uh_left, &h_left,
-        //        epsilon, h0, limiting_threshold);
-        
-        if (h_left < limiting_threshold) {   
-            
-            if (h_left < epsilon) {
-                h_left = 0.0;  // Could have been negative
-                u_left = 0.0;
-            } else {
-                u_left = uh_left/(h_left + h0/ h_left);    
-            }
-
-            uh_left = u_left * h_left;
-        } else {
-            u_left = uh_left/ h_left;
-        }
-    
-        w_right = q_right_rotated[0];
-        h_right = w_right - z;
-        uh_right = q_right_rotated[1];
-        //u_right = _compute_speed(&uh_right, &h_right,
-        //        epsilon, h0, limiting_threshold);
-
-        if (h_right < limiting_threshold) {   
-            
-            if (h_right < epsilon) {
-                h_right = 0.0;  // Could have been negative
-                u_right = 0.0;
-            } else {
-                u_right = uh_right/(h_right + h0/ h_right);    
-            }
-
-            uh_right = u_right * h_right;
-        } else {
-            u_right = uh_right/ h_right;
-        }
 
 
-
-    
-        // Momentum in y-direction
-        vh_left = q_left_rotated[2];
-        vh_right = q_right_rotated[2];
-    
-        soundspeed_left = sqrt(g * h_left);
-        soundspeed_right = sqrt(g * h_right);
-    
-        s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
-        if (s_max < 0.0) {
-            s_max = 0.0;
-        }
-    
-        s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
-        if (s_min > 0.0) {
-            s_min = 0.0;
-        }
-    
-        // Flux formulas
-        flux_left[0] = u_left*h_left;
-        flux_left[1] = u_left * uh_left + 0.5 * g * h_left*h_left;
-        flux_left[2] = u_left*vh_left;
-    
-        flux_right[0] = u_right*h_right;
-        flux_right[1] = u_right * uh_right + 0.5 * g * h_right*h_right;
-        flux_right[2] = u_right*vh_right;
-    
-        // Flux computation
-        denom = s_max - s_min;
-        if (denom < epsilon) { // FIXME (Ole): Try using h0 here
-            memset(edgeflux, 0, 3 * sizeof (double));
-            max_speed = 0.0;
-        }
-        else {
-            inverse_denominator = 1.0 / denom;
-            for (j = 0; j < 3; j++) {
-                edgeflux[j] = s_max * flux_left[j] - s_min * flux_right[j];
-                edgeflux[j] += s_max * s_min * (q_right_rotated[j] - q_left_rotated[j]);
-                edgeflux[j] *= inverse_denominator;
-            }
-    
-            // Maximal wavespeed
-            max_speed = max(fabs(s_max), fabs(s_min));
-    
-            // Rotate back
-            //_rotate(edgeflux, n1, -n2);
-            temp = edgeflux[1];
-            edgeflux[1] = n1* temp -n2*edgeflux[2];
-            edgeflux[2] = n2*temp + n1*edgeflux[2];
-        }
-    
-        //////////////////////////////////////////////////////
-
-        length = edgelengths[ki];
-        edgeflux[0] *= length;
-        edgeflux[1] *= length;
-        edgeflux[2] *= length;
-
-		sh_data[threadIdx.x + i*blockDim.x]= -edgeflux[0];
-		sh_data[threadIdx.x + (i+3)*blockDim.x]= -edgeflux[1];
-		sh_data[threadIdx.x + (i+6)*blockDim.x]= -edgeflux[2];
-		__syncthreads();
-
-
-        //stage_explicit_update[k] -= edgeflux[0];
-        //xmom_explicit_update[k] -= edgeflux[1];
-        //ymom_explicit_update[k] -= edgeflux[2];
-
-        if (tri_full_flag[k] == 1) {
-            if (max_speed > elements[Depsilon]) {
-                timestep[k] = min(timestep[k], radii[k]/ max_speed);
-
-                if (n>=0){
-                    timestep[k] = min(timestep[k], radii[n]/max_speed);
-                }
-            }
-        }
-
-        }
         inv_area = 1.0 / areas[k];
         //stage_explicit_update[k] *= inv_area;
         //xmom_explicit_update[k] *= inv_area;
@@ -799,8 +801,6 @@ def compute_fluxes_central_structure_cuda(
 		xmom_explicit_update[k] = (sh_data[threadIdx.x+3*blockDim.x] + sh_data[threadIdx.x+4*blockDim.x]+sh_data[threadIdx.x+5*blockDim.x]) * inv_area;
 
 		ymom_explicit_update[k] = (sh_data[threadIdx.x+6*blockDim.x] + sh_data[threadIdx.x+7*blockDim.x]+sh_data[threadIdx.x+8*blockDim.x]) * inv_area;
-
-
 
         max_speed_array[k] = max_speed;
     }
@@ -1467,11 +1467,20 @@ def compute_fluxes_central_structure_cuda(
         //stage_explicit_update[k] *= inv_area;
         //xmom_explicit_update[k] *= inv_area;
         //ymom_explicit_update[k] *= inv_area;
-		stage_explicit_update[k] = (sh_data[threadIdx.x] + sh_data[threadIdx.x+blockDim.x]+sh_data[threadIdx.x+blockDim.x*2]) * inv_area;
+		stage_explicit_update[k] = (
+				sh_data[threadIdx.x] + 
+				sh_data[threadIdx.x+blockDim.x] +
+				sh_data[threadIdx.x+blockDim.x*2]) * inv_area;
 
-		xmom_explicit_update[k] = (sh_data[threadIdx.x+3*blockDim.x] + sh_data[threadIdx.x+4*blockDim.x]+sh_data[threadIdx.x+5*blockDim.x]) * inv_area;
+		xmom_explicit_update[k] = (
+				sh_data[threadIdx.x+3*blockDim.x] + 
+				sh_data[threadIdx.x+4*blockDim.x] +
+				sh_data[threadIdx.x+5*blockDim.x]) * inv_area;
 
-		ymom_explicit_update[k] = (sh_data[threadIdx.x+6*blockDim.x] + sh_data[threadIdx.x+7*blockDim.x]+sh_data[threadIdx.x+8*blockDim.x]) * inv_area;
+		ymom_explicit_update[k] = (
+				sh_data[threadIdx.x+6*blockDim.x] + 
+				sh_data[threadIdx.x+7*blockDim.x] +
+				sh_data[threadIdx.x+8*blockDim.x]) * inv_area;
 
 
 		__syncthreads();
@@ -1566,27 +1575,40 @@ def compute_fluxes_central_structure_cuda(
         vertex_coordinates_gpu = mem_all_cpy(domain.vertex_coordinates)
 
         # edge_values vertors
-        stage_edge_values_gpu = mem_all_cpy(domain.quantities['stage'].edge_values)
-        xmom_edge_values_gpu = mem_all_cpy(domain.quantities['xmomentum'].edge_values)
-        ymom_edge_values_gpu = mem_all_cpy(domain.quantities['ymomentum'].edge_values)
-        bed_edge_values_gpu = mem_all_cpy(domain.quantities['elevation'].edge_values)
+        stage_edge_values_gpu = mem_all_cpy(
+				domain.quantities['stage'].edge_values)
+        xmom_edge_values_gpu = mem_all_cpy(
+				domain.quantities['xmomentum'].edge_values)
+        ymom_edge_values_gpu = mem_all_cpy(
+				domain.quantities['ymomentum'].edge_values)
+        bed_edge_values_gpu = mem_all_cpy(
+				domain.quantities['elevation'].edge_values)
 
         # boundary_values vertors
-        stage_boundary_values_gpu = mem_all_cpy(domain.quantities['stage'].boundary_values)
-        xmom_boundary_values_gpu = mem_all_cpy(domain.quantities['xmomentum'].boundary_values)
-        ymom_boundary_values_gpu = mem_all_cpy(domain.quantities['ymomentum'].boundary_values)
+        stage_boundary_values_gpu = mem_all_cpy(
+				domain.quantities['stage'].boundary_values)
+        xmom_boundary_values_gpu = mem_all_cpy(
+				domain.quantities['xmomentum'].boundary_values)
+        ymom_boundary_values_gpu = mem_all_cpy(
+				domain.quantities['ymomentum'].boundary_values)
 
         # vertex_values
-        stage_vertex_values_gpu = mem_all_cpy(domain.quantities['stage'].vertex_values)
+        stage_vertex_values_gpu = mem_all_cpy(
+				domain.quantities['stage'].vertex_values)
 
         # centroid_values
-        stage_centroid_values_gpu = mem_all_cpy(domain.quantities['stage'].centroid_values)
-        bed_centroid_values_gpu = mem_all_cpy(domain.quantities['elevation'].centroid_values)
+        stage_centroid_values_gpu = mem_all_cpy(
+				domain.quantities['stage'].centroid_values)
+        bed_centroid_values_gpu = mem_all_cpy(
+				domain.quantities['elevation'].centroid_values)
 
         # explicit_update vertors
-        stage_explicit_update_gpu = mem_all_cpy(domain.quantities['stage'].explicit_update)
-        xmom_explicit_update_gpu = mem_all_cpy(domain.quantities['xmomentum'].explicit_update)
-        ymom_explicit_update_gpu = mem_all_cpy(domain.quantities['ymomentum'].explicit_update)
+        stage_explicit_update_gpu = mem_all_cpy(
+				domain.quantities['stage'].explicit_update)
+        xmom_explicit_update_gpu = mem_all_cpy(
+				domain.quantities['xmomentum'].explicit_update)
+        ymom_explicit_update_gpu = mem_all_cpy(
+				domain.quantities['ymomentum'].explicit_update)
 
         # max_speed vertors
         max_speed_gpu = mem_all_cpy(domain.max_speed)
@@ -1914,12 +1936,17 @@ if __name__ == '__main__':
     
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
     
-    from anuga_cuda.merimbula_data.sort_domain import sort_domain
-    from anuga_cuda.extrapolate.extrapolate_second_order_sw import approx_cmp
+    from anuga_cuda.merimbula_data.sort_domain import sort_domain, rearrange_domain
+    from anuga_cuda.merimbula_data.utility import approx_cmp
 
-    domain2 = domain_create()
-    
-    sort_domain(domain2)
+
+    #domain2 = domain_create()
+    #sort_domain(domain2)
+
+
+
+    domain1 = domain_create()
+    domain2=rearrange_domain(domain1)
     
         
     if domain2.compute_fluxes_method == 'original':
@@ -1934,8 +1961,10 @@ if __name__ == '__main__':
 
     elif domain2.compute_fluxes_method == 'wb_2':
 
-        compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
-				name= "compute_fluxes_central_structure_MeCo")
+        #compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
+		#		name= "compute_fluxes_central_structure_MeCo")
+    	compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
+				name= "_flux_function_central_2")
         #gravity_wb_c(domain2)
 
     elif domain2.compute_fluxes_method == 'wb_3':
@@ -1949,7 +1978,6 @@ if __name__ == '__main__':
 
 
 
-    domain1 = domain_create()
 
 
     if domain1.compute_fluxes_method == 'original':
@@ -2056,29 +2084,29 @@ if __name__ == '__main__':
     """
 
 
-    print "\n~~~~~~~~~~~~~~~~~~~ domain 3 ~~~~~~~~~~~~~~~~~"
-    domain3 = domain_create()
+    #print "\n~~~~~~~~~~~~~~~~~~~ domain 3 ~~~~~~~~~~~~~~~~~"
+    #domain3 = domain_create()
 
-    compute_fluxes_central_structure_cuda(domain3, parallelFlag=1, \
-			name= "_flux_function_central_2")
     #compute_fluxes_central_structure_cuda(domain3, parallelFlag=1, \
-	#		name= "compute_fluxes_central_structure_MeCo")
-    counter_stage = 0
-    counter_xmom = 0
-    counter_ymom = 0
-    for i in range(domain3.number_of_elements):
-        if approx_cmp(domain1.quantities['stage'].explicit_update[i],
-                domain3.quantities['stage'].explicit_update[i]):
-            counter_stage += 1
-        if approx_cmp(domain1.quantities['xmomentum'].explicit_update[i],
-               domain3.quantities['xmomentum'].explicit_update[i]):
-            counter_xmom += 1
-        if approx_cmp( domain1.quantities['ymomentum'].explicit_update[i] ,
-                domain3.quantities['ymomentum'].explicit_update[i]):
-            counter_ymom += 1
+	#		name= "_flux_function_central_2")
+    ##compute_fluxes_central_structure_cuda(domain3, parallelFlag=1, \
+	##		name= "compute_fluxes_central_structure_MeCo")
+    #counter_stage = 0
+    #counter_xmom = 0
+    #counter_ymom = 0
+    #for i in range(domain3.number_of_elements):
+    #    if approx_cmp(domain1.quantities['stage'].explicit_update[i],
+    #            domain3.quantities['stage'].explicit_update[i]):
+    #        counter_stage += 1
+    #    if approx_cmp(domain1.quantities['xmomentum'].explicit_update[i],
+    #           domain3.quantities['xmomentum'].explicit_update[i]):
+    #        counter_xmom += 1
+    #    if approx_cmp( domain1.quantities['ymomentum'].explicit_update[i] ,
+    #            domain3.quantities['ymomentum'].explicit_update[i]):
+    #        counter_ymom += 1
 
-    print "*******  of diff %d, %d, %d" % \
-			(counter_stage, counter_xmom, counter_ymom)
+    #print "*******  of diff %d, %d, %d" % \
+	#		(counter_stage, counter_xmom, counter_ymom)
     
 
 
