@@ -3,32 +3,32 @@ NV_Warning: Ignoring the invalid profiler config option: instructions
 # CUDA_DEVICE 0 Tesla S2050
 # CUDA_CONTEXT 1
 # CUDA_PROFILE_CSV 1
-# TIMESTAMPFACTOR fffff6a20a57edf8
+# TIMESTAMPFACTOR fffff6a18ec8c750
 method,gputime,cputime,threadblocksizeX,threadblocksizeY,threadblocksizeZ,dynsmemperblock,stasmemperblock,regperthread,occupancy,memtransfersize,memtransferdir
-memcpyHtoD,1.440,70.000,,,,,,,,48,1
-memcpyHtoD,58.752,126.000,,,,,,,,345600,1
-memcpyHtoD,170.688,464.000,,,,,,,,1036800,1
-memcpyHtoD,170.400,449.000,,,,,,,,1036800,1
-memcpyHtoD,612.192,875.000,,,,,,,,2073600,1
-memcpyHtoD,170.496,403.000,,,,,,,,1036800,1
-memcpyHtoD,58.784,153.000,,,,,,,,345600,1
-memcpyHtoD,58.560,137.000,,,,,,,,345600,1
-memcpyHtoD,58.784,136.000,,,,,,,,345600,1
-memcpyHtoD,170.528,396.000,,,,,,,,1036800,1
-memcpyHtoD,170.560,390.000,,,,,,,,1036800,1
-memcpyHtoD,170.752,408.000,,,,,,,,1036800,1
-memcpyHtoD,170.432,421.000,,,,,,,,1036800,1
+memcpyHtoD,1.408,76.000,,,,,,,,48,1
+memcpyHtoD,58.880,118.000,,,,,,,,345600,1
+memcpyHtoD,170.720,465.000,,,,,,,,1036800,1
+memcpyHtoD,170.624,449.000,,,,,,,,1036800,1
+memcpyHtoD,667.712,929.000,,,,,,,,2073600,1
+memcpyHtoD,170.592,402.000,,,,,,,,1036800,1
+memcpyHtoD,58.688,137.000,,,,,,,,345600,1
+memcpyHtoD,58.752,137.000,,,,,,,,345600,1
+memcpyHtoD,58.688,136.000,,,,,,,,345600,1
+memcpyHtoD,170.656,390.000,,,,,,,,1036800,1
+memcpyHtoD,170.400,390.000,,,,,,,,1036800,1
+memcpyHtoD,170.464,388.000,,,,,,,,1036800,1
+memcpyHtoD,170.432,389.000,,,,,,,,1036800,1
+memcpyHtoD,1.728,11.000,,,,,,,,8576,1
+memcpyHtoD,1.728,10.000,,,,,,,,8576,1
 memcpyHtoD,1.760,10.000,,,,,,,,8576,1
-memcpyHtoD,1.760,10.000,,,,,,,,8576,1
-memcpyHtoD,1.824,9.000,,,,,,,,8576,1
-memcpyHtoD,58.656,133.000,,,,,,,,345600,1
-memcpyHtoD,58.624,133.000,,,,,,,,345600,1
+memcpyHtoD,58.624,132.000,,,,,,,,345600,1
+memcpyHtoD,58.592,134.000,,,,,,,,345600,1
+memcpyHtoD,58.688,133.000,,,,,,,,345600,1
 memcpyHtoD,58.656,134.000,,,,,,,,345600,1
-memcpyHtoD,58.688,134.000,,,,,,,,345600,1
-_flux_function_central_2,572.608,25.000,32,1,1,0,2304,63,0.167
-memcpyDtoH,2.240,53.000,,,,,,,,48,2
-memcpyDtoH,55.424,230.000,,,,,,,,345600,2
-memcpyDtoH,54.816,231.000,,,,,,,,345600,2
-memcpyDtoH,53.984,243.000,,,,,,,,345600,2
-memcpyDtoH,54.016,249.000,,,,,,,,345600,2
-memcpyDtoH,54.112,292.000,,,,,,,,345600,2
+_flux_function_central_2,568.864,25.000,32,1,1,0,2304,63,0.167
+memcpyDtoH,2.272,52.000,,,,,,,,48,2
+memcpyDtoH,55.456,232.000,,,,,,,,345600,2
+memcpyDtoH,55.008,229.000,,,,,,,,345600,2
+memcpyDtoH,53.984,232.000,,,,,,,,345600,2
+memcpyDtoH,54.016,231.000,,,,,,,,345600,2
+memcpyDtoH,54.016,295.000,,,,,,,,345600,2
