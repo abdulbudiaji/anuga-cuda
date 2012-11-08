@@ -583,7 +583,8 @@ def compute_fluxes_central_structure_cuda(
         double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
     
 
-        const int k = threadIdx.x + blockIdx.x * blockDim.x;
+        //const int k = threadIdx.x + blockIdx.x * blockDim.x;
+        const int k = threadIdx.x+threadIdx.y*blockDim.x+(blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
         double q_left[3], q_right[3];
         double z_left,  z_right;
@@ -595,10 +596,13 @@ def compute_fluxes_central_structure_cuda(
         double edgeflux[3],  max_speed;
         double length, inv_area;
         
-        int i, m, n, N= blockDim.x*gridDim.x;
+        int i, m, n;
+        int N = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
+        int B = blockDim.x*blockDim.y;
+        int T = threadIdx.x+threadIdx.y*blockDim.x;
         int ki, nm;
 
-		__shared__ double sh_data[32*9];
+		__shared__ double sh_data[32*10*9];
 
         for (i=0; i<3; i++) {
 
@@ -768,9 +772,9 @@ def compute_fluxes_central_structure_cuda(
        	 	edgeflux[1] *= length;
        	 	edgeflux[2] *= length;
 
-	   	 	sh_data[threadIdx.x + i*blockDim.x]= -edgeflux[0];
-	   	 	sh_data[threadIdx.x + (i+3)*blockDim.x]= -edgeflux[1];
-	   	 	sh_data[threadIdx.x + (i+6)*blockDim.x]= -edgeflux[2];
+	   	 	sh_data[T + i*B]= -edgeflux[0];
+	   	 	sh_data[T + (i+3)*B]= -edgeflux[1];
+	   	 	sh_data[T + (i+6)*B]= -edgeflux[2];
 	   	 	__syncthreads();
 
 
@@ -796,11 +800,11 @@ def compute_fluxes_central_structure_cuda(
         //xmom_explicit_update[k] *= inv_area;
         //ymom_explicit_update[k] *= inv_area;
 
-		stage_explicit_update[k] = (sh_data[threadIdx.x] + sh_data[threadIdx.x+blockDim.x]+sh_data[threadIdx.x+blockDim.x*2]) * inv_area;
+		stage_explicit_update[k] = (sh_data[T] + sh_data[T+B]+sh_data[T+B*2]) * inv_area;
 
-		xmom_explicit_update[k] = (sh_data[threadIdx.x+3*blockDim.x] + sh_data[threadIdx.x+4*blockDim.x]+sh_data[threadIdx.x+5*blockDim.x]) * inv_area;
+		xmom_explicit_update[k] = (sh_data[T+B*3] + sh_data[T+B*4]+sh_data[T+B*5]) * inv_area;
 
-		ymom_explicit_update[k] = (sh_data[threadIdx.x+6*blockDim.x] + sh_data[threadIdx.x+7*blockDim.x]+sh_data[threadIdx.x+8*blockDim.x]) * inv_area;
+		ymom_explicit_update[k] = (sh_data[T+B*6] + sh_data[T+B*7]+sh_data[T+B*8]) * inv_area;
 
         max_speed_array[k] = max_speed;
     }
@@ -1645,7 +1649,9 @@ def compute_fluxes_central_structure_cuda(
         cuda.memcpy_dtoh(timestep_array, timestep_array_gpu)
         cuda.memcpy_dtoh(domain.max_speed, max_speed_gpu)
         """
-        
+        W1 =32
+        W2 = 10
+        W3 =1
         compute_fluxes_central_function = mod.get_function(name)
         compute_fluxes_central_function( 
                 cuda.InOut( elements ), 
@@ -1668,8 +1674,8 @@ def compute_fluxes_central_structure_cuda(
                 cuda.InOut( domain.quantities['xmomentum'].explicit_update ), 
                 cuda.InOut( domain.quantities['ymomentum'].explicit_update ),  
                 cuda.InOut( domain.max_speed), 
-                block = ( W1, 1, 1),
-                grid = ( (N +W1 -1)/W1 , 1) )
+                block = ( W1, W2, W3),
+                grid = ( 9 , 15) )
 		
         
         b = numpy.argsort(timestep_array)
