@@ -303,7 +303,7 @@ def rearrange_domain(domain, sort_flag=True):
         bed_vertex_values[(i+2*N)/3][(i+2*N)%3] = \
 							temp_dom.quantities['elevation'].vertex_values[i][2]
 
-	return new_dom
+    return new_dom
 
 
 
@@ -342,12 +342,28 @@ def rearrange_domain_check(domain1, domain2):
             if cnt_nb < 5:
                 print i, neighbours[i], domain2.neighbours[i/3][i%3], domain2.neighbours[(i+N)/3][(i+N)%3], domain2.neighbours[(i+N*2)/3][(i+N*2)%3]
             cnt_nb+=1
+
         if neighbour_edges[i][0] != domain2.neighbour_edges[i/3][i%3] or \
-				neighbour_edges[i][1] != domain2.neighbour_edges[(i+N)/3][(i+N)%3]or\
-				neighbour_edges[i][2] != domain2.neighbour_edges[(i+N*2)/3][(i+N*2)%3]:
+			neighbour_edges[i][1] != domain2.neighbour_edges[(i+N)/3][(i+N)%3]or\
+			neighbour_edges[i][2] != domain2.neighbour_edges[(i+N*2)/3][(i+N*2)%3]:
 			cnt_nbedge+=1
-        if 0:
-            pass
+        
+        if surrogate_neighbours[i][0] != domain2.surrogate_neighbours[i/3][i%3] or \
+			    surrogate_neighbours[i][1] !=\
+                    domain2.surrogate_neighbours[(i+N)/3][(i+N)%3]or\
+			    surrogate_neighbours[i][2] !=\
+                    domain2.surrogate_neighbours[(i+N*2)/3][(i+N*2)%3]:
+			cnt_surrnb+=1
+
+        if normals[i][0] != domain2.normals[i/6][i%6] or \
+			    normals[i][1] != domain2.normals[(i+N)/6][(i+N)%6] or \
+			    normals[i][2] != domain2.normals[(i+N*2)/6][(i+N*2)%6] or \
+			    normals[i][3] != domain2.normals[(i+N*3)/6][(i+N*3)%6] or \
+			    normals[i][4] != domain2.normals[(i+N*4)/6][(i+N*4)%6] or \
+			    normals[i][5] != domain2.normals[(i+N*5)/6][(i+N*5)%6]:
+			cnt_surrnb+=1
+
+
 
 
     print "nb=%d, nb_edge=%d" % (cnt_nb, cnt_nbedge)
