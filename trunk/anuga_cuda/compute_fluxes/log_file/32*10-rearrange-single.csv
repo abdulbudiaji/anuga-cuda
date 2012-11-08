@@ -1,0 +1,34 @@
+NV_Warning: Ignoring the invalid profiler config option: instructions
+# CUDA_PROFILE_LOG_VERSION 2.0
+# CUDA_DEVICE 0 Tesla S2050
+# CUDA_CONTEXT 1
+# CUDA_PROFILE_CSV 1
+# TIMESTAMPFACTOR fffff6a232f6c2d8
+method,gputime,cputime,threadblocksizeX,threadblocksizeY,threadblocksizeZ,dynsmemperblock,stasmemperblock,regperthread,occupancy,memtransfersize,memtransferdir
+memcpyHtoD,1.440,83.000,,,,,,,,48,1
+memcpyHtoD,58.720,123.000,,,,,,,,345600,1
+memcpyHtoD,170.944,466.000,,,,,,,,1036800,1
+memcpyHtoD,170.400,450.000,,,,,,,,1036800,1
+memcpyHtoD,750.848,1013.000,,,,,,,,2073600,1
+memcpyHtoD,170.528,402.000,,,,,,,,1036800,1
+memcpyHtoD,58.624,137.000,,,,,,,,345600,1
+memcpyHtoD,58.656,135.000,,,,,,,,345600,1
+memcpyHtoD,58.752,136.000,,,,,,,,345600,1
+memcpyHtoD,170.592,388.000,,,,,,,,1036800,1
+memcpyHtoD,170.272,388.000,,,,,,,,1036800,1
+memcpyHtoD,170.496,387.000,,,,,,,,1036800,1
+memcpyHtoD,170.432,415.000,,,,,,,,1036800,1
+memcpyHtoD,1.792,11.000,,,,,,,,8576,1
+memcpyHtoD,1.792,9.000,,,,,,,,8576,1
+memcpyHtoD,1.792,9.000,,,,,,,,8576,1
+memcpyHtoD,58.688,132.000,,,,,,,,345600,1
+memcpyHtoD,58.592,133.000,,,,,,,,345600,1
+memcpyHtoD,58.720,133.000,,,,,,,,345600,1
+memcpyHtoD,58.528,141.000,,,,,,,,345600,1
+_flux_function_central_2,382.496,26.000,32,5,1,0,2304,63,0.208
+memcpyDtoH,2.304,52.000,,,,,,,,48,2
+memcpyDtoH,55.488,230.000,,,,,,,,345600,2
+memcpyDtoH,54.816,244.000,,,,,,,,345600,2
+memcpyDtoH,53.984,230.000,,,,,,,,345600,2
+memcpyDtoH,54.016,232.000,,,,,,,,345600,2
+memcpyDtoH,54.016,287.000,,,,,,,,345600,2
