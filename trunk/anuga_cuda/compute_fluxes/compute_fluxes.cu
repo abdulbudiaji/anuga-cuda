@@ -1,3 +1,4 @@
+#ifdef USING_MULTI_FUNCTION
 
 #define Dtimestep 0
 #define Depsilon 1
@@ -745,13 +746,16 @@ __global__ void compute_fluxes_central_structure_MeCo(
     max_speed_array[k] =  max_speed;
 }
 
-
+#endif
 
 /*****************************************/
 /* Rearrange the domain variable order   */
 /* so as to achieve memory corelasing    */
 /* also combination all subfunctions     */
 /*****************************************/
+
+#define B blockDim.x*blockDim.y
+#define T threadIdx.x+threadIdx.y*blockDim.x
 
 //__global__ void _flux_function_central_2(
 __global__ void compute_fluxes_central_structure_cuda_single(
@@ -805,11 +809,11 @@ __global__ void compute_fluxes_central_structure_cuda_single(
     double length, inv_area;
 
     int i, m, n;
-    int B = blockDim.x*blockDim.y;
-    int T = threadIdx.x+threadIdx.y*blockDim.x;
+    //int B = blockDim.x*blockDim.y;
+    //int T = threadIdx.x+threadIdx.y*blockDim.x;
     int ki, nm;
 
-    __shared__ double sh_data[32*10*9];
+    __shared__ double sh_data[32*9];
 
     for (i=0; i<3; i++) {
 

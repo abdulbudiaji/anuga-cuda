@@ -1517,7 +1517,10 @@ def compute_fluxes_central_structure_cuda(
     
 
     
-    if (N % 256 == 0):
+    if (N % 320 == 0):
+        W1 = 32
+        W2 = 10
+    elif(N % 256 == 0):
         W1 = 16
         W2 = 16
     elif (N % 32 ==0):
@@ -1557,104 +1560,104 @@ def compute_fluxes_central_structure_cuda(
         print elements[0]
     else:
         """
-        compute_fluxes_central_function = mod.get_function(name)
+            compute_fluxes_central_function = mod.get_function(name)
 
-		from anuga_cuda.merimbula_data.utility import mem_all_cpy
+		    from anuga_cuda.merimbula_data.utility import mem_all_cpy
 
-        # facilities vertors
-        timestep_array_gpu = mem_all_cpy(timestep_array )
-        
-        elements_gpu = mem_all_cpy(elements)
+            # facilities vertors
+            timestep_array_gpu = mem_all_cpy(timestep_array )
+            
+            elements_gpu = mem_all_cpy(elements)
 
-        # neighbours vertors
-        neighbours_gpu = mem_all_cpy(domain.neighbours)
-        neighbour_edges_gpu = mem_all_cpy(domain.neighbour_edges)
+            # neighbours vertors
+            neighbours_gpu = mem_all_cpy(domain.neighbours)
+            neighbour_edges_gpu = mem_all_cpy(domain.neighbour_edges)
 
-        # 
-        normals_gpu = mem_all_cpy(domain.normals)
-        edgelengths_gpu = mem_all_cpy(domain.edgelengths)
-        radii_gpu = mem_all_cpy(domain.radii)
-        areas_gpu = mem_all_cpy(domain.areas)
-        tri_full_flag_gpu = mem_all_cpy(domain.tri_full_flag)
-        vertex_coordinates_gpu = mem_all_cpy(domain.vertex_coordinates)
+            # 
+            normals_gpu = mem_all_cpy(domain.normals)
+            edgelengths_gpu = mem_all_cpy(domain.edgelengths)
+            radii_gpu = mem_all_cpy(domain.radii)
+            areas_gpu = mem_all_cpy(domain.areas)
+            tri_full_flag_gpu = mem_all_cpy(domain.tri_full_flag)
+            vertex_coordinates_gpu = mem_all_cpy(domain.vertex_coordinates)
 
-        # edge_values vertors
-        stage_edge_values_gpu = mem_all_cpy(
-				domain.quantities['stage'].edge_values)
-        xmom_edge_values_gpu = mem_all_cpy(
-				domain.quantities['xmomentum'].edge_values)
-        ymom_edge_values_gpu = mem_all_cpy(
-				domain.quantities['ymomentum'].edge_values)
-        bed_edge_values_gpu = mem_all_cpy(
-				domain.quantities['elevation'].edge_values)
+            # edge_values vertors
+            stage_edge_values_gpu = mem_all_cpy(
+		    		domain.quantities['stage'].edge_values)
+            xmom_edge_values_gpu = mem_all_cpy(
+		    		domain.quantities['xmomentum'].edge_values)
+            ymom_edge_values_gpu = mem_all_cpy(
+		    		domain.quantities['ymomentum'].edge_values)
+            bed_edge_values_gpu = mem_all_cpy(
+		    		domain.quantities['elevation'].edge_values)
 
-        # boundary_values vertors
-        stage_boundary_values_gpu = mem_all_cpy(
-				domain.quantities['stage'].boundary_values)
-        xmom_boundary_values_gpu = mem_all_cpy(
-				domain.quantities['xmomentum'].boundary_values)
-        ymom_boundary_values_gpu = mem_all_cpy(
-				domain.quantities['ymomentum'].boundary_values)
+            # boundary_values vertors
+            stage_boundary_values_gpu = mem_all_cpy(
+		    		domain.quantities['stage'].boundary_values)
+            xmom_boundary_values_gpu = mem_all_cpy(
+		    		domain.quantities['xmomentum'].boundary_values)
+            ymom_boundary_values_gpu = mem_all_cpy(
+		    		domain.quantities['ymomentum'].boundary_values)
 
-        # vertex_values
-        stage_vertex_values_gpu = mem_all_cpy(
-				domain.quantities['stage'].vertex_values)
+            # vertex_values
+            stage_vertex_values_gpu = mem_all_cpy(
+		    		domain.quantities['stage'].vertex_values)
 
-        # centroid_values
-        stage_centroid_values_gpu = mem_all_cpy(
-				domain.quantities['stage'].centroid_values)
-        bed_centroid_values_gpu = mem_all_cpy(
-				domain.quantities['elevation'].centroid_values)
+            # centroid_values
+            stage_centroid_values_gpu = mem_all_cpy(
+		    		domain.quantities['stage'].centroid_values)
+            bed_centroid_values_gpu = mem_all_cpy(
+		    		domain.quantities['elevation'].centroid_values)
 
-        # explicit_update vertors
-        stage_explicit_update_gpu = mem_all_cpy(
-				domain.quantities['stage'].explicit_update)
-        xmom_explicit_update_gpu = mem_all_cpy(
-				domain.quantities['xmomentum'].explicit_update)
-        ymom_explicit_update_gpu = mem_all_cpy(
-				domain.quantities['ymomentum'].explicit_update)
+            # explicit_update vertors
+            stage_explicit_update_gpu = mem_all_cpy(
+		    		domain.quantities['stage'].explicit_update)
+            xmom_explicit_update_gpu = mem_all_cpy(
+		    		domain.quantities['xmomentum'].explicit_update)
+            ymom_explicit_update_gpu = mem_all_cpy(
+		    		domain.quantities['ymomentum'].explicit_update)
 
-        # max_speed vertors
-        max_speed_gpu = mem_all_cpy(domain.max_speed)
-        
+            # max_speed vertors
+            max_speed_gpu = mem_all_cpy(domain.max_speed)
+            
 
-        compute_fluxes_central_function(
-            elements_gpu, 
-            timestep_array_gpu, 
-            neighbours_gpu, 
-            neighbour_edges_gpu,
-            normals_gpu, 
-            edgelengths_gpu, 
-            radii_gpu, 
-            areas_gpu, 
-            tri_full_flag_gpu,
-            stage_edge_values_gpu, 
-            xmom_edge_values_gpu, 
-            ymom_edge_values_gpu, 
-            bed_edge_values_gpu, 
-            stage_boundary_values_gpu, 
-            xmom_boundary_values_gpu, 
-            ymom_boundary_values_gpu, 
-            stage_explicit_update_gpu, 
-            xmom_explicit_update_gpu, 
-            ymom_explicit_update_gpu, 
-            max_speed_gpu, 
-            block = ( W1, 1, 1),
-            grid = ( (N + W1 - 1)/W1, 1) 
-            )
-        
-        cuda.memcpy_dtoh(
-                domain.quantities['stage'].explicit_update, 
-                stage_explicit_update_gpu)
-        cuda.memcpy_dtoh(
-                domain.quantities['xmomentum'].explicit_update, 
-                xmom_explicit_update_gpu)
-        cuda.memcpy_dtoh(
-                domain.quantities['ymomentum'].explicit_update, 
-                ymom_explicit_update_gpu)
-        
-        cuda.memcpy_dtoh(timestep_array, timestep_array_gpu)
-        cuda.memcpy_dtoh(domain.max_speed, max_speed_gpu)
+            compute_fluxes_central_function(
+                elements_gpu, 
+                timestep_array_gpu, 
+                neighbours_gpu, 
+                neighbour_edges_gpu,
+                normals_gpu, 
+                edgelengths_gpu, 
+                radii_gpu, 
+                areas_gpu, 
+                tri_full_flag_gpu,
+                stage_edge_values_gpu, 
+                xmom_edge_values_gpu, 
+                ymom_edge_values_gpu, 
+                bed_edge_values_gpu, 
+                stage_boundary_values_gpu, 
+                xmom_boundary_values_gpu, 
+                ymom_boundary_values_gpu, 
+                stage_explicit_update_gpu, 
+                xmom_explicit_update_gpu, 
+                ymom_explicit_update_gpu, 
+                max_speed_gpu, 
+                block = ( W1, 1, 1),
+                grid = ( (N + W1 - 1)/W1, 1) 
+                )
+            
+            cuda.memcpy_dtoh(
+                    domain.quantities['stage'].explicit_update, 
+                    stage_explicit_update_gpu)
+            cuda.memcpy_dtoh(
+                    domain.quantities['xmomentum'].explicit_update, 
+                    xmom_explicit_update_gpu)
+            cuda.memcpy_dtoh(
+                    domain.quantities['ymomentum'].explicit_update, 
+                    ymom_explicit_update_gpu)
+            
+            cuda.memcpy_dtoh(timestep_array, timestep_array_gpu)
+            cuda.memcpy_dtoh(domain.max_speed, max_speed_gpu)
         """
         
         
@@ -1662,6 +1665,9 @@ def compute_fluxes_central_structure_cuda(
         W2 = 10
         W3 =1
         compute_fluxes_central_function = mod.get_function(name)
+        #from anuga_cuda.compute_fluxes.py_compute_fluxes import get_func_info
+        #get_func_info(compute_fluxes_central_function)
+
         compute_fluxes_central_function( 
                 cuda.InOut( elements ), 
                 cuda.InOut( timestep_array ), 
