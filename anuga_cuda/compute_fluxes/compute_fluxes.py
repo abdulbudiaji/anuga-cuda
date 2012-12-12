@@ -477,7 +477,6 @@ def compute_fluxes_central_structure_cuda(
     from pycuda.compiler import SourceModule
     import numpy
 
-    print " in the compute_fluxes_central_structure cuda function"
     N = domain.number_of_elements
 
     global compute_fluxes_central_structure_call
@@ -602,7 +601,7 @@ def compute_fluxes_central_structure_cuda(
         int T = threadIdx.x+threadIdx.y*blockDim.x;
         int ki, nm;
 
-		__shared__ double sh_data[32*10*9];
+		__shared__ double sh_data[32*9];
 
         for (i=0; i<3; i++) {
 
@@ -1021,6 +1020,8 @@ def compute_fluxes_central_structure_cuda(
 
 
     __global__ void compute_fluxes_central_structure_CUDA(
+            long N,
+            double * elements,
             double * timestep,
             long * neighbours,
             long * neighbour_edges,
@@ -1039,8 +1040,7 @@ def compute_fluxes_central_structure_cuda(
             double * stage_explicit_update,
             double * xmom_explicit_update,
             double * ymom_explicit_update, 
-            double * max_speed_array,
-            double * elements)
+            double * max_speed_array)
     {
         const int k = threadIdx.x + (blockIdx.x )*blockDim.x;
     
@@ -1051,18 +1051,21 @@ def compute_fluxes_central_structure_cuda(
     
         double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
         
-        int i, m, n;
+        int i, m, n, j;
         int ki, nm = 0, ki2; // Index shorthands
         
         double ql[3], qr[3], edgeflux[3];
 
-        //int b[3]={0,1,2};
-        //spe_bubble_sort( b, neighbours+k*3, k);
-        //for (j = 0; j < 3; j++) {
-        //    i = b[j];
+        int b[3]={0,1,2};
+        if (k >=N )
+            return;
+
+        spe_bubble_sort( b, neighbours+k*3, k);
+        for (j = 0; j < 3; j++) {
+            i = b[j];
 
 
-        for ( i = 0; i < 3; i++) {
+        //for ( i = 0; i < 3; i++) {
 
             ki = k * 3 + i; // Linear index to edge i of triangle k
     
@@ -1506,7 +1509,9 @@ def compute_fluxes_central_structure_cuda(
     elements[5] = compute_fluxes_central_structure_call
     
 
-    timestep_array = numpy.zeros( (domain.number_of_elements) , dtype=numpy.float64)
+    timestep_array = numpy.zeros( 
+            (domain.number_of_elements) , 
+            dtype=numpy.float64)
 
     # Necessary data initialization
     for i in range(N):
@@ -1517,18 +1522,21 @@ def compute_fluxes_central_structure_cuda(
     
 
     
-    if (N % 320 == 0):
-        W1 = 32
-        W2 = 10
-    elif(N % 256 == 0):
-        W1 = 16
-        W2 = 16
-    elif (N % 32 ==0):
-        W1 = 32
-        W2 = 1
-    else:
-        raise Exception('N can not be splited')
+    #if (N % 320 == 0):
+    #    W1 = 32
+    #    W2 = 10
+    #elif(N % 256 == 0):
+    #    W1 = 16
+    #    W2 = 16
+    #elif (N % 32 ==0):
+    #    W1 = 32
+    #    W2 = 1
+    #else:
+    #    raise Exception('N can not be splited')
 
+    W1 = 32
+    W2 = 1
+    W3 = 1
     
     if parallelFlag == 2:
         compute_fluxes_central_function = mod.get_function(name)
@@ -1550,8 +1558,8 @@ def compute_fluxes_central_structure_cuda(
                 cuda.In( domain.quantities['xmomentum'].boundary_values ), \
                 cuda.In( domain.quantities['ymomentum'].boundary_values ), \
                 cuda.InOut( domain.quantities['stage'].explicit_update ), \
-                cuda.InOut( domain.quantities['xmomentum'].explicit_update ), \
-                cuda.InOut( domain.quantities['ymomentum'].explicit_update ), \
+                cuda.InOut( domain.quantities['xmomentum'].explicit_update),\
+                cuda.InOut( domain.quantities['ymomentum'].explicit_update),\
                 cuda.InOut( domain.already_computed_flux ), \
                 cuda.InOut( domain.max_speed), \
                 block = ( 1, 1, 1),\
@@ -1662,13 +1670,14 @@ def compute_fluxes_central_structure_cuda(
         
         
         W1 =32
-        W2 = 10
+        W2 = 1
         W3 =1
         compute_fluxes_central_function = mod.get_function(name)
         #from anuga_cuda.compute_fluxes.py_compute_fluxes import get_func_info
         #get_func_info(compute_fluxes_central_function)
 
         compute_fluxes_central_function( 
+                numpy.uint(domain.number_of_elements),
                 cuda.InOut( elements ), 
                 cuda.InOut( timestep_array ), 
                 cuda.In( domain.neighbours ), 
@@ -1695,6 +1704,7 @@ def compute_fluxes_central_structure_cuda(
         
         b = numpy.argsort(timestep_array)
         domain.flux_timestep = timestep_array[b[0]] 
+    return domain.flux_timestep
 
         
 
@@ -1959,16 +1969,19 @@ if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
     from anuga_cuda.merimbula_data.sort_domain import sort_domain, rearrange_domain
     from anuga_cuda.merimbula_data.utility import approx_cmp
+    from anuga_cuda.merimbula_data.channel3 import generate_domain
 
 
     #domain2 = domain_create()
     #sort_domain(domain2)
+    domain2 = generate_domain()
 
 
-
-    domain1 = domain_create()
-    domain2=rearrange_domain(domain1)
+    #domain1 = domain_create()
+    domain1 = generate_domain()
+    #domain2=rearrange_domain(domain1)
     
+    print " Number of elements is: %d" % domain1.number_of_elements
     """
     CUDA Function
     """
@@ -1984,10 +1997,11 @@ if __name__ == '__main__':
 
     elif domain2.compute_fluxes_method == 'wb_2':
 
+        compute_fluxes_central_structure_cuda(domain2)
         #compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
-		#		name= "compute_fluxes_central_structure_MeCo")
-    	compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
-				name= "_flux_function_central_2")
+	    #		name= "compute_fluxes_central_structure_CUDA")
+    	#compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
+		#		name= "_flux_function_central_2")
         #gravity_wb_c(domain2)
 
     elif domain2.compute_fluxes_method == 'wb_3':

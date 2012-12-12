@@ -3,7 +3,7 @@
 from time import time
 import numpy
 
-auto_init_context = True
+auto_init_context = False
 show_func_info = True
 
 using_page_locked_array = True
@@ -68,10 +68,9 @@ elif (N % 32 ==0):
 else:
     raise Exception('N can not be splited')
     
-thread_block_size ="#define THREAD_BLOCK_SIZE %d\n" % (W1*W2*W3) 
+macro ="#define THREAD_BLOCK_SIZE %d\n" % (W1*W2*W3) 
 mod = SourceModule(
-        #thread_block_size + open("compute_fluxes.cu","r").read(),
-        open("compute_fluxes.cu","r").read(),
+        macro + open("compute_fluxes.cu","r").read(),
         #options=["--ptxas-options=-v"],
         include_dirs=[compute_fluxes_dir]
         )
@@ -156,7 +155,7 @@ print "Pageable memory exe time: %3.7f" % secs
     Page-locked array
 ********** ********** ********** ********** **********"""
 def page_locked_array(a):
-    a_pl = drv.pagelocked_zeros_like(a)
+    a_pl = drv.pagelocked_zeros_like(a, mem_flags=drv.host_alloc_flags.DEVICEMAP)
     if len(a.shape) == 1:
         a_pl[:] = a
     else:

@@ -1,0 +1,5 @@
+# CUDA_PROFILE_LOG_VERSION 2.0
+# CUDA_DEVICE 0 GeForce GTX 295
+# CUDA_CONTEXT 1
+# TIMESTAMPFACTOR fffff6a2b5b51208
+method,gputime,cputime,occupancy

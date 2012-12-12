@@ -1,0 +1,33 @@
+# CUDA_PROFILE_LOG_VERSION 2.0
+# CUDA_DEVICE 0 GeForce GTX 295
+# CUDA_CONTEXT 1
+# TIMESTAMPFACTOR fffff6a261eb2470
+method,gputime,cputime,occupancy
+method=[ memcpyHtoD ] gputime=[ 253.024 ] cputime=[ 88.000 ] 
+method=[ memcpyHtoD ] gputime=[ 4.640 ] cputime=[ 6.000 ] 
+method=[ memcpyHtoD ] gputime=[ 743.776 ] cputime=[ 344.000 ] 
+method=[ memcpyHtoD ] gputime=[ 744.160 ] cputime=[ 345.000 ] 
+method=[ memcpyHtoD ] gputime=[ 1616.224 ] cputime=[ 776.000 ] 
+method=[ memcpyHtoD ] gputime=[ 744.416 ] cputime=[ 321.000 ] 
+method=[ memcpyHtoD ] gputime=[ 250.176 ] cputime=[ 112.000 ] 
+method=[ memcpyHtoD ] gputime=[ 251.424 ] cputime=[ 109.000 ] 
+method=[ memcpyHtoD ] gputime=[ 250.432 ] cputime=[ 106.000 ] 
+method=[ memcpyHtoD ] gputime=[ 1563.744 ] cputime=[ 657.000 ] 
+method=[ memcpyHtoD ] gputime=[ 739.488 ] cputime=[ 274.000 ] 
+method=[ memcpyHtoD ] gputime=[ 740.544 ] cputime=[ 284.000 ] 
+method=[ memcpyHtoD ] gputime=[ 738.688 ] cputime=[ 291.000 ] 
+method=[ memcpyHtoD ] gputime=[ 737.344 ] cputime=[ 270.000 ] 
+method=[ memcpyHtoD ] gputime=[ 8.832 ] cputime=[ 9.000 ] 
+method=[ memcpyHtoD ] gputime=[ 7.648 ] cputime=[ 8.000 ] 
+method=[ memcpyHtoD ] gputime=[ 7.648 ] cputime=[ 8.000 ] 
+method=[ memcpyHtoD ] gputime=[ 736.608 ] cputime=[ 266.000 ] 
+method=[ memcpyHtoD ] gputime=[ 252.512 ] cputime=[ 99.000 ] 
+method=[ memcpyHtoD ] gputime=[ 250.080 ] cputime=[ 104.000 ] 
+method=[ memcpyHtoD ] gputime=[ 250.848 ] cputime=[ 98.000 ] 
+method=[ memcpyHtoD ] gputime=[ 252.096 ] cputime=[ 97.000 ] 
+method=[ memcpyHtoD ] gputime=[ 250.336 ] cputime=[ 95.000 ] 
+method=[ memcpyHtoD ] gputime=[ 250.336 ] cputime=[ 97.000 ] 
+method=[ compute_fluxes_central_structure_CUDA ] gputime=[ 1103.968 ] cputime=[ 18.000 ] occupancy=[ 0.125 ] 
+method=[ memcpyDtoH ] gputime=[ 93.632 ] cputime=[ 1285.000 ] 
+method=[ memcpyDtoH ] gputime=[ 93.984 ] cputime=[ 198.000 ] 
+method=[ memcpyDtoH ] gputime=[ 93.376 ] cputime=[ 198.000 ] 

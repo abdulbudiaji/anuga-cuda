@@ -1,3 +1,6 @@
+from anuga_cuda.merimbula_data.generate_domain import *
+domain = domain_create()
+
 def is_dry(domain, k, i = 0):
 
     n = domain.neighbours[k][i]
@@ -25,7 +28,7 @@ def is_dry(domain, k, i = 0):
         qr.append( domain.quantities['ymomentum'].edge_values[n][m] )
         zr = domain.quantities['elevation'].edge_values[n][m] 
 
-    if fabs(ql[0]-zl) < domain.epsilon and fabs(qr[0] -zr) < domain.epsilon:
+    if abs(ql[0]-zl) < domain.epsilon and abs(qr[0] -zr) < domain.epsilon:
         if n >= 0:
             print "This is the dry cell"
         else:
