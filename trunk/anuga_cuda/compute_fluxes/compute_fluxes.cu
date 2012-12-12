@@ -1,4 +1,6 @@
+
 #ifdef USING_MULTI_FUNCTION
+#define USING_MULTI_FUNCTION
 
 #define Dtimestep 0
 #define Depsilon 1
