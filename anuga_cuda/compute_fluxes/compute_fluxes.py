@@ -466,11 +466,12 @@ def compute_fluxes_central_cuda(domain):
             grid = ( (N + W*W -1 ) / (W*W), 1) )
 
 
-#"""
+
 def compute_fluxes_central_structure_cuda(
-		domain, 
-		parallelFlag = 1, 
-		name = "compute_fluxes_central_structure_CUDA"):
+	    domain, 
+    	parallelFlag = 1, 
+	    name = "compute_fluxes_central_structure_CUDA"
+        ):
 
     import pycuda.driver as cuda
     import pycuda.autoinit
@@ -482,70 +483,16 @@ def compute_fluxes_central_structure_cuda(
     global compute_fluxes_central_structure_call
     compute_fluxes_central_structure_call += 1
     
+    single_function_string = """
 
-    mod = SourceModule("""
-    #include "math.h"
-    #define Dtimestep 0
-    #define Depsilon 1
-    #define DH0 2
-    #define Dg 3
-    #define Doptimise_dry_cells 4
-    #define Dcall 5
-    #define Dnumber_of_elements
-    
+    /**********************************************************/
+    /* This function is the conbination of below 4 functions: */
+    /*   compute_fluxes_central_structure_CUDA()              */
+    /*   _flux_function_central()                             */
+    /*   _compute_speed()                                     */
+    /*   _rotate()                                            */
+    /**********************************************************/
 
-    __device__ int _rotate(double *q, double n1, double n2) {
-        /*Rotate the momentum component q (q[1], q[2])
-          from x,y coordinates to coordinates based on normal vector (n1, n2).
-    
-          Result is returned in array 3x1 r
-          To rotate in opposite direction, call rotate with (q, n1, -n2)
-    
-          Contents of q are changed by this function */
-   
-    
-        double q1, q2;
-    
-        // Shorthands
-        q1 = q[1]; // uh momentum
-        q2 = q[2]; // vh momentum
-    
-        // Rotate
-        q[1] = n1 * q1 + n2*q2;
-        q[2] = -n2 * q1 + n1*q2;
-    
-        return 0;
-    }
-
-
-    __device__ double _compute_speed(double *uh,
-            double *h,
-            double epsilon,
-            double h0,
-            double limiting_threshold) {
-    
-        double u;
-    
-        if (*h < limiting_threshold) {
-            // Apply limiting of speeds according to the ANUGA manual
-            if (*h < epsilon) {
-                *h = 0.0; // Could have been negative
-                u = 0.0;
-            } else {
-                u = *uh / (*h + h0 / *h);
-            }
-    
-    
-            // Adjust momentum to be consistent with speed
-            *uh = u * *h;
-        } else {
-            // We are in deep water - no need for limiting
-            u = *uh / *h;
-        }
-    
-        return u;
-    }
-    
     __global__ void _flux_function_central_2(
             double * elements,
             double * timestep,
@@ -568,8 +515,7 @@ def compute_fluxes_central_structure_cuda(
             double * ymom_explicit_update, 
             double * max_speed_array
             ) 
-    {
-       
+    {  
         int j;
     
         double w_left, h_left, uh_left, vh_left, u_left;
@@ -583,7 +529,8 @@ def compute_fluxes_central_structure_cuda(
     
 
         //const int k = threadIdx.x + blockIdx.x * blockDim.x;
-        const int k = threadIdx.x+threadIdx.y*blockDim.x+(blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+        const int k = threadIdx.x+threadIdx.y*blockDim.x+
+                (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
         double q_left[3], q_right[3];
         double z_left,  z_right;
@@ -711,9 +658,6 @@ def compute_fluxes_central_structure_cuda(
        	 	    u_right = uh_right/ h_right;
        	 	}
 
-
-
-    
        	 	// Momentum in y-direction
        	 	vh_left = q_left_rotated[2];
        	 	vh_right = q_right_rotated[2];
@@ -750,7 +694,7 @@ def compute_fluxes_central_structure_cuda(
        	 	    inverse_denominator = 1.0 / denom;
        	 	    for (j = 0; j < 3; j++) {
        	 	        edgeflux[j] = s_max * flux_left[j] - s_min * flux_right[j];
-       	 	        edgeflux[j] += s_max * s_min * (q_right_rotated[j] - q_left_rotated[j]);
+       	 	        edgeflux[j] += s_max * s_min * (q_right_rotated[j]-q_left_rotated[j]);
        	 	        edgeflux[j] *= inverse_denominator;
        	 	    }
     
@@ -799,15 +743,113 @@ def compute_fluxes_central_structure_cuda(
         //xmom_explicit_update[k] *= inv_area;
         //ymom_explicit_update[k] *= inv_area;
 
-		stage_explicit_update[k] = (sh_data[T] + sh_data[T+B]+sh_data[T+B*2]) * inv_area;
+		stage_explicit_update[k] = 
+                (sh_data[T] + sh_data[T+B]+sh_data[T+B*2]) * inv_area;
 
-		xmom_explicit_update[k] = (sh_data[T+B*3] + sh_data[T+B*4]+sh_data[T+B*5]) * inv_area;
+		xmom_explicit_update[k] = 
+                (sh_data[T+B*3] + sh_data[T+B*4]+sh_data[T+B*5]) * inv_area;
 
-		ymom_explicit_update[k] = (sh_data[T+B*6] + sh_data[T+B*7]+sh_data[T+B*8]) * inv_area;
+		ymom_explicit_update[k] = 
+                (sh_data[T+B*6] + sh_data[T+B*7]+sh_data[T+B*8]) * inv_area;
 
         max_speed_array[k] = max_speed;
     }
 
+    """
+
+    single_function_template = string.Template(single_function_string)
+    #self.cudacode   = template.substitute( 
+    #        PRECISION = 'float' if prec==np.float32 else 'double')
+        
+    single_function_module = SourceModule( single_function_template,
+                    no_extern_c=True, options=['--ptxas-options=-v'])
+
+    mod = SourceModule("""
+    
+    #define Dtimestep 0
+    #define Depsilon 1
+    #define DH0 2
+    #define Dg 3
+    #define Doptimise_dry_cells 4
+    #define Dcall 5
+    #define Dnumber_of_elements
+    
+
+
+    /**************************/
+    /* CUDA double atomic add */
+    /**************************/
+
+    __device__ double cuda_atomicAdd(double*address,double val){    
+        double assumed,old=*address;    
+        
+        do{        
+            assumed=old;        
+            old= __longlong_as_double(atomicCAS((unsignedlonglongint*)address,
+                    __double_as_longlong(assumed),
+                    __double_as_longlong(val+assumed)));    
+        }while(assumed!=old);    
+        return old;
+    }
+
+
+
+    __device__ int _rotate(double *q, double n1, double n2) {
+        /*Rotate the momentum component q (q[1], q[2])
+          from x,y coordinates to coordinates based on normal vector (n1, n2).
+    
+          Result is returned in array 3x1 r
+          To rotate in opposite direction, call rotate with (q, n1, -n2)
+    
+          Contents of q are changed by this function */
+   
+    
+        double q1, q2;
+    
+        // Shorthands
+        q1 = q[1]; // uh momentum
+        q2 = q[2]; // vh momentum
+    
+        // Rotate
+        q[1] = n1 * q1 + n2*q2;
+        q[2] = -n2 * q1 + n1*q2;
+    
+        return 0;
+    }
+
+
+
+    __device__ double _compute_speed(double *uh,
+            double *h,
+            double epsilon,
+            double h0,
+            double limiting_threshold) {
+    
+        double u;
+    
+        if (*h < limiting_threshold) {
+            // Apply limiting of speeds according to the ANUGA manual
+            if (*h < epsilon) {
+                *h = 0.0; // Could have been negative
+                u = 0.0;
+            } else {
+                u = *uh / (*h + h0 / *h);
+            }
+    
+    
+            // Adjust momentum to be consistent with speed
+            *uh = u * *h;
+        } else {
+            // We are in deep water - no need for limiting
+            u = *uh / *h;
+        }
+    
+        return u;
+    }
+    
+
+
+    
 
 
     __device__ int _flux_function_central(double *q_left, double *q_right,
@@ -988,6 +1030,14 @@ def compute_fluxes_central_structure_cuda(
         return 0;
     }
 
+
+    
+    /*****************************************************/
+    /* This function helps reorder the compute sequence, */
+    /* which lets the edge from neighbour triangle with  */
+    /* smaller inder number be computed first            */
+    /*****************************************************/
+
     __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
     {
         int temp;
@@ -1014,9 +1064,9 @@ def compute_fluxes_central_structure_cuda(
 
 
 
-    /*****************************************/
-    /* The CUDA compute fluex function       */
-    /*****************************************/
+    /***********************************/
+    /* The CUDA compute fluex function */
+    /***********************************/
 
 
     __global__ void compute_fluxes_central_structure_CUDA(
@@ -1151,7 +1201,7 @@ def compute_fluxes_central_structure_cuda(
     
     
     /*****************************************/
-    /*          Sequential version           */
+    /*          Sequential C version         */
     /*****************************************/
     __global__ void compute_fluxes_central_structure_serial(
             double * timestep,
@@ -1514,6 +1564,7 @@ def compute_fluxes_central_structure_cuda(
             dtype=numpy.float64)
 
     # Necessary data initialization
+    # FIXME: can be done by CUDA threads
     for i in range(N):
         timestep_array[i] = domain.evolve_max_timestep
         domain.quantities['stage'].explicit_update[i] = 0.0
@@ -1521,7 +1572,7 @@ def compute_fluxes_central_structure_cuda(
         domain.quantities['ymomentum'].explicit_update[i] =0.0
     
 
-    
+    # FIXME: add hardware dependency 
     #if (N % 320 == 0):
     #    W1 = 32
     #    W2 = 10
@@ -1567,6 +1618,7 @@ def compute_fluxes_central_structure_cuda(
 
         print elements[0]
     else:
+        # Below commented code are manual memory-copy procedures 
         """
             compute_fluxes_central_function = mod.get_function(name)
 
@@ -1669,9 +1721,12 @@ def compute_fluxes_central_structure_cuda(
         """
         
         
+
         W1 =32
         W2 = 1
         W3 =1
+
+        # Source the cuda function
         compute_fluxes_central_function = mod.get_function(name)
         #from anuga_cuda.compute_fluxes.py_compute_fluxes import get_func_info
         #get_func_info(compute_fluxes_central_function)
@@ -1702,6 +1757,7 @@ def compute_fluxes_central_structure_cuda(
                 grid = (N/(W1*W2*W3), 1) )
 		
         
+        # Get the smallest timestep
         b = numpy.argsort(timestep_array)
         domain.flux_timestep = timestep_array[b[0]] 
     return domain.flux_timestep
@@ -1710,6 +1766,7 @@ def compute_fluxes_central_structure_cuda(
 
 
 
+""" Below 5 functions are the python version of compute fluxes """
 
 def _rotate(q,  n1,  n2) :
     q1 = q[1]
@@ -1735,7 +1792,6 @@ def _compute_speed(uh, h, epsilon, h0, limiting_threshold):
         u = uh / h
 
     return u
-
 
 
     
@@ -1847,7 +1903,8 @@ def _flux_function_central(q_left, q_right, z_left, z_right, n1, n2, epsilon, h0
 
     
 
-
+# This function helps to reorder the compute sequence so as to make it 
+# as same as original C function
 def spe_bubble_sort( _list , neighbours, k):
     """
         In the case of the original C function, all the triangles is calculated
@@ -1867,7 +1924,6 @@ def spe_bubble_sort( _list , neighbours, k):
     if neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and \
             (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]):
         _list[2], _list[1] = _list[1], _list[2]
-
 
 
 
@@ -1972,6 +2028,8 @@ if __name__ == '__main__':
     from anuga_cuda.merimbula_data.channel3 import generate_domain
 
 
+    # This will reorder edges in order to let the one bordering on
+    # triangle with smaller index number compute first
     #domain2 = domain_create()
     #sort_domain(domain2)
     domain2 = generate_domain()
@@ -2065,7 +2123,7 @@ if __name__ == '__main__':
     
 
 
-
+    # Check correctness
     print "\n~~~~~~~~~~~~~ domain 2 ~~~~~~~~~~~~"
     print "******* flux_timestep : %lf %lf %d" % \
             (domain1.flux_timestep, domain2.flux_timestep, \
