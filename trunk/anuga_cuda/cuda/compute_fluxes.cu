@@ -5,8 +5,8 @@
 
 
 /*
- * this function can be used to detect kernel executing error, with cuda_memcopy in/out the 
- * pre-reserved error var
+ * this function can be used to detect kernel executing error, 
+ * with cuda_memcopy in/out the pre-reserved error var
  */
 
 __device__ void report_python_error(const char *location, const char *msg)
@@ -40,6 +40,9 @@ __device__ int _rotate(double *q, double n1, double n2) {
 
     return 0;
 }
+
+
+
 __device__ double _compute_speed(double *uh,
         double *h,
         double epsilon,
@@ -67,6 +70,9 @@ __device__ double _compute_speed(double *uh,
 
     return u;
 }
+
+
+
 __device__ int _flux_function_central(double *q_left, double *q_right,
         double z_left, double z_right,
         double n1, double n2,
@@ -76,7 +82,6 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
         double g,
         double *edgeflux, double *max_speed) 
 {
-
     /*Compute fluxes between volumes for the shallow water wave equation
       cast in terms of the 'stage', w = h+z using
       the 'central scheme' as described in
@@ -211,6 +216,7 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
 }
 
 
+
 __device__ int _flux_function_central_wb(double *q_left, double *q_right,
         double z_left, double h_left, double h1_left, double h2_left,
         double z_right, double h_right, double h1_right, double h2_right,
@@ -222,7 +228,6 @@ __device__ int _flux_function_central_wb(double *q_left, double *q_right,
         double *edgeflux,
         double *max_speed) 
 {
-
     /*Compute fluxes between volumes for the shallow water wave equation
      * cast in terms of the 'stage', w = h+z using
      * the 'central scheme' as described in
@@ -364,6 +369,8 @@ __device__ int _flux_function_central_wb(double *q_left, double *q_right,
 
     return 0;
 }
+
+
 
 __device__ int _flux_function_central_wb_3(
         //struct edge *E_left,
@@ -857,194 +864,6 @@ __global__ void compute_fluxes_central(
 
 static long compute_fluxes_central_structure_call = 1;
 
-__global__ void _compute_fluxes_central_structure(
-        double * elements,
-        double * timestep,
-        long * neighbours,
-        long * neighbour_edges,
-        double * normals,
-        double * edgelengths,
-        double * radii,
-        double * areas,
-        double * tri_full_flag,
-        double * stage_edge_values,
-        double * xmom_edge_values,
-        double * ymom_edge_values,
-        double * bed_edge_values,
-        double * stage_boundary_values,
-        double * xmom_boundary_values,
-        double * ymom_boundary_values,
-        double * stage_explicit_update,
-        double * xmom_explicit_update,
-        double * ymom_explicit_update, 
-        long * already_computed_flux,
-        double * max_speed_array)
-{
-    int k ;//= threadIdx.x + threadIdx.y + blockIdx.x * blockDim.x + blockIdx.y *blockDim.y;
-
-    // Local variables
-    double max_speed, length, inv_area, zl, zr;
-
-    double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
-
-    double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
-    // threshold for performance reasons.
-    // See ANUGA manual under flux limiting
-    int i, m, n;
-    int ki, nm = 0, ki2; // Index shorthands
-
-
-    // Workspace (making them static actually made function slightly slower (Ole))
-    double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
-
-    //static long call = 1; // Static local variable flagging already computed flux
-
-    // Start computation
-    //call++; // Flag 'id' of flux calculation for this timestep
-
-    for(k=0;k<43200;k++)
-    {
-        // Loop through neighbours and compute edge flux for each
-        for (i = 0; i < 3; i++) {
-            ki = k * 3 + i; // Linear index to edge i of triangle k
-
-            if (already_computed_flux[ki] == elements[Dcall]) {
-                // We've already computed the flux across this edge
-                //continue;
-                return;
-            }
-
-            // Get left hand side values from triangle k, edge i
-            ql[0] = stage_edge_values[ki];
-            ql[1] = xmom_edge_values[ki];
-            ql[2] = ymom_edge_values[ki];
-            zl = bed_edge_values[ki];
-
-            // Get right hand side values either from neighbouring triangle
-            // or from boundary array (Quantities at neighbour on nearest face).
-            n = neighbours[ki];
-            if (n < 0) {
-                // Neighbour is a boundary condition
-                m = -n - 1; // Convert negative flag to boundary index
-
-                qr[0] = stage_boundary_values[m];
-                qr[1] = xmom_boundary_values[m];
-                qr[2] = ymom_boundary_values[m];
-                zr = zl; // Extend bed elevation to boundary
-            } else {
-                // Neighbour is a real triangle
-                m = neighbour_edges[ki];
-                nm = n * 3 + m; // Linear index (triangle n, edge m)
-
-                qr[0] = stage_edge_values[nm];
-                qr[1] = xmom_edge_values[nm];
-                qr[2] = ymom_edge_values[nm];
-                zr = bed_edge_values[nm];
-            }
-
-            // Now we have values for this edge - both from left and right side.
-
-            if (elements[Doptimise_dry_cells]) {
-                // Check if flux calculation is necessary across this edge
-                // This check will exclude dry cells.
-                // This will also optimise cases where zl != zr as
-                // long as both are dry
-
-                if (fabs(ql[0] - zl) < elements[Depsilon] &&
-                        fabs(qr[0] - zr) < elements[Depsilon]) {
-                    // Cell boundary is dry
-
-                    already_computed_flux[ki] = elements[Dcall]; // #k Done
-                    if (n >= 0) {
-                        already_computed_flux[nm] = elements[Dcall]; // #n Done
-                    }
-
-                    max_speed = 0.0;
-                    //continue;
-                    return;
-                }
-            }
-
-
-            /*
-               if (fabs(zl - zr) > 1.0e-10) {
-               report_python_error(AT, "Discontinuous Elevation");
-               return 0.0;
-               }
-             */
-
-            // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
-            ki2 = 2 * ki; //k*6 + i*2
-
-            // Edge flux computation (triangle k, edge i)
-            _flux_function_central(ql, qr, zl, zr,
-                    normals[ki2], normals[ki2 + 1],
-                    elements[Depsilon], h0, limiting_threshold, elements[Dg],
-                    edgeflux, &max_speed);
-
-
-            // Multiply edgeflux by edgelength
-            length = edgelengths[ki];
-            edgeflux[0] *= length;
-            edgeflux[1] *= length;
-            edgeflux[2] *= length;
-
-
-            // Update triangle k with flux from edge i
-            stage_explicit_update[k] -= edgeflux[0];
-            xmom_explicit_update[k] -= edgeflux[1];
-            ymom_explicit_update[k] -= edgeflux[2];
-
-            already_computed_flux[ki] = elements[Dcall]; // #k Done
-
-
-            // Update neighbour n with same flux but reversed sign
-            if (n >= 0) {
-                stage_explicit_update[n] += edgeflux[0];
-                xmom_explicit_update[n] += edgeflux[1];
-                ymom_explicit_update[n] += edgeflux[2];
-
-                already_computed_flux[nm] = elements[Dcall]; // #n Done
-            }
-
-            // Update timestep based on edge i and possibly neighbour n
-            if (tri_full_flag[k] == 1) {
-                if (max_speed > elements[Depsilon]) {
-                    // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
-
-                    // CFL for triangle k
-                    timestep[k] = min(timestep[k], radii[k] / max_speed);
-
-                    if (n >= 0) {
-                        // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-                        timestep[k] = min(timestep[k], radii[n] / max_speed);
-                    }
-
-                    // Ted Rigby's suggested less conservative version
-                    //if (n>=0) {
-                    //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
-                    //} else {
-                    //  timestep = min(timestep, radii[k]/max_speed);
-                    // }
-                }
-            }
-
-        } // End edge i (and neighbour n)
-
-    }
-    // Normalise triangle k by area and store for when all conserved
-    // quantities get updated
-    inv_area = 1.0 / areas[k];
-    stage_explicit_update[k] *= inv_area;
-    xmom_explicit_update[k] *= inv_area;
-    ymom_explicit_update[k] *= inv_area;
-
-
-    // Keep track of maximal speeds
-    max_speed_array[k] = max_speed;
-
-    //return timestep;
-}
 
 __global__ void compute_fluxes_central_structure_cuda(
         double * elements,
@@ -1389,7 +1208,6 @@ __global__ void _flux_function_central_2(
         double * max_speed_array
 ) 
 {
-
     int j;
 
     double w_left, h_left, uh_left, vh_left, u_left;
@@ -1398,11 +1216,9 @@ __global__ void _flux_function_central_2(
     double denom, inverse_denominator, z;
     double temp;
 
-    // Workspace (allocate once, use many)
     double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
 
-    //const int k = threadIdx.x + blockIdx.x * blockDim.x;
     const int k = threadIdx.x+threadIdx.y*blockDim.x+(blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
     double q_left[3], q_right[3];
@@ -1463,7 +1279,9 @@ __global__ void _flux_function_central_2(
         n2 = normals[k + (2*i+1)*N];
 
 
-        /////////////////////////////////////////////////////////
+        /*****************************************************/
+        /*    below are _flux_function_central function      */
+        /*****************************************************/
 
 
         // Copy conserved quantities to protect from modification
@@ -1584,7 +1402,9 @@ __global__ void _flux_function_central_2(
             edgeflux[2] = n2*temp + n1*edgeflux[2];
         }
 
-        //////////////////////////////////////////////////////
+        /*********************************************************/
+        /* back to the compute_fluxes_central_structure function */
+        /*********************************************************/
 
         length = edgelengths[ki];
         edgeflux[0] *= length;
@@ -1627,6 +1447,11 @@ __global__ void _flux_function_central_2(
 
     max_speed_array[k] = max_speed;
 }
+
+
+
+
+
 
 
 /*
