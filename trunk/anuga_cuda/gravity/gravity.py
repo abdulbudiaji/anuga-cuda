@@ -70,6 +70,11 @@ def gravity(domain):
 def gravity_wb(domain):
     N = domain.number_of_elements
     
+    import pycuda.driver as cuda                            
+    import pycuda.autoinit
+    from pycuda.compiler import SourceModule  
+    import numpy
+    
     mod = SourceModule( """
         __global__ void gravity_wb(
                 double * stage_vertex_values, 
@@ -83,7 +88,9 @@ def gravity_wb(domain):
                 double * normals, 
                 double * areas, 
                 double * edgelengths,
-                double * g)
+                double g,
+                long N
+                )
         {
             const int k = threadIdx.x + (blockIdx.x )*blockDim.x;
 
@@ -95,10 +102,12 @@ def gravity_wb(domain):
                     
             double wx, wy, det,
                 hh[3];
-            double area, n0, n1, fact;
+            double sidex, sidey, area, n0, n1, fact;
 
-			__shared__ double sh_data[32*6];
+            __shared__ double sh_data[32*6];
 
+            if (k >= N)
+                return;
     
             w0 = stage_vertex_values[3*k + 0];
             w1 = stage_vertex_values[3*k + 1];
@@ -125,14 +134,16 @@ def gravity_wb(domain):
 
             avg_h = stage_centroid_values[k] - bed_centroid_values[k];
 
-            xmom_explicit_update[k] += -g[0] * wx * avg_h;
-            ymom_explicit_update[k] += -g[0] * wy * avg_h;
+            xmom_explicit_update[k] += -g * wx * avg_h;
+            ymom_explicit_update[k] += -g * wy * avg_h;
     
 
             hh[0] = stage_edge_values[k*3] - bed_edge_values[k*3];
             hh[1] = stage_edge_values[k*3+1] - bed_edge_values[k*3+1];
             hh[2] = stage_edge_values[k*3+2] - bed_edge_values[k*3+2];
 
+            sidex = 0.0;
+            sidey = 0.0;
             area = areas[k];
 
             for ( i = 0 ; i < 3 ; i++ )
@@ -140,30 +151,34 @@ def gravity_wb(domain):
                 n0 = normals[k*6 + 2*i];
                 n1 = normals[k*6 + 2*i + 1];
                 
-                fact =  -0.5 * g[0] * hh[i] * hh[i] * edgelengths[k*3 + i];
+                fact =  -0.5 * g * hh[i] * hh[i] * edgelengths[k*3 + i];
+                
+                //sidex += fact*n0;
+                //sidey += fact*n1;
                 
                 sh_data[threadIdx.x + i*blockDim.x] = fact*n0;
                 sh_data[threadIdx.x + (i+3)*blockDim.x] = fact*n1;
             }
             
-            xmom_explicit_update[k] += -(sh_data[threadIdx.x]+sh_data[threadIdx.x+blockDim.x]+sh_data[threadIdx.x+2*blockDim.x]) / area;
-            ymom_explicit_update[k] += -(sh_data[threadIdx.x+3*blockDim.x]+sh_data[threadIdx.x+4*blockDim.x]+sh_data[threadIdx.x+5*blockDim.x]) / area;
+            //xmom_explicit_update[k] += -sidex / area;
+            //ymom_explicit_update[k] += -sidey / area;
+
+            xmom_explicit_update[k] += -(sh_data[threadIdx.x] + sh_data[threadIdx.x + blockDim.x] + sh_data[threadIdx.x+2*blockDim.x]) / area;
+
+            ymom_explicit_update[k] += -(sh_data[threadIdx.x+3*blockDim.x] + sh_data[threadIdx.x + 4*blockDim.x] + sh_data[threadIdx.x+5*blockDim.x]) / area;
                 
         }
         """)
 
-    if (N % 32 == 0):
-        W1 = 32
+    #if (N % 32 == 0):
+    #    W1 = 32
     #elif (N % 256 ==0):
     #    W1 = 32
-    else:
-        raise Exception('N can not be splited')
-
-    g_gpu = numpy.zeros(1, dtype=numpy.float64)
-    g_gpu[0] = domain.g
+    #else:
+    #    raise Exception('N can not be splited')
 
     W1 = 32
-    W2 = 10
+    W2 = 1
     W3 = 1
 
     gravity_wb_func = mod.get_function("gravity_wb")
@@ -179,10 +194,18 @@ def gravity_wb(domain):
             cuda.In( domain.normals),
             cuda.In( domain.areas),
             cuda.In( domain.edgelengths),
-            cuda.In( g_gpu),
+            numpy.float64( domain.g),
+            numpy.uint64( N),
             block = ( W1, W2, W3),
             grid = ( N/(W1*W2*W3), 1) )
     
+    #print "----------Gravity_wb------------------------"
+    #for i in range(domain.number_of_elements):
+    #    area = domain.areas[i]
+    #    temp = temp_array[i][0][0] + temp_array[i][1][0] + temp_array[i][2][0]
+    #    domain.quantities['xmomentum'].explicit_update[i] += -temp / area 
+    #    temp = temp_array[i][0][1] + temp_array[i][1][1] + temp_array[i][2][1]
+    #    domain.quantities['ymomentum'].explicit_update[i] += -temp / area
     
 
 
@@ -280,18 +303,10 @@ def gravity_old( domain ):
 
 
 
+from anuga_cuda.merimbula_data.generate_domain import *
+#domain=domain_create()
 
 
-
-
-#Flag =
-#0: in first loop
-#1: in second loop
-#2: in third loop
-#3: after first explicate_update assigned values
-#4: no effect -- i.e. normal function
-#5: check loop finished values
-	
 def gravity_single(domain, k=0, flag = 4):
     import numpy
     w0 = domain.quantities['stage'].vertex_values[k][0]
@@ -403,7 +418,6 @@ if __name__ == '__main__':
     import numpy
 
     
-    #temp_array = numpy.zeros((domain1.number_of_elements, 3,2), dtype=numpy.float64)
 
 
     if domain2.compute_fluxes_method == 'original':
@@ -422,12 +436,7 @@ if __name__ == '__main__':
     else:
         raise Exception('unknown compute_fluxes_method')
 
-    #for i in range(domain2.number_of_elements):
-    #    area = domain2.areas[i]
-    #    temp = temp_array[i][0][0] + temp_array[i][1][0] + temp_array[i][2][0]
-    #    domain2.quantities['xmomentum'].explicit_update[i] += -temp / area 
-    #    temp = temp_array[i][0][1] + temp_array[i][1][1] + temp_array[i][2][1]
-    #    domain2.quantities['ymomentum'].explicit_update[i] += -temp / area
+
 
 
 
