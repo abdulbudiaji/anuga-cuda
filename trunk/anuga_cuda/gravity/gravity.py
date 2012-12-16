@@ -162,7 +162,10 @@ def gravity_wb(domain):
     g_gpu = numpy.zeros(1, dtype=numpy.float64)
     g_gpu[0] = domain.g
 
-        
+    W1 = 32
+    W2 = 10
+    W3 = 1
+
     gravity_wb_func = mod.get_function("gravity_wb")
     gravity_wb_func( 
             cuda.In( domain.quantities['stage'].vertex_values), 
@@ -177,8 +180,8 @@ def gravity_wb(domain):
             cuda.In( domain.areas),
             cuda.In( domain.edgelengths),
             cuda.In( g_gpu),
-            block = ( W1, 1, 1),
-            grid = ( (N + W1 -1 ) / W1, 1) )
+            block = ( W1, W2, W3),
+            grid = ( N/(W1*W2*W3), 1) )
     
     
 
@@ -360,6 +363,7 @@ def gravity_single(domain, k=0, flag = 4):
 
 if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import *
+    from time import time
     domain1 = domain_create()
 
     domain2 = domain_create()
@@ -380,7 +384,9 @@ if __name__ == '__main__':
     elif domain1.compute_fluxes_method == 'wb_2':
         from shallow_water_ext import gravity_wb as gravity_wb_c
         print "wb_2"
+        t1=time()
         gravity_wb_c(domain1)
+        print " gravity duration : %lf" % (time()-t1)
 
     elif domain1.compute_fluxes_method == 'wb_3':
         from shallow_water_ext import gravity_wb as gravity_wb_c
