@@ -1,6 +1,32 @@
+//#define UNSORTED_DOMAIN
+
+#ifdef UNSORTED_DOMAIN
+__device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
+{
+    int temp;
+    if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
+    {
+        temp = _list[2];
+        _list[2] = _list[1];
+        _list[1] = temp;
+    }
+    if ( neighbours[_list[1]]>=0 and neighbours[ _list[1] ] < k and (neighbours[_list[0]]<0 or neighbours[_list[1]]<neighbours[_list[0]]) )
+    {
+        temp = _list[1];
+        _list[1] = _list[0];
+        _list[0] = temp;
+    }
+    if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
+    {
+        temp = _list[2];
+        _list[2] = _list[1];
+        _list[1] = temp;
+    }
+}
+#endif
+
 
 #ifdef USING_MULTI_FUNCTION
-#define USING_MULTI_FUNCTION
 
 #define Dtimestep 0
 #define Depsilon 1
@@ -245,28 +271,6 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
 
 
 
-__device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
-{
-    int temp;
-    if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
-    {
-        temp = _list[2];
-        _list[2] = _list[1];
-        _list[1] = temp;
-    }
-    if ( neighbours[_list[1]]>=0 and neighbours[ _list[1] ] < k and (neighbours[_list[0]]<0 or neighbours[_list[1]]<neighbours[_list[0]]) )
-    {
-        temp = _list[1];
-        _list[1] = _list[0];
-        _list[0] = temp;
-    }
-    if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
-    {
-        temp = _list[2];
-        _list[2] = _list[1];
-        _list[1] = temp;
-    }
-}
 
 
 
@@ -298,7 +302,9 @@ __global__ void compute_fluxes_central_structure_CUDA(
         double * max_speed_array,
         double * elements)
 {
-    const int k = threadIdx.x + (blockIdx.x )*blockDim.x;
+    const long k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
 
     double max_speed, length, inv_area, zl, zr;
@@ -312,14 +318,14 @@ __global__ void compute_fluxes_central_structure_CUDA(
 
     double ql[3], qr[3], edgeflux[3];
 
-    //int b[3]={0,1,2};
-    //spe_bubble_sort( b, neighbours+k*3, k);
-    //for (j = 0; j < 3; j++) {
-    //    i = b[j];
-
-
+#ifdef UNSORTED_DOMAIN
+    int b[3]={0,1,2}, j;
+    spe_bubble_sort( b, neighbours+k*3, k);
+    for (j = 0; j < 3; j++) {
+        i = b[j];
+#else
     for ( i = 0; i < 3; i++) {
-
+#endif
         ki = k * 3 + i; // Linear index to edge i of triangle k
 
         n = neighbours[ki];
@@ -621,7 +627,9 @@ __global__ void compute_fluxes_central_structure_MeCo(
         double * elements
 )
 {
-    const int k = threadIdx.x + (blockIdx.x )*blockDim.x;
+    const long k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
 
     double max_speed, length, inv_area, zl, zr;
@@ -800,7 +808,7 @@ __global__ void compute_fluxes_central_structure_cuda_single(
 
 
     //const int k = threadIdx.x + blockIdx.x * blockDim.x;
-    const int k = 
+    const long k = 
             threadIdx.x+threadIdx.y*blockDim.x+
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
@@ -817,8 +825,16 @@ __global__ void compute_fluxes_central_structure_cuda_single(
 
     __shared__ double sh_data[32*9];
 
+    if ( k >= N)
+        return;
+#ifdef UNSORTED_DOMAIN
+    int b[3]={0,1,2}, l;
+    spe_bubble_sort( b, neighbours+k*3, k);
+    for (l = 0; l < 3; l++) {
+        i = b[l];
+#else
     for (i=0; i<3; i++) {
-
+#endif
         ki = k + i*N;
         n = neighbours[ki];
 

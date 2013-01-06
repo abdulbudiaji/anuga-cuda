@@ -1,0 +1,25 @@
+#!/bin/bash
+
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib:/home/u5044856/.local/lib:$LD_LIBARAY_PATH
+
+export PYTHONPATH=/usr/bin/python:/home/u5044856/anuga_core/source:/usr/include/python2.7/numpy:/home/u5044856/anuga-cuda:/home/u5044856/.local/lib/python2.7/site-packages/pycuda-2012.1-py2.7-linux-x86_64.egg:$PYTHONPATH
+
+export PATH=/usr/local/cuda/bin:/usr/bin/python:$PATH
+
+
+if [ $# != 1 ]
+then
+    echo "Usage: runPycuda <script_name>"
+else
+    echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*"
+    echo -e "*-*- Executing $1 with profile "
+    echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*\n"
+    CUDA_PROFILE=1 python $1
+    pro_name=profile_$1.log
+    mv cuda_profile_0.log $pro_name
+    echo -e "\n*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*"
+    echo -e "*-*- Showing profile result in $pro_name "
+    echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n"
+    cat $pro_name
+fi
+

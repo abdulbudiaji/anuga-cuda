@@ -15,7 +15,7 @@ LIBS = -L/usr/local/cuda//lib64 -lcudart -lm
 
 .PHONY : clean
 
-gpu_python_glue.so : gpu_python_glue.o cudafun.o
+gpu_python_glue.so : gpu_python_glue.o cudafun.o evolvefun.o
 	${CC} -shared $< cudafun.o -o $@ ${LIBS}
 
 %.o : %.c

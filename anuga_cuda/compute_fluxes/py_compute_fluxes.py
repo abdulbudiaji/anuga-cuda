@@ -8,12 +8,12 @@ show_func_info = True
 
 using_page_locked_array = True
 testing_async = True
-using_page_locked_mapped_pointer = True
-testing_pl_mapped = True
+using_page_locked_mapped_pointer = False
+testing_pl_mapped = False
 
 testing_aligned_memory = False
 
-testing = False
+testing = True
 
 
 """
@@ -45,6 +45,7 @@ from anuga_cuda.merimbula_data.sort_domain import \
 
 domain1 = domain_create()
 domain2 = rearrange_domain(domain1)
+#domain2 = domain_create()
 
 N = domain2.number_of_elements
 timestep_array = numpy.zeros( N, dtype=numpy.float64)
@@ -70,7 +71,7 @@ else:
     
 macro ="#define THREAD_BLOCK_SIZE %d\n" % (W1*W2*W3) 
 mod = SourceModule(
-        macro + open("compute_fluxes.cu","r").read(),
+        macro + open(compute_fluxes_dir+"compute_fluxes.cu","r").read(),
         #options=["--ptxas-options=-v"],
         include_dirs=[compute_fluxes_dir]
         )
@@ -86,12 +87,13 @@ def get_func_info(a, W1, W2, W3):
     to = tl.OccupancyRecord(td, W1*W2*W3, a.shared_size_bytes, a.num_regs)
     print "***************************************"
     print "  Function Info    "
-    print "   -> max threads per block: %d" % a.max_threads_per_block
+    print "   -> max threads per block: %d / %d" % (a.max_threads_per_block, dev.max_threads_per_block)
     print "   -> shared mem : %d / %d" % (a.shared_size_bytes, td.shared_memory)
     print "   -> const mem : %d" % a.const_size_bytes
     print "   -> local mem : %d" % a.local_size_bytes
     print "   -> register : %d / %d" % (a.num_regs, td.registers)
-    print "   -> thread block per MP %d / %d" % (to.tb_per_mp, td.thread_blocks_per_mp)
+    print "   -> thread block per MP %d / %d" % \
+            (to.tb_per_mp, td.thread_blocks_per_mp)
     print "   -> warps per MP %d / %d" % (to.warps_per_mp, td.warps_per_mp)
     print "   -> occupancy %f" % to.occupancy
     print "   -> limitation %s" % to.limited_by
@@ -155,7 +157,8 @@ print "Pageable memory exe time: %3.7f" % secs
     Page-locked array
 ********** ********** ********** ********** **********"""
 def page_locked_array(a):
-    a_pl = drv.pagelocked_zeros_like(a, mem_flags=drv.host_alloc_flags.DEVICEMAP)
+    a_pl = drv.pagelocked_zeros_like(a, 
+            mem_flags=drv.host_alloc_flags.DEVICEMAP)
     if len(a.shape) == 1:
         a_pl[:] = a
     else:
@@ -217,6 +220,9 @@ if testing_async:
     ymom_up_gpuptr = async( ymom_up_pla )
     maxspeed_gpuptr = async( maxspeed_pla )
     
+    ctx.synchronize()
+
+    strm = drv.Stream()
     compute_fluxes_central_function( 
             numpy.uint64( N ),
             numpy.float64( domain2.g ),
@@ -244,11 +250,24 @@ if testing_async:
             ymom_up_gpuptr,
             maxspeed_gpuptr,
             block = ( W1, W2, W3),
-            grid = (N/(W1*W2*W3), 1) )
+            grid = (N/(W1*W2*W3), 1),
+            stream = strm)
+
+    drv.memcpy_dtoh_async(timestep_pla, timestep_gpuptr, strm)
+    drv.memcpy_dtoh_async(stage_up_pla, stage_up_gpuptr, drv.Stream() )
+    drv.memcpy_dtoh_async(xmom_up_pla, xmom_up_gpuptr, drv.Stream() )
+    drv.memcpy_dtoh_async(ymom_up_pla, ymom_up_gpuptr, drv.Stream() )
+    drv.memcpy_dtoh_async(maxspeed_pla, maxspeed_gpuptr, drv.Stream() )
+
+
+
     end.record()
     end.synchronize()
     secs = start.time_till(end)*1e-3
     print "Pinned memory aysnc exe time: %3.7f" % secs
+    strm.synchronize()
+    b = numpy.argsort(timestep_array)
+    domain2.flux_timestep = timestep_array[ b[0] ]
 
 
 """********** ********** ********** ********** **********
@@ -491,52 +510,75 @@ if testing:
     
 
 
-
-    print "\n~~~~~~~~~~~~~ domain 2 ~~~~~~~~~~~~"
     print "******* flux_timestep : %lf %lf %d" % \
             (domain1.flux_timestep, domain2.flux_timestep, \
                 domain1.flux_timestep == domain2.flux_timestep)
-
-    print "******* max_speed"
-    counter = 0
-    for i in range(domain1.number_of_elements):
-        if ( domain1.max_speed[i] != domain2.max_speed[i]):
-            counter += 1
-    print "---------> # of differences: %d" % counter
-
-
-    print "******* stage_explicit_update"
-    #print domain1.quantities['stage'].explicit_update
-    #print domain2.quantities['stage'].explicit_update
-    counter = 0
-    for i in range(domain1.number_of_elements):
-        if approx_cmp( domain1.quantities['stage'].explicit_update[i] ,
-                domain2.quantities['stage'].explicit_update[i]):
-            counter += 1
-    print "---------> # of differences: %d" % counter
-
-
-    print "******* xmom_explicit_update"
-    #print domain1.quantities['xmomentum'].explicit_update
-    #print domain2.quantities['xmomentum'].explicit_update
-    counter = 0
-    for i in range(domain1.number_of_elements):
-        if approx_cmp( domain1.quantities['xmomentum'].explicit_update[i] ,
-                domain2.quantities['xmomentum'].explicit_update[i]):
-            counter += 1
-            if counter < 10:
-                print i, domain1.quantities['xmomentum'].explicit_update[i], \
-                        domain2.quantities['xmomentum'].explicit_update[i]
-    print "---------> # of differences: %d" % counter
-
+    cnt_stage = 0
+    cnt_xmom = 0
+    cnt_ymom = 0
+    cnt_max = 0
     
-    print "******* ymom_explicit_update"
-    #print domain1.quantities['ymomentum'].explicit_update
-    #print domain2.quantities['ymomentum'].explicit_update
-    counter = 0
+    stage_hl = domain1.quantities['stage'].explicit_update
+    xmom_hl = domain1.quantities['xmomentum'].explicit_update
+    ymom_hl = domain1.quantities['ymomentum'].explicit_update
+    maxspeed_hl = domain1.max_speed
+
     for i in range(domain1.number_of_elements):
-        if approx_cmp( domain1.quantities['ymomentum'].explicit_update[i],
-                domain2.quantities['ymomentum'].explicit_update[i]):
-            counter += 1
-    print "---------> # of differences: %d" % counter
+        if stage_hl[i] != stage_up_pla[i]:
+            cnt_stage += 1
+        if xmom_hl[i] != xmom_up_pla[i]:
+            cnt_xmom += 1
+        if ymom_hl[i] != ymom_up_pla[i]:
+            cnt_ymom += 1
+        if maxspeed_hl[i] != maxspeed_pla[i]:
+            cnt_max += 1
+    print "%d, %d, %d, %d" % (cnt_stage, cnt_xmom, cnt_ymom, cnt_max)
+
+    #print "\n~~~~~~~~~~~~~ domain 2 ~~~~~~~~~~~~"
+    #print "******* flux_timestep : %lf %lf %d" % \
+    #        (domain1.flux_timestep, domain2.flux_timestep, \
+    #            domain1.flux_timestep == domain2.flux_timestep)
+
+    #print "******* max_speed"
+    #counter = 0
+    #for i in range(domain1.number_of_elements):
+    #    if ( domain1.max_speed[i] != domain2.max_speed[i]):
+    #        counter += 1
+    #print "---------> # of differences: %d" % counter
+
+
+    #print "******* stage_explicit_update"
+    ##print domain1.quantities['stage'].explicit_update
+    ##print domain2.quantities['stage'].explicit_update
+    #counter = 0
+    #for i in range(domain1.number_of_elements):
+    #    if approx_cmp( domain1.quantities['stage'].explicit_update[i] ,
+    #            domain2.quantities['stage'].explicit_update[i]):
+    #        counter += 1
+    #print "---------> # of differences: %d" % counter
+
+
+    #print "******* xmom_explicit_update"
+    ##print domain1.quantities['xmomentum'].explicit_update
+    ##print domain2.quantities['xmomentum'].explicit_update
+    #counter = 0
+    #for i in range(domain1.number_of_elements):
+    #    if approx_cmp( domain1.quantities['xmomentum'].explicit_update[i] ,
+    #            domain2.quantities['xmomentum'].explicit_update[i]):
+    #        counter += 1
+    #        if counter < 10:
+    #            print i, domain1.quantities['xmomentum'].explicit_update[i], \
+    #                    domain2.quantities['xmomentum'].explicit_update[i]
+    #print "---------> # of differences: %d" % counter
+
+    #
+    #print "******* ymom_explicit_update"
+    ##print domain1.quantities['ymomentum'].explicit_update
+    ##print domain2.quantities['ymomentum'].explicit_update
+    #counter = 0
+    #for i in range(domain1.number_of_elements):
+    #    if approx_cmp( domain1.quantities['ymomentum'].explicit_update[i],
+    #            domain2.quantities['ymomentum'].explicit_update[i]):
+    #        counter += 1
+    #print "---------> # of differences: %d" % counter
 

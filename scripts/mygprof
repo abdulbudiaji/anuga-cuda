@@ -1,0 +1,9 @@
+#!/bin/bash
+if [ $# != 1 ] ; then
+    echo "Usage: gprof.sh gravity.py"
+else
+    CUDA_PROFILE=1 python $1
+    pro_name=profile_$1.log
+    mv cuda_profile_0.log $pro_name
+    cat $pro_name
+fi

@@ -10,9 +10,13 @@ __global__ void gravity_wb(
         double * normals, 
         double * areas, 
         double * edgelengths,
-        double g)
+        double g,
+        long N
+        )
 {
-    const int k = threadIdx.x + (blockIdx.x )*blockDim.x;
+    const int k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
     int i;
 
@@ -22,10 +26,12 @@ __global__ void gravity_wb(
 
     double wx, wy, det,
            hh[3];
-    double area, n0, n1, fact;
+    double sidex, sidey, area, n0, n1, fact;
 
     __shared__ double sh_data[32*6];
 
+    if (k >= N)
+        return;
 
     w0 = stage_vertex_values[3*k + 0];
     w1 = stage_vertex_values[3*k + 1];
@@ -52,14 +58,16 @@ __global__ void gravity_wb(
 
     avg_h = stage_centroid_values[k] - bed_centroid_values[k];
 
-    xmom_explicit_update[k] += -g[0] * wx * avg_h;
-    ymom_explicit_update[k] += -g[0] * wy * avg_h;
+    xmom_explicit_update[k] += -g * wx * avg_h;
+    ymom_explicit_update[k] += -g * wy * avg_h;
 
 
     hh[0] = stage_edge_values[k*3] - bed_edge_values[k*3];
     hh[1] = stage_edge_values[k*3+1] - bed_edge_values[k*3+1];
     hh[2] = stage_edge_values[k*3+2] - bed_edge_values[k*3+2];
 
+    sidex = 0.0;
+    sidey = 0.0;
     area = areas[k];
 
     for ( i = 0 ; i < 3 ; i++ )
@@ -67,12 +75,19 @@ __global__ void gravity_wb(
         n0 = normals[k*6 + 2*i];
         n1 = normals[k*6 + 2*i + 1];
 
-        fact =  -0.5 * g[0] * hh[i] * hh[i] * edgelengths[k*3 + i];
+        fact =  -0.5 * g * hh[i] * hh[i] * edgelengths[k*3 + i];
+
+        //sidex += fact*n0;
+        //sidey += fact*n1;
 
         sh_data[threadIdx.x + i*blockDim.x] = fact*n0;
         sh_data[threadIdx.x + (i+3)*blockDim.x] = fact*n1;
     }
 
-    xmom_explicit_update[k] += -(sh_data[threadIdx.x]+sh_data[threadIdx.x+blockDim.x]+sh_data[threadIdx.x+2*blockDim.x]) / area;
-    ymom_explicit_update[k] += -(sh_data[threadIdx.x+3*blockDim.x]+sh_data[threadIdx.x+4*blockDim.x]+sh_data[threadIdx.x+5*blockDim.x]) / area;
+    //xmom_explicit_update[k] += -sidex / area;
+    //ymom_explicit_update[k] += -sidey / area;
+
+    xmom_explicit_update[k] += -(sh_data[threadIdx.x] + sh_data[threadIdx.x + blockDim.x] + sh_data[threadIdx.x+2*blockDim.x]) / area;
+
+    ymom_explicit_update[k] += -(sh_data[threadIdx.x+3*blockDim.x] + sh_data[threadIdx.x + 4*blockDim.x] + sh_data[threadIdx.x+5*blockDim.x]) / area;
 }
