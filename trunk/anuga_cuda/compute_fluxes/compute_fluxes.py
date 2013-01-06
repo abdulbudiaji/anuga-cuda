@@ -492,8 +492,105 @@ def compute_fluxes_central_structure_cuda(
     /*   _compute_speed()                                     */
     /*   _rotate()                                            */
     /**********************************************************/
+    __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
+    {
+        int temp;
+        if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
+         {
+            temp = _list[2];
+            _list[2] = _list[1];
+            _list[1] = temp;
+         }
+        if ( neighbours[_list[1]]>=0 and neighbours[ _list[1] ] < k and (neighbours[_list[0]]<0 or neighbours[_list[1]]<neighbours[_list[0]]) )
+        {
+            temp = _list[1];
+            _list[1] = _list[0];
+            _list[0] = temp;
+        }
+        if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
+        {
+            temp = _list[2];
+            _list[2] = _list[1];
+            _list[1] = temp;
+        }
+    }
 
+
+    __device__ int _rotate(double *q, double n1, double n2) {
+        /*Rotate the momentum component q (q[1], q[2])
+          from x,y coordinates to coordinates based on normal vector (n1, n2).
+    
+          Result is returned in array 3x1 r
+          To rotate in opposite direction, call rotate with (q, n1, -n2)
+    
+          Contents of q are changed by this function */
+   
+    
+        double q1, q2;
+    
+        // Shorthands
+        q1 = q[1]; // uh momentum
+        q2 = q[2]; // vh momentum
+    
+        // Rotate
+        q[1] = n1 * q1 + n2*q2;
+        q[2] = -n2 * q1 + n1*q2;
+    
+        return 0;
+    }
+
+
+    __device__ double _compute_speed(double *uh,
+            double *h,
+            double epsilon,
+            double h0,
+            double limiting_threshold) {
+    
+        double u;
+    
+        if (*h < limiting_threshold) {
+            // Apply limiting of speeds according to the ANUGA manual
+            if (*h < epsilon) {
+                *h = 0.0; // Could have been negative
+                u = 0.0;
+            } else {
+                u = *uh / (*h + h0 / *h);
+            }
+    
+    
+            // Adjust momentum to be consistent with speed
+            *uh = u * *h;
+        } else {
+            // We are in deep water - no need for limiting
+            u = *uh / *h;
+        }
+    
+        return u;
+    }
+    
     __global__ void _flux_function_central_2(
+            long N,
+            double * elements,
+            double * timestep,
+            long * neighbours,
+            long * neighbour_edges,
+            double * normals,
+            double * edgelengths,
+            double * radii,
+            double * areas,
+            long * tri_full_flag,
+            double * stage_edge_values,
+            double * xmom_edge_values,
+            double * ymom_edge_values,
+            double * bed_edge_values,
+            double * stage_boundary_values,
+            double * xmom_boundary_values,
+            double * ymom_boundary_values,
+            double * stage_explicit_update,
+            double * xmom_explicit_update,
+            double * ymom_explicit_update, 
+            double * max_speed_array)
+            /*
             double * elements,
             double * timestep,
             long * neighbours,
@@ -514,7 +611,7 @@ def compute_fluxes_central_structure_cuda(
             double * xmom_explicit_update,
             double * ymom_explicit_update, 
             double * max_speed_array
-            ) 
+            ) */
     {  
         int j;
     
@@ -543,15 +640,25 @@ def compute_fluxes_central_structure_cuda(
         double length, inv_area;
         
         int i, m, n;
-        int N = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
+        //int N = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
         int B = blockDim.x*blockDim.y;
         int T = threadIdx.x+threadIdx.y*blockDim.x;
         int ki, nm;
 
 		__shared__ double sh_data[32*9];
 
-        for (i=0; i<3; i++) {
+        if (k >=N )
+            return;
 
+#ifdef UNSORTED_DOMAIN
+        int b[3]={0,1,2}, l;
+
+        spe_bubble_sort( b, neighbours+k*3, k);
+        for (l = 0; l < 3; l++) {
+            i = b[l];
+#else
+        for (i=0; i<3; i++) {
+#endif
             ki = k + i*N;
             n = neighbours[ki];
 
@@ -1031,36 +1138,6 @@ def compute_fluxes_central_structure_cuda(
     }
 
 
-    
-    /*****************************************************/
-    /* This function helps reorder the compute sequence, */
-    /* which lets the edge from neighbour triangle with  */
-    /* smaller inder number be computed first            */
-    /*****************************************************/
-
-    __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
-    {
-        int temp;
-        if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
-         {
-            temp = _list[2];
-            _list[2] = _list[1];
-            _list[1] = temp;
-         }
-        if ( neighbours[_list[1]]>=0 and neighbours[ _list[1] ] < k and (neighbours[_list[0]]<0 or neighbours[_list[1]]<neighbours[_list[0]]) )
-        {
-            temp = _list[1];
-            _list[1] = _list[0];
-            _list[0] = temp;
-        }
-        if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
-        {
-            temp = _list[2];
-            _list[2] = _list[1];
-            _list[1] = temp;
-        }
-    }
-
 
 
 
@@ -1106,17 +1183,17 @@ def compute_fluxes_central_structure_cuda(
         
         double ql[3], qr[3], edgeflux[3];
 
-        int b[3]={0,1,2};
         if (k >=N )
             return;
 
+#ifdef UNSORTED_DOMAIN
+        int b[3]={0,1,2};
         spe_bubble_sort( b, neighbours+k*3, k);
         for (j = 0; j < 3; j++) {
             i = b[j];
-
-
-        //for ( i = 0; i < 3; i++) {
-
+#else
+        for ( i = 0; i < 3; i++) {
+#endif
             ki = k * 3 + i; // Linear index to edge i of triangle k
     
             n = neighbours[ki];
@@ -2025,19 +2102,20 @@ if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
     from anuga_cuda.merimbula_data.sort_domain import sort_domain, rearrange_domain
     from anuga_cuda.merimbula_data.utility import approx_cmp
-    from anuga_cuda.merimbula_data.channel3 import generate_domain
+    #from anuga_cuda.merimbula_data.channel3 import generate_domain
+    from anuga_cuda.merimbula_data.channel1 import generate_domain
 
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
     #domain2 = domain_create()
-    #sort_domain(domain2)
     domain2 = generate_domain()
+    sort_domain(domain2)
 
 
     #domain1 = domain_create()
     domain1 = generate_domain()
-    #domain2=rearrange_domain(domain1)
+    #domain2 = rearrange_domain(domain1)
     
     print " Number of elements is: %d" % domain1.number_of_elements
     """
@@ -2055,9 +2133,9 @@ if __name__ == '__main__':
 
     elif domain2.compute_fluxes_method == 'wb_2':
 
-        compute_fluxes_central_structure_cuda(domain2)
-        #compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
-	    #		name= "compute_fluxes_central_structure_CUDA")
+        #compute_fluxes_central_structure_cuda(domain2)
+        compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
+	    		name= "compute_fluxes_central_structure_CUDA")
     	#compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
 		#		name= "_flux_function_central_2")
         #gravity_wb_c(domain2)

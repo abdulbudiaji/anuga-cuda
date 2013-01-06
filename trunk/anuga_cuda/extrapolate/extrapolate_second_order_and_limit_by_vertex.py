@@ -22,10 +22,10 @@
                         
 """
 
-def extrapolate_second_order_and_limit_by_vertex(domain, Q):
+def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
     
     mod = SourceModule("""
-    __device__ int _limit_vertices_by_all_neighbours(
+    __global__ void _limit_vertices_by_all_neighbours(
             //int N, 
             double beta,
             double* centroid_values,
@@ -63,8 +63,10 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
         for (i=0; i<3; i++) {    
             r = 1.0;
     
-            dq = vertex_values[k3+i] - qc;    //Delta between vertex and centroid values
-            dqa[i] = dq;                      //Save dq for use in updating vertex values
+            dq = vertex_values[k3+i] - qc;    
+                    //Delta between vertex and centroid values
+            dqa[i] = dq;                      
+                    //Save dq for use in updating vertex values
     
             if (dq > 0.0) r = (qmax - qc)/dq;
             if (dq < 0.0) r = (qmin - qc)/dq;      
@@ -86,11 +88,9 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
         edge_values[k3+2] = 0.5*(vertex_values[k3+0] + vertex_values[k3+1]);
     
         //}
-    
-        return 0;
     }
     
-    __device__ int _extrapolate_from_gradient(
+    __global__ void _extrapolate_from_gradient(
             //int N,
             double* centroids,
             double* centroid_values,
@@ -133,11 +133,10 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
         edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
     
         //}
-        return 0;
     }
     
     
-    __device__ int _compute_gradients(
+    __global__ void  _compute_gradients(
             //int N,
             double* centroids,
             double* centroid_values,
@@ -165,7 +164,9 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
             k2 = surrogate_neighbours[3*k + 2];
     
     
-            if (k0 == k1 || k1 == k2) return -1;
+            if (k0 == k1 || k1 == k2) 
+                //return -1;
+                return;
     
             // Get data
             q0 = centroid_values[k0];
@@ -181,11 +182,11 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
     
             det = (y2-y0)*(x1-x0) - (y1-y0)*(x2-x0);
     
-            a[k] = (y2-y0)*(q1-q0) - (y1-y0)*(q2-q0);
-            a[k] /= det;
+            a[k] = ((y2-y0)*(q1-q0) - (y1-y0)*(q2-q0)) /det;
+            //a[k] /= det;
     
-            b[k] = (x1-x0)*(q2-q0) - (x2-x0)*(q1-q0);
-            b[k] /= det;
+            b[k] = ((x1-x0)*(q2-q0) - (x2-x0)*(q1-q0)) /det;
+            //b[k] /= det;
     
         } else if (number_of_boundaries[k] == 2) {
             // One true neighbour
@@ -196,7 +197,9 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
                 k0 = surrogate_neighbours[3*k + i];
                 i++;
             }
-            if (k0 == k) return -1;
+            if (k0 == k) 
+                //return -1;
+                return;
     
             k1 = k; //self
     
@@ -219,14 +222,13 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
         //        #No true neighbours -
         //        #Fall back to first order scheme
         //    }
-        return 0;
     }
     
     
     
-    
+#ifdef USING_UNION    
     __global__ void extrapolate_second_order_and_limit_by_vertex(
-            double *beta,
+            double beta,
             double * domain_centroid_coordinates,
             double * domain_vertex_coordinates,
             long * domain_number_of_boundaries,
@@ -240,7 +242,6 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
             double * quantity_y_gradient
             )
     {
-        
         _compute_gradients(
                 domain_centroid_coordinates,
                 quantity_centroid_values,
@@ -259,7 +260,7 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
                 quantity_y_gradient);
     
         _limit_vertices_by_all_neighbours(
-                *beta,
+                beta,
                 quantity_centroid_values,
                 quantity_vertex_values,
                 quantity_edge_values,
@@ -267,7 +268,7 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
                 quantity_x_gradient,
                 quantity_y_gradient);
     }
-
+#endif
     """)
        
     N = Q.centroid_values.shape[0]
@@ -276,28 +277,61 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q):
     else:
         raise Exception('N can not be splited')
 
-    beta_gpu = numpy.zeros(1, dtype=numpy.float64)
-    beta_gpu[0] = Q.beta
-
         
-    extra_func = mod.get_function("extrapolate_second_order_and_limit_by_vertex")
+    #extra_func = mod.get_function("extrapolate_second_order_and_limit_by_vertex")
+    #extra_func( 
+    #        cuda.In(beta_gpu ),
+    #        cuda.In( domain.centroid_coordinates ),
+    #        cuda.In( domain.vertex_coordinates ),
+    #        cuda.In( domain.number_of_boundaries ),
+    #        cuda.In( domain.surrogate_neighbours ),
+    #        cuda.In( domain.neighbours ),
 
+    #        cuda.InOut( Q.centroid_values ),
+    #        cuda.InOut( Q.vertex_values ),
+    #        cuda.InOut( Q.edge_values ),
+    #        cuda.InOut( Q.x_gradient ),
+    #        cuda.InOut( Q.y_gradient ),
+    #        block = ( W1, 1, 1),
+    #        grid = ( (N + W1 -1 ) / W1, 1) )
+    
+    extra_func = mod.get_function("_compute_gradients")
     extra_func( 
-            cuda.In(beta_gpu ),
             cuda.In( domain.centroid_coordinates ),
-            cuda.In( domain.vertex_coordinates ),
+            cuda.InOut( Q.centroid_values ),
             cuda.In( domain.number_of_boundaries ),
             cuda.In( domain.surrogate_neighbours ),
-            cuda.In( domain.neighbours ),
-
-            cuda.InOut( Q.centroid_values ),
-            cuda.InOut( Q.vertex_values ),
-            cuda.InOut( Q.edge_values ),
             cuda.InOut( Q.x_gradient ),
             cuda.InOut( Q.y_gradient ),
             block = ( W1, 1, 1),
             grid = ( (N + W1 -1 ) / W1, 1) )
     
+    if step > 1:
+        extra_func = mod.get_function("_extrapolate_from_gradient")
+        extra_func( 
+                cuda.In( domain.centroid_coordinates ),
+                cuda.InOut( Q.centroid_values ),
+                cuda.In( domain.vertex_coordinates ),
+                cuda.InOut( Q.vertex_values ),
+                cuda.InOut( Q.edge_values ),
+                cuda.InOut( Q.x_gradient ),
+                cuda.InOut( Q.y_gradient ),
+                block = ( W1, 1, 1),
+                grid = ( (N + W1 -1 ) / W1, 1) )
+
+    if step > 2:
+        extra_func = mod.get_function("_limit_vertices_by_all_neighbours")
+        extra_func( 
+                numpy.float64(Q.beta),
+                cuda.InOut( Q.centroid_values ),
+                cuda.InOut( Q.vertex_values ),
+                cuda.InOut( Q.edge_values ),
+                cuda.In( domain.neighbours ),
+                cuda.InOut( Q.x_gradient ),
+                cuda.InOut( Q.y_gradient ),
+                block = ( W1, 1, 1),
+                grid = ( (N + W1 -1 ) / W1, 1) )
+
 
 
 def extrapolate_second_order_and_limit_by_vertex_single(domain, Q):
@@ -341,7 +375,8 @@ def extrapolate_second_order_and_limit_by_vertex_single(domain, Q):
             k2 = domain_surrogate_neighbours[3*k + 2];
     
     
-            if (k0 == k1 || k1 == k2) return;
+            if (k0 == k1 || k1 == k2) 
+                return;
     
             // Get data
             q0 = quantity_centroid_values[k0];
@@ -495,7 +530,7 @@ def extrapolate_second_order_and_limit_by_vertex_single(domain, Q):
 
 
 
-def update_centroids_of_velocities_and_height(domain, single = False):
+def update_centroids_of_velocities_and_height(domain, kind = 'cuda', step=3):
     domain.update_centroids_of_velocities_and_height()
     for name in ['height', 'xvelocity', 'yvelocity']:
         Q = domain.quantities[name]
@@ -505,12 +540,19 @@ def update_centroids_of_velocities_and_height(domain, single = False):
             if domain.use_edge_limiter:
                 extrapolate_second_order_and_limit_by_edge()
             else:
-                if  single:
+                if  kind == 'single':
                     print name + "  in single function"
                     extrapolate_second_order_and_limit_by_vertex_single(domain,Q)
+                elif kind == 'python':
+                    print name + "  in python"
+                    compute_gradients(domain, Q)
+                    if step > 1:
+                        extrapolate_from_gradient(domain, Q)
+                    if step > 2:
+                        limit_vertices_by_all_neighbours(domain, Q)
                 else:
-                    print name
-                    extrapolate_second_order_and_limit_by_vertex(domain, Q)
+                    print name + "  in cuda"
+                    extrapolate_second_order_and_limit_by_vertex(domain, Q, step)
         else:
             raise Exception('Unknown order')
 
@@ -522,14 +564,146 @@ def approx_cmp(a,b):
     else:
         return False
 
+def _gradient(x0, y0, x1, y1, x2, y2, q0, q1, q2, a, b):
+    det = (y2-y0)*(x1-x0) - (y1-y0)*(x2-x0);
 
+    a = (y2-y0)*(q1-q0) - (y1-y0)*(q2-q0);
+    a /= det;
+
+    b = (x1-x0)*(q2-q0) - (x2-x0)*(q1-q0);
+    b /= det;
+
+def _gradient2(x0, y0, x1, y1, q0, q1, a, b):
+    xx = x1-x0
+    yy = y1-y0
+    qq = q1-q0
+            
+    det = xx*xx + yy*yy
+    a = xx*qq/det
+    b = yy*qq/det
+
+
+def limit_vertices_by_all_neighbours(domain, Q):
+    N = Q.centroid_values.shape[0]
+    a = Q.x_gradient
+    b = Q.y_gradient
+    for k in range(N):
+        qc = Q.centroid_values[k]
+        qmin = qc
+        qmax = qc
+
+        for i in range(3):
+            n = domain.neighbours[k][i]
+            if n >= 0:
+                qn = Q.centroid_values[n]
+                qmin = min(qmin, qn)
+                qmax = max(qmax, qn)
+        phi = 1.0
+        dqa = numpy.zeros(3, dtype=numpy.float64)
+        for i in range(3):
+            r = 1.0
+            dq = Q.vertex_values[k][i] - qc
+            dqa[i] = dq
+
+            if dq > 0.0 :
+                r = (qmax - qc) / dq
+            if dq < 0.0:
+                r = (qmin - qc) / dq
+
+            phi = min ( min(r*Q.beta, 1.0), phi)
+
+        Q.x_gradient[k] *= phi
+        Q.y_gradient[k] *= phi
+
+        Q.vertex_values[k][0] = qc + phi * dqa[0]
+        Q.vertex_values[k][1] = qc + phi * dqa[1]
+        Q.vertex_values[k][2] = qc + phi * dqa[2]
+
+        Q.edge_values[k][0] = 0.5*(Q.vertex_values[k][1]+Q.vertex_values[k][2])
+        Q.edge_values[k][1] = 0.5*(Q.vertex_values[k][2]+Q.vertex_values[k][0])
+        Q.edge_values[k][2] = 0.5*(Q.vertex_values[k][0]+Q.vertex_values[k][1])
+
+def extrapolate_from_gradient(domain, Q):
+    N = Q.centroid_values.shape[0]
+    a = Q.x_gradient
+    b = Q.y_gradient
+    for k in range(N):
+        x = domain.centroid_coordinates[k][0]
+        y = domain.centroid_coordinates[k][1]
+        
+        x0 = domain.vertex_coordinates[k*3][0]
+        y0 = domain.vertex_coordinates[k*3][1]
+        x1 = domain.vertex_coordinates[k*3+1][0]
+        y1 = domain.vertex_coordinates[k*3+1][1]
+        x2 = domain.vertex_coordinates[k*3+2][0]
+        y2 = domain.vertex_coordinates[k*3+2][1]
+
+        Q.vertex_values[k][0] = \
+            Q.centroid_values[k] +a[k]*(x0-x)+b[k]*(y0-y)
+        Q.vertex_values[k][1] = \
+            Q.centroid_values[k] +a[k]*(x1-x)+b[k]*(y1-y)
+        Q.vertex_values[k][2] = \
+            Q.centroid_values[k] +a[k]*(x2-x)+b[k]*(y2-y)
+
+        Q.edge_values[k][0] = \
+                0.5*(Q.vertex_values[k][1] + Q.vertex_values[k][2])
+        Q.edge_values[k][1] = \
+                0.5*(Q.vertex_values[k][2] + Q.vertex_values[k][0])
+        Q.edge_values[k][2] = \
+                0.5*(Q.vertex_values[k][0] + Q.vertex_values[k][1])
+
+def compute_gradients(domain, Q):
+    N = Q.centroid_values.shape[0]
+    a = Q.x_gradient
+    b = Q.y_gradient
+    for k in range(N):
+        if domain.number_of_boundaries[k] < 2:
+            k0 = domain.surrogate_neighbours[k][0];
+            k1 = domain.surrogate_neighbours[k][1];
+            k2 = domain.surrogate_neighbours[k][2];
+            
+            assert not (k0 == k1 and k1 == k2)
+
+            q0 = Q.centroid_values[k0]
+            q1 = Q.centroid_values[k1]
+            q2 = Q.centroid_values[k2]
+                
+            x0 = domain.centroid_coordinates[k0][0]
+            y0 = domain.centroid_coordinates[k0][1]
+            x1 = domain.centroid_coordinates[k1][0]
+            y1 = domain.centroid_coordinates[k1][1]
+            x2 = domain.centroid_coordinates[k2][0]
+            y2 = domain.centroid_coordinates[k2][1]
+
+            _gradient(x0, y0, x1, y1, x2, y2, q0, q1, q2, a[k], b[k])
+
+        elif domain.number_of_boundaries[k] == 2:
+            for i in range(3):
+                k0 = domain.surrogate_neighbours[k][i]
+                if k0 != k:
+                    break
+            if k0 == k:
+                return -1
+
+            k1 = k
+            q0 = Q.centroid_values[k0]
+            q1 = Q.centroid_values[k1]
+
+            x0 = domain.centroid_coordinates[k0][0]
+            y0 = domain.centroid_coordinates[k0][1]
+            x1 = domain.centroid_coordinates[k1][0]
+            y1 = domain.centroid_coordinates[k1][1]
+
+            _gradient2(x0, y0, x1, y1, q0, q1, a[k], b[k])
 
 if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import *
     domain1 = domain_create()
 
     domain2 = domain_create()
-
+    
+    testing_2 = False
+    testing_3 = True
     domain3 = domain_create()
 
 
@@ -541,110 +715,115 @@ if __name__ == '__main__':
     from pycuda.compiler import SourceModule
     import numpy
 
+    step = 1
 
     print "~~~~~~~ domain 2 ~~~~~~~"
-    update_centroids_of_velocities_and_height(domain2)
+    update_centroids_of_velocities_and_height(domain2, 'cuda', step)
 
-    print "~~~~~~~ domain 3 ~~~~~~~"
-    update_centroids_of_velocities_and_height(domain3, True)
+    if testing_2:
+        print "\n~~~~~~~ compare 1 2~~~~~~~"
+        for name in ['height', 'xvelocity', 'yvelocity']:
+            Q1 = domain1.quantities[name]
+            Q2 = domain2.quantities[name]
+            print name
+            
+            cnt_cv = 0
+            cnt_vv = 0
+            cnt_ev = 0
+            cnt_xg = 0
+            cnt_yg = 0
+            for i in range(Q1.centroid_values.shape[0]):
+                if Q1.centroid_values[i] != Q2.centroid_values[i]:
+                    cnt_cv += 1
+                    if cnt_cv < 10:
+                        print "cv %d, %lf, %lf" % \
+                                (i, Q1.centroid_values[i], Q2.centroid_values[i])
+                #if (Q1.vertex_values[i] != Q2.vertex_values[i]).any():
+                if approx_cmp(Q1.vertex_values[i][0],Q2.vertex_values[i][0]) or \
+                         approx_cmp(Q1.vertex_values[i][1],Q2.vertex_values[i][1]) or \
+                         approx_cmp(Q1.vertex_values[i][2],Q2.vertex_values[i][2]) :
+                    cnt_vv += 1
+                    if cnt_vv < 10:
+                        print "vv %d, %s, %s" % \
+                                (i, Q1.vertex_values[i], Q2.vertex_values[i])
+                #if (Q1.edge_values[i] != Q2.edge_values[i]).any():
+                if approx_cmp(Q1.edge_values[i][0] , Q2.edge_values[i][0]) or\
+                        approx_cmp(Q1.edge_values[i][1] , Q2.edge_values[i][1]) or\
+                        approx_cmp(Q1.edge_values[i][2] , Q2.edge_values[i][2]) :
+                    cnt_ev += 1
+                    if cnt_ev < 10:
+                        print "ev %d, %s, %s" % \
+                                (i, Q1.edge_values[i], Q2.edge_values[i])
+                #if Q1.x_gradient[i] != Q2.x_gradient[i]:
+                if approx_cmp(Q1.x_gradient[i], Q2.x_gradient[i]) :
+                    cnt_xg += 1
+                    if cnt_xg < 10:
+                        print "xg %d, %lf, %lf" % \
+                                (i, Q1.x_gradient[i], Q2.x_gradient[i])
+                #if Q1.y_gradient[i] != Q2.y_gradient[i]:
+                if approx_cmp(Q1.y_gradient[i], Q2.y_gradient[i]) :
+                    cnt_yg += 1
+                    if cnt_yg < 10:
+                        print "yg %d, %lf, %lf" % \
+                                (i, Q1.y_gradient[i], Q2.y_gradient[i])
 
-    print "\n~~~~~~~ compare 1 2~~~~~~~"
-    for name in ['height', 'xvelocity', 'yvelocity']:
-        Q1 = domain1.quantities[name]
-        Q2 = domain2.quantities[name]
-        print name
-        
-        cnt_cv = 0
-        cnt_vv = 0
-        cnt_ev = 0
-        cnt_xg = 0
-        cnt_yg = 0
-        for i in range(Q1.centroid_values.shape[0]):
-            if Q1.centroid_values[i] != Q2.centroid_values[i]:
-                cnt_cv += 1
-                if cnt_cv < 10:
-                    print "%d, %lf, %lf" % \
-                            (i, Q1.centroid_values[i], Q2.centroid_values[i])
-            #if (Q1.vertex_values[i] != Q2.vertex_values[i]).any():
-            if approx_cmp(Q1.vertex_values[i][0],Q2.vertex_values[i][0]) or \
-                     approx_cmp(Q1.vertex_values[i][1],Q2.vertex_values[i][1]) or \
-                     approx_cmp(Q1.vertex_values[i][2],Q2.vertex_values[i][2]) :
-                cnt_vv += 1
-                if cnt_vv < 10:
-                    print "    %d, %s, %s" % \
-                            (i, Q1.vertex_values[i], Q2.vertex_values[i])
-            #if (Q1.edge_values[i] != Q2.edge_values[i]).any():
-            if approx_cmp(Q1.edge_values[i][0] , Q2.edge_values[i][0]) or\
-                    approx_cmp(Q1.edge_values[i][1] , Q2.edge_values[i][1]) or\
-                    approx_cmp(Q1.edge_values[i][2] , Q2.edge_values[i][2]) :
-                cnt_ev += 1
-                if cnt_ev < 10:
-                    print "        %d, %s, %s" % \
-                            (i, Q1.edge_values[i], Q2.edge_values[i])
-            #if Q1.x_gradient[i] != Q2.x_gradient[i]:
-            if approx_cmp(Q1.x_gradient[i], Q2.x_gradient[i]) :
-                cnt_xg += 1
-                if cnt_xg < 10:
-                    print "            %d, %lf, %lf" % \
-                            (i, Q1.x_gradient[i], Q2.x_gradient[i])
-            #if Q1.y_gradient[i] != Q2.y_gradient[i]:
-            if approx_cmp(Q1.y_gradient[i], Q2.y_gradient[i]) :
-                cnt_yg += 1
-                if cnt_yg < 10:
-                    print "                %d, %lf, %lf" % \
-                            (i, Q1.y_gradient[i], Q2.y_gradient[i])
-
-        print "~~ # of diff %d, %d, %d, %d, %d" % \
-                (cnt_cv, cnt_vv, cnt_ev, cnt_xg, cnt_yg)
+            print "~~ # of diff %d, %d, %d, %d, %d" % \
+                    (cnt_cv, cnt_vv, cnt_ev, cnt_xg, cnt_yg)
 
 
+    if testing_3:
+        print "~~~~~~~ domain 3 ~~~~~~~"
+        #update_centroids_of_velocities_and_height(domain3, True, 0)
+        update_centroids_of_velocities_and_height(domain3, 'python', step)
 
-    print "\n~~~~~~~ compare 1 3~~~~~~~"
-    for name in ['height', 'xvelocity', 'yvelocity']:
-        Q1 = domain1.quantities[name]
-        Q2 = domain3.quantities[name]
-        print name
-        
-        cnt_cv = 0
-        cnt_vv = 0
-        cnt_ev = 0
-        cnt_xg = 0
-        cnt_yg = 0
-        for i in range(Q1.centroid_values.shape[0]):
-            if Q1.centroid_values[i] != Q2.centroid_values[i]:
-                cnt_cv += 1
-                if cnt_cv < 10:
-                    print "%d, %lf, %lf" % \
-                            (i, Q1.centroid_values[i], Q2.centroid_values[i])
-            #if (Q1.vertex_values[i] != Q2.vertex_values[i]).any():
-            if approx_cmp(Q1.vertex_values[i][0],Q2.vertex_values[i][0]) or \
-                     approx_cmp(Q1.vertex_values[i][1],Q2.vertex_values[i][1]) or \
-                     approx_cmp(Q1.vertex_values[i][2],Q2.vertex_values[i][2]) :
-                cnt_vv += 1
-                if cnt_vv < 10:
-                    print "    %d, %s, %s" % \
-                            (i, Q1.vertex_values[i], Q2.vertex_values[i])
-            #if (Q1.edge_values[i] != Q2.edge_values[i]).any():
-            if approx_cmp(Q1.edge_values[i][0] , Q2.edge_values[i][0]) or\
-                    approx_cmp(Q1.edge_values[i][1] , Q2.edge_values[i][1]) or\
-                    approx_cmp(Q1.edge_values[i][2] , Q2.edge_values[i][2]) :
-                cnt_ev += 1
-                if cnt_ev < 10:
-                    print "        %d, %s, %s" % \
-                            (i, Q1.edge_values[i], Q2.edge_values[i])
-            #if Q1.x_gradient[i] != Q2.x_gradient[i]:
-            if approx_cmp(Q1.x_gradient[i], Q2.x_gradient[i]) :
-                cnt_xg += 1
-                if cnt_xg < 10:
-                    print "            %d, %lf, %lf" % \
-                            (i, Q1.x_gradient[i], Q2.x_gradient[i])
-            #if Q1.y_gradient[i] != Q2.y_gradient[i]:
-            if approx_cmp(Q1.y_gradient[i], Q2.y_gradient[i]) :
-                cnt_yg += 1
-                if cnt_yg < 10:
-                    print "                %d, %lf, %lf" % \
-                            (i, Q1.y_gradient[i], Q2.y_gradient[i])
+        print "\n~~~~~~~ compare 1 3~~~~~~~"
+        for name in ['height', 'xvelocity', 'yvelocity']:
+            Q1 = domain2.quantities[name]
+            Q2 = domain3.quantities[name]
+            print name
+            
+            cnt_cv = 0
+            cnt_vv = 0
+            cnt_ev = 0
+            cnt_xg = 0
+            cnt_yg = 0
+            for i in range(Q1.centroid_values.shape[0]):
+                if Q1.centroid_values[i] != Q2.centroid_values[i]:
+                    cnt_cv += 1
+                    if cnt_cv < 3:
+                        print "cv %d, %lf, %lf" % \
+                                (i, Q1.centroid_values[i], Q2.centroid_values[i])
+                #if (Q1.vertex_values[i] != Q2.vertex_values[i]).any():
+                if approx_cmp(Q1.vertex_values[i][0],Q2.vertex_values[i][0]) or \
+                         approx_cmp(Q1.vertex_values[i][1],Q2.vertex_values[i][1]) or \
+                         approx_cmp(Q1.vertex_values[i][2],Q2.vertex_values[i][2]) :
+                    cnt_vv += 1
+                    if cnt_vv < 3:
+                        print "vv %d, %s, %s" % \
+                                (i, Q1.vertex_values[i], Q2.vertex_values[i])
+                #if (Q1.edge_values[i] != Q2.edge_values[i]).any():
+                if approx_cmp(Q1.edge_values[i][0] , Q2.edge_values[i][0]) or\
+                        approx_cmp(Q1.edge_values[i][1] , Q2.edge_values[i][1]) or\
+                        approx_cmp(Q1.edge_values[i][2] , Q2.edge_values[i][2]) :
+                    cnt_ev += 1
+                    if cnt_ev < 3:
+                        print "ev %d, %s, %s" % \
+                                (i, Q1.edge_values[i], Q2.edge_values[i])
+                #if Q1.x_gradient[i] != Q2.x_gradient[i]:
+                if approx_cmp(Q1.x_gradient[i], Q2.x_gradient[i]) :
+                    cnt_xg += 1
+                    if cnt_xg < 3:
+                        print "xg %d, %lf, %lf" % \
+                                (i, Q1.x_gradient[i], Q2.x_gradient[i])
+                #if Q1.y_gradient[i] != Q2.y_gradient[i]:
+                if approx_cmp(Q1.y_gradient[i], Q2.y_gradient[i]) :
+                    cnt_yg += 1
+                    if cnt_yg < 10:
+                        print "yg %d, %lf, %lf" % \
+                                (i, Q1.y_gradient[i], Q2.y_gradient[i])
 
-        print "~~ # of diff %d, %d, %d, %d, %d" % \
-                (cnt_cv, cnt_vv, cnt_ev, cnt_xg, cnt_yg)
+            print "~~ # of diff %d, %d, %d, %d, %d" % \
+                    (cnt_cv, cnt_vv, cnt_ev, cnt_xg, cnt_yg)
 
+    else:
+        print "~~~~~~~ domain 3 ~~~~~~~"

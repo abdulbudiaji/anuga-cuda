@@ -26,9 +26,9 @@ domain.check_integrity()
 domain.set_quantity('elevation', -1)
 domain.set_quantity('stage', 1)
 
-domain.compute_fluxes()
+domain.evolve()
 print "+++ fluxes: done +++"
-domain.compute_fluxes()
+domain.evolve()
 print "+++ fluxes: done +++"
 # Central triangle
 #assert num.allclose(domain.get_quantity('stage').explicit_update[1], 0)

@@ -1089,14 +1089,57 @@ if __name__ == '__main__':
 
     domain2 = domain_create()
 
-    import pycuda.driver as cuda
-    import pycuda.autoinit
+    import pycuda.driver as drv
+    drv.init()
+    dev = drv.Device(0)
+    ctx = dev.make_context(drv.ctx_flags.MAP_HOST)
+    #import pycuda.autoinit
     from pycuda.compiler import SourceModule
     import numpy
 
     if ( domain2.extrapolate_velocity_second_order == 1):
         print "-----extrapolate velocity second order == 1-------"
-        extrapolate_second_order_sw_cuda_TRUE_second_order(domain2)
+        from anuga_cuda.config import extrapolate_dir
+        mod = SourceModule(
+            open(extrapolate_dir+"extrapolate_second_order_sw.cu").read(),
+            include_dirs=[extrapolate_dir]
+            )
+        
+        N = domain2.number_of_elements
+        W1 = 32
+        extr_func = mod.get_function("extrapolate_second_order_sw_true")
+        xmom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
+        ymom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
+        stage_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
+
+        extr_func(
+            numpy.float64(domain2.epsilon),
+            numpy.float64(domain2.minimum_allowed_height),
+            numpy.float64(domain2.beta_w),
+            numpy.float64(domain2.beta_w_dry),
+            numpy.float64(domain2.beta_uh),
+            numpy.float64(domain2.beta_uh_dry),
+            numpy.float64(domain2.beta_vh),
+            numpy.float64(domain2.beta_vh_dry),
+            numpy.float64(domain2.optimise_dry_cells),
+    		drv.In( domain2.surrogate_neighbours ), 
+    		drv.In( domain2.number_of_boundaries ), 
+    		drv.In( domain2.centroid_coordinates ), 
+    		drv.In( domain2.quantities['stage'].centroid_values ), 
+    		drv.In( domain2.quantities['elevation'].centroid_values ), 
+    		drv.In( domain2.quantities['xmomentum'].centroid_values ), 
+    		drv.In( domain2.quantities['ymomentum'].centroid_values ), 
+    		drv.InOut( domain2.vertex_coordinates ), 
+    		drv.InOut( domain2.quantities['stage'].vertex_values ), 
+    		drv.InOut( domain2.quantities['xmomentum'].vertex_values ),
+    		drv.InOut( domain2.quantities['ymomentum'].vertex_values ), 
+    		drv.InOut( domain2.quantities['elevation'].vertex_values ), 
+            drv.In( stage_centroid_store ),
+            drv.In( xmom_centroid_store ),
+            drv.In( ymom_centroid_store ),
+            block = ( W1, 1, 1),
+            grid = ( (N + W1 -1 ) / W1, 1) )
+        #extrapolate_second_order_sw_cuda_TRUE_second_order(domain2)
     else:
         print "-----extrapolate velocity second order !! 1-------"
         extrapolate_second_order_sw_cuda_FALSE_second_order(domain2)

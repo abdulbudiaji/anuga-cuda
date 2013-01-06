@@ -6,16 +6,16 @@ Compare performance of using host-registered pinned and unpinned host memory.
 
 import numpy as np
 
-import pycuda.autoinit
+#import pycuda.autoinit
 import pycuda.driver as drv
 from pycuda.compiler import SourceModule
 
 from time import time
 
 
-#drv.init()
-#dev = drv.Device(0)
-#ctx = dev.make_context(drv.ctx_flags.SCHED_AUTO | drv.ctx_flags.MAP_HOST)
+drv.init()
+dev = drv.Device(0)
+ctx = dev.make_context(drv.ctx_flags.SCHED_AUTO | drv.ctx_flags.MAP_HOST)
 
 increment_mod = SourceModule("""
 __global__ void increment(double *a, int N)
