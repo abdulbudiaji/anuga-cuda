@@ -20,6 +20,7 @@ from anuga_cuda.config import extrapolate_dir
 from anuga_cuda.config import protect_dir
 from anuga_cuda.config import balance_dir
 from anuga_cuda.config import interpolate_dir
+from anuga_cuda.config import evaluate_dir
 
 class GPU_domain(Domain):
     def __init__(self, coordinates, vertices,
@@ -40,8 +41,16 @@ class GPU_domain(Domain):
                 number_of_full_triangles=number_of_full_triangles,
                 geo_reference=geo_reference) 
 
-        from anuga_cuda.merimbula_data.sort_domain import sort_domain
-        sort_domain(self)
+        #FIXME: 
+        self.boundary_index = {}
+                #'outflow': [], 
+                #'open': [], 
+                #'inner': [], 
+                #'exterior': [], 
+                #'inflow': []}
+
+        #from anuga_cuda.merimbula_data.sort_domain import sort_domain
+        #sort_domain(self)
 
         self.using_gpu = True
 
@@ -84,18 +93,22 @@ class GPU_domain(Domain):
             self.extrapolate_second_order_sw_mod.get_function(
                 "extrapolate_second_order_sw_false")
 
-        # extrapolate_second_order_and_limit_by_vertex function
-        self.extrapolate_second_order_and_limit_by_vertex_mod = \
+        # extrapolate_second_order_and_limit_by_vertex_or_edge function
+        self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod = \
             SourceModule(
                 open(extrapolate_dir + \
-                    "extrapolate_second_order_and_limit_by_vertex.cu"
+                    "extrapolate_second_order_and_limit_by_vertex_or_edge.cu"
                     ).read(),
                 include_dirs=[extrapolate_dir]
                 )
 
         self.extrapolate_second_order_and_limit_by_vertex_func = \
-            self.extrapolate_second_order_and_limit_by_vertex_mod.get_function(
+            self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod.get_function(
                     "extrapolate_second_order_and_limit_by_vertex")
+
+        self.extrapolate_second_order_and_limit_by_edge_func = \
+            self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod.get_function(
+                    "extrapolate_second_order_and_limit_by_edge")
 
         # protect function
         self.protect_mod = SourceModule(
@@ -118,6 +131,26 @@ class GPU_domain(Domain):
             self.balance_deep_and_shallow_mod.get_function(
                 "_balance_deep_and_shallow")
 
+        # interpolate_from_vertices_to_edges function
+        self.interpolate_from_vertices_to_edges_mod = SourceModule(
+                open(interpolate_dir+"interpolate_from_vertices_to_edges.cu").read(),
+                include_dirs=[interpolate_dir]
+                )
+
+        self.interpolate_from_vertices_to_edges_func = \
+            self.interpolate_from_vertices_to_edges_mod.get_function(
+                "_interpolate_from_vertices_to_edges")
+
+
+        # evaluate_segment function
+        self.evaluate_segment_mod = SourceModule(
+                open(evaluate_dir+"evaluate_segment.cu").read(),
+                include_dirs=[evaluate_dir]
+                )
+
+        self.evaluate_segment_func = \
+            self.evaluate_segment_mod.get_function(
+                "evaluate_segment")
 
     def lock_array_page(self):
         self.neighbours = get_page_locked_array(self.neighbours)
@@ -183,8 +216,29 @@ class GPU_domain(Domain):
                 self.quantities['xmomentum'].centroid_values)
         self.ymomentum_centroid_store_gpu = get_device_array(
                 self.quantities['ymomentum'].centroid_values)
+        self.mim_elevation_edgevalue_gpu = get_device_array(
+                self.quantities['ymomentum'].centroid_values)
+        self.max_elevation_edgevalue_gpu = get_device_array(
+                self.quantities['ymomentum'].centroid_values)
+        self.count_wet_neighbours_gpu =  drv.mem_alloc(
+                self.number_of_elements * numpy.int32().nbytes)
+        
+        for tag in self.tag_boundary_cells:
+            if self.boundary_map[tag] is None:
+                continue
+            self.boundary_index[tag] = []
+
+            ids = self.tag_boundary_cells[tag] 
+            
+            self.boundary_index[tag].append( 
+                    get_device_array( numpy.asarray(ids) ))
+            self.boundary_index[tag].append(
+                    get_device_array( numpy.asarray(self.boundary_cells[ids])) )
+            self.boundary_index[tag].append(
+                    get_device_array( numpy.asarray(self.boundary_edges[ids])) )
 
 
+        # domain arrays
         self.neighbours_gpu = get_device_array(self.neighbours)
         self.neighbour_edges_gpu = get_device_array(self.neighbour_edges)
         self.surrogate_neighbours_gpu = \
@@ -201,7 +255,6 @@ class GPU_domain(Domain):
         self.edge_coordinates_gpu = get_device_array(self.edge_coordinates)
         self.centroid_coordinates_gpu = \
             get_device_array(self.centroid_coordinates)
-        
         self.number_of_boundaries_gpu = \
             get_device_array(self.number_of_boundaries)
 
@@ -214,16 +267,28 @@ class GPU_domain(Domain):
             get_device_array(self.quantities['ymomentum'].edge_values)
         self.quantities['elevation'].edge_values_gpu = \
             get_device_array(self.quantities['elevation'].edge_values)
+        self.quantities['height'].edge_values_gpu = \
+            get_device_array(self.quantities['height'].edge_values)
+        self.quantities['xvelocity'].edge_values_gpu = \
+            get_device_array(self.quantities['xvelocity'].edge_values)
+        self.quantities['yvelocity'].edge_values_gpu = \
+            get_device_array(self.quantities['yvelocity'].edge_values)
         
         # get boundary values
         self.quantities['stage'].boundary_values_gpu = \
             get_device_array(self.quantities['stage'].boundary_values)
+        self.quantities['elevation'].boundary_values_gpu = \
+            get_device_array(self.quantities['elevation'].boundary_values)
+        self.quantities['height'].boundary_values_gpu = \
+            get_device_array(self.quantities['height'].boundary_values)
         self.quantities['xmomentum'].boundary_values_gpu = \
-            get_device_array(
-                    self.quantities['xmomentum'].boundary_values)
+            get_device_array( self.quantities['xmomentum'].boundary_values)
         self.quantities['ymomentum'].boundary_values_gpu = \
-            get_device_array(
-                    self.quantities['ymomentum'].boundary_values)
+            get_device_array(self.quantities['ymomentum'].boundary_values)
+        self.quantities['xvelocity'].boundary_values_gpu = \
+            get_device_array( self.quantities['xvelocity'].boundary_values)
+        self.quantities['yvelocity'].boundary_values_gpu = \
+            get_device_array(self.quantities['yvelocity'].boundary_values)
         
         # get explicit update
         self.quantities['stage'].explicit_update_gpu = \
@@ -239,8 +304,7 @@ class GPU_domain(Domain):
         self.quantities['stage'].vertex_values_gpu = \
             get_device_array(self.quantities['stage'].vertex_values)
         self.quantities['elevation'].vertex_values_gpu = \
-            get_device_array(
-                    self.quantities['elevation'].vertex_values)
+            get_device_array(self.quantities['elevation'].vertex_values)
         self.quantities['xmomentum'].vertex_values_gpu = \
             get_device_array(self.quantities['xmomentum'].vertex_values)
         self.quantities['ymomentum'].vertex_values_gpu = \
@@ -260,12 +324,22 @@ class GPU_domain(Domain):
         for name in self.conserved_quantities:
             """ ['stage', 'xmomentum', 'ymomentum']"""
             Q = self.quantities[name]
-            Q.x_gradient_gpu = get_de(Q.x_gradient)
-            Q.y_gradient_gpu = get_de(Q.y_gradient)
+            Q.x_gradient_gpu = get_device_array(Q.x_gradient)
+            Q.y_gradient_gpu = get_device_array(Q.y_gradient)
 
 
     def asynchronous_transfer(self):
         # auxiliary arrays
+        for tag in self.tag_boundary_cells:
+            if self.boundary_map is None:
+                continue
+            ids = self.tag_boundary_cells[tag] 
+            asy_cpy( numpy.asarray(ids), self.boundary_index[tag][0])
+            asy_cpy( numpy.asarray(self.boundary_cells[ids]), 
+                    self.boundary_index[tag][1])
+            asy_cpy( numpy.asarray(self.boundary_edges[ids]),
+                    self.boundary_index[tag][2])
+
         asy_cpy(self.timestep_array, self.timestep_array_gpu)
 
         asy_cpy(self.neighbours, self.neighbours_gpu)
@@ -422,7 +496,8 @@ class GPU_domain(Domain):
             self.flux_timestep = self.timestep_array[ b[0] ]
         else:
             Domain.compute_fluxes(self)
-           
+
+
     def balance_deep_and_shallow(self):
         if  self.using_gpu:
             W1 = 32
@@ -450,6 +525,7 @@ class GPU_domain(Domain):
                 )
         else:
             Domain.balance_deep_and_shallow(self)
+
 
     def distribute_to_vertices_and_edges(self):
         if  self.using_gpu:
@@ -507,6 +583,9 @@ class GPU_domain(Domain):
                         self.stage_centroid_store_gpu,
                         self.xmomentum_centroid_store_gpu,
                         self.ymomentum_centroid_store_gpu,
+                        self.mim_elevation_edgevalue_gpu,
+                        self.max_elevation_edgevalue_gpu,
+                        self.count_wet_neighbours_gpu,
                         block = (W1, W2, W3),
                         grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
                         )
@@ -532,6 +611,22 @@ class GPU_domain(Domain):
 
                     elif self._order_ == 2:
                         #Q.extrapolate_second_order_and_limit_by_edge()
+                        self.extrapolate_second_order_and_limit_by_edge_func(
+                                numpy.float64( Q.beta),
+                                self.centroid_coordinates_gpu,
+                                self.vertex_coordinates_gpu,
+                                self.number_of_boundaries_gpu,
+                                self.surrogate_neighbours_gpu,
+                                self.neighbours_gpu,
+
+                                Q.centroid_values_gpu,
+                                Q.vertex_values_gpu,
+                                Q.edge_values_gpu,
+                                Q.x_gradient_gpu,
+                                Q.y_gradient_gpu,
+                                block = (W1, W2, W3),
+                                grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2),1)
+                                )
                     else:
                         raise Exception('Unknown order')
 
@@ -585,15 +680,23 @@ class GPU_domain(Domain):
                             drv.memset_d32(
                                 Q.y_gradient_gpu,0,self.number_of_elements*2)
                         elif self._order_ == 2:
-                            Q.extrapolate_second_order_and_limit_by_vertex()
-                            #FIXME
-                            #self.extrapolate_second_order_and_limit_by_vertex_func(
-                            #    numpy.float64( Q.beta),
-                            #    self.centroid_coordinates_gpu,
-                            #    self.vertex_coordinates_gpu,
-                            #    self.number_of_boundaries_gpu,
-                            #    self.surrogate_neighbours_gpu,
-                            #    self.neighbours_gpu,
+                            #Q.extrapolate_second_order_and_limit_by_vertex()
+                            self.extrapolate_second_order_and_limit_by_vertex_func(
+                                numpy.float64( Q.beta),
+                                self.centroid_coordinates_gpu,
+                                self.vertex_coordinates_gpu,
+                                self.number_of_boundaries_gpu,
+                                self.surrogate_neighbours_gpu,
+                                self.neighbours_gpu,
+
+                                Q.centroid_values_gpu,
+                                Q.vertex_values_gpu,
+                                Q.edge_values_gpu,
+                                Q.x_gradient_gpu,
+                                Q.y_gradient_gpu,
+                                block = (W1, W2, W3),
+                                grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2),1)
+                                    )
 
 
                         else:
@@ -606,6 +709,7 @@ class GPU_domain(Domain):
                     #Q.interpolate_from_vertices_to_edges()
                     self.interpolate_from_vertices_to_edges_func(
                             numpy.int32(Q.vertex_values.shape[0]),
+                            #numpy.int32(self.number_of_elements),
                             Q.vertex_values_gpu,
                             Q.edge_values_gpu,
                             block = (W1, W2, W3),
@@ -613,7 +717,7 @@ class GPU_domain(Domain):
                             )
         else:
             Domain.distribute_to_vertices_and_edges(self)
-            
+
 
     def protect_against_infinitesimal_and_negative_heights(self):
         if  self.using_gpu:
@@ -640,6 +744,7 @@ class GPU_domain(Domain):
                     
             else:
                 self.protect_sw_func(
+                        numpy.int32(self.number_of_elements),
                         numpy.float64( self.minimum_allowed_height), 
                         numpy.float64( self.maximum_allowed_speed),
                         numpy.float64( self.epsilon), 
@@ -652,6 +757,7 @@ class GPU_domain(Domain):
                         )
         else:
             Domain.protect_against_infinitesimal_and_negative_heights(self)
+
 
     def extrapolate_second_order_sw(self):
         if  self.using_gpu:
@@ -720,6 +826,56 @@ class GPU_domain(Domain):
                     )
         else:
             Domain.extrapolate_second_order_sw(self)
+
+    def update_boundary(self):
+        if not self.using_gpu:
+            W1 = 32
+            W2 = 1
+            W3 = 1
+
+            for tag in self.tag_boundary_cells:
+                B = self.boundary_map[tag]
+                if B is None:
+                    continue
+                
+                #segment_edges = self.tag_boundary_cells[tag]
+                ids = self.tag_boundary_cells[tag]
+
+                # def evaluate_segment(self, domain, segment_edges):
+                if ids is None:
+                    return
+
+                self.evaluate_segment_func(
+                    numpy.int32(len(ids)),
+                    self.boundary_index[tag][0],
+                    self.boundary_index[tag][1],
+                    self.boundary_index[tag][2],
+
+                    self.normals_gpu,
+                    self.quantities['stage'].edge_values_gpu,
+                    self.quantities['elevation'].edge_values_gpu,
+                    self.quantities['height'].edge_values_gpu,
+                    self.quantities['xmomentum'].edge_values_gpu,
+                    self.quantities['ymomentum'].edge_values_gpu,
+                    self.quantities['xvelocity'].edge_values_gpu,
+                    self.quantities['yvelocity'].edge_values_gpu,
+
+                    self.quantities['stage'].boundary_values_gpu,
+                    self.quantities['elevation'].boundary_values_gpu,
+                    self.quantities['height'].boundary_values_gpu,
+                    self.quantities['xmomentum'].boundary_values_gpu,
+                    self.quantities['ymomentum'].boundary_values_gpu,
+                    self.quantities['xvelocity'].boundary_values_gpu,
+                    self.quantities['yvelocity'].boundary_values_gpu,
+                    
+                    block = (W1, W2, W3),
+                    grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
+                    )
+                
+        else:
+            Domain.update_boundary(self)
+
+    
 
     def evolve(self, 
                 yieldstep=None,
