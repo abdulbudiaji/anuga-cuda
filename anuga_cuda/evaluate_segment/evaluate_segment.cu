@@ -1,4 +1,4 @@
-__global__ void evaluate_segment(
+__global__ void evaluate_segment_reflective(
     int N,
     long * ids,
     long * vol_ids,
@@ -58,4 +58,43 @@ __global__ void evaluate_segment(
     yvel_boundary_values[id] = n2*r1 + n1*r2;
 }
 
+__global__ void evaluate_segment_dirichlet_1(
+    int N,
+    long * ids,
+    long * vol_ids,
+    long * edge_ids,
+    double * boundary_values,
+    double *edge_values)
+{
+    const int k = 
+        threadIdx.x+threadIdx.y*blockDim.x+
+        (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+    
+    if (k >= N)
+        return;
 
+    int id = ids[k],
+        id_vol = vol_ids[k],
+        id_edge = edge_ids[k];
+
+    boundary_values[id] = edge_values[id_vol*3 + id_edge];
+}
+
+
+__global__ void evaluate_segment_dirichlet_2(
+    int N,
+    double  q_bdry,
+    long * ids,
+    double * boundary_values)
+{
+    const int k = 
+        threadIdx.x+threadIdx.y*blockDim.x+
+        (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+    
+    int id = ids[k];
+    
+    if (k >= N)
+        return;
+
+    boundary_values[id] = q_bdry;
+}

@@ -1,9 +1,19 @@
 #!/usr/bin/env python
 
-from anuga import Domain
+# System module
 import numpy 
 
+# ANUGA module
+from anuga import Domain
+from anuga.abstract_2d_finite_volumes.generic_domain \
+                    import Generic_Domain
 
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
+        Transmissive_boundary, Dirichlet_boundary, Compute_fluxes_boundary, \
+        Time_boundary, Time_boundary, Time_boundary
+from anuga.shallow_water.boundaries import Reflective_boundary
+
+# PyCUDA module
 import pycuda.driver as drv
 from pycuda.compiler import SourceModule
 auto_init_context = False
@@ -14,6 +24,8 @@ else:
     dev = drv.Device(0)
     ctx = dev.make_context( drv.ctx_flags.MAP_HOST)
 
+
+# Config info
 from anuga_cuda.config import compute_fluxes_dir
 from anuga_cuda.config import gravity_dir
 from anuga_cuda.config import extrapolate_dir
@@ -21,6 +33,8 @@ from anuga_cuda.config import protect_dir
 from anuga_cuda.config import balance_dir
 from anuga_cuda.config import interpolate_dir
 from anuga_cuda.config import evaluate_dir
+
+
 
 class GPU_domain(Domain):
     def __init__(self, coordinates, vertices,
@@ -148,9 +162,12 @@ class GPU_domain(Domain):
                 include_dirs=[evaluate_dir]
                 )
 
-        self.evaluate_segment_func = \
-            self.evaluate_segment_mod.get_function(
-                "evaluate_segment")
+        self.evaluate_segment_reflective_func = \
+            self.evaluate_segment_mod.get_function("evaluate_segment_reflective")
+        self.evaluate_segment_dirichlet_1_func = \
+            self.evaluate_segment_mod.get_function("evaluate_segment_dirichlet_1")
+        self.evaluate_segment_dirichlet_2_func = \
+            self.evaluate_segment_mod.get_function("evaluate_segment_dirichlet_2")
 
     def lock_array_page(self):
         self.neighbours = get_page_locked_array(self.neighbours)
@@ -828,7 +845,7 @@ class GPU_domain(Domain):
             Domain.extrapolate_second_order_sw(self)
 
     def update_boundary(self):
-        if not self.using_gpu:
+        if self.using_gpu:
             W1 = 32
             W2 = 1
             W3 = 1
@@ -843,37 +860,80 @@ class GPU_domain(Domain):
 
                 # def evaluate_segment(self, domain, segment_edges):
                 if ids is None:
-                    return
+                    continue
 
-                self.evaluate_segment_func(
-                    numpy.int32(len(ids)),
-                    self.boundary_index[tag][0],
-                    self.boundary_index[tag][1],
-                    self.boundary_index[tag][2],
+                if isinstance(B, Reflective_boundary):
+                    self.evaluate_segment_reflective_func(
+                        numpy.int32(len(ids)),
+                        self.boundary_index[tag][0],
+                        self.boundary_index[tag][1],
+                        self.boundary_index[tag][2],
 
-                    self.normals_gpu,
-                    self.quantities['stage'].edge_values_gpu,
-                    self.quantities['elevation'].edge_values_gpu,
-                    self.quantities['height'].edge_values_gpu,
-                    self.quantities['xmomentum'].edge_values_gpu,
-                    self.quantities['ymomentum'].edge_values_gpu,
-                    self.quantities['xvelocity'].edge_values_gpu,
-                    self.quantities['yvelocity'].edge_values_gpu,
+                        self.normals_gpu,
+                        self.quantities['stage'].edge_values_gpu,
+                        self.quantities['elevation'].edge_values_gpu,
+                        self.quantities['height'].edge_values_gpu,
+                        self.quantities['xmomentum'].edge_values_gpu,
+                        self.quantities['ymomentum'].edge_values_gpu,
+                        self.quantities['xvelocity'].edge_values_gpu,
+                        self.quantities['yvelocity'].edge_values_gpu,
 
-                    self.quantities['stage'].boundary_values_gpu,
-                    self.quantities['elevation'].boundary_values_gpu,
-                    self.quantities['height'].boundary_values_gpu,
-                    self.quantities['xmomentum'].boundary_values_gpu,
-                    self.quantities['ymomentum'].boundary_values_gpu,
-                    self.quantities['xvelocity'].boundary_values_gpu,
-                    self.quantities['yvelocity'].boundary_values_gpu,
-                    
-                    block = (W1, W2, W3),
-                    grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
-                    )
+                        self.quantities['stage'].boundary_values_gpu,
+                        self.quantities['elevation'].boundary_values_gpu,
+                        self.quantities['height'].boundary_values_gpu,
+                        self.quantities['xmomentum'].boundary_values_gpu,
+                        self.quantities['ymomentum'].boundary_values_gpu,
+                        self.quantities['xvelocity'].boundary_values_gpu,
+                        self.quantities['yvelocity'].boundary_values_gpu,
+                        
+                        block = (W1, W2, W3),
+                        grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
+                        )
+
+                elif isinstance(B, Dirichlet_boundary):
+                    q_bdry = B.dirichlet_values
+                    conserved_quantities = True
+                    if len(q_bdry) == len(self.evolved_quantities):
+                        conserved_quantities = False
+                    if  conserved_quantities:
+                        for j, name in enumerate(self.evolved_quantities):
+                            Q = self.quantities[name]
+                            #Q.boundary_values[ids] = Q.edge_values[vol_ids,edge_ids]
+                            self.evaluate_segment_dirichlet_1_func(
+                                    numpy.int32(len(ids)),
+                                    self.boundary_index[tag][0],
+                                    self.boundary_index[tag][1],
+                                    self.boundary_index[tag][2],
+
+                                    Q.boundary_values_gpu,
+                                    Q.edge_values_gpu,
+                                    block = (W1, W2, W3),
+                                    grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
+                                    )
+
+
+                    if conserved_quantities:
+                        quantities = self.conserved_quantities
+                    else:
+                        quantities = self.evolved_quantities
+
+                    for j, name in enumerate(quantities):
+                        Q = self.quantities[name]
+                        #Q.boundary_values[ids] = q_bdry[j]
+                        self.evaluate_segment_dirichlet_2_func(
+                                numpy.int32(len(ids)),
+                                numpy.float64(q_bdry[j]),
+                                self.boundary_index[tag][0],
+                                Q.boundary_values_gpu,
+                                block = (W1, W2, W3),
+                                grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
+                                )
+
+                else:
+                    raise Exception("Can not find right type")
                 
         else:
-            Domain.update_boundary(self)
+            Generic_Domain.update_boundary(self)
 
     
 
