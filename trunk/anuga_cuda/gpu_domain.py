@@ -33,6 +33,9 @@ from anuga_cuda.config import protect_dir
 from anuga_cuda.config import balance_dir
 from anuga_cuda.config import interpolate_dir
 from anuga_cuda.config import evaluate_dir
+from anuga_cuda.config import get_absolute_dir
+from anuga_cuda.config import manning_friction_dir
+
 
 
 
@@ -124,6 +127,18 @@ class GPU_domain(Domain):
             self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod.get_function(
                     "extrapolate_second_order_and_limit_by_edge")
 
+        # extrapolate_first_order function
+        self.extrapolate_first_order_mod = \
+            SourceModule(
+                open(extrapolate_dir + "extrapolate_first_order.cu").read(),
+                include_dirs=[extrapolate_dir]
+                )
+
+        self.extrapolate_first_order_func = \
+            self.extrapolate_first_order_mod.get_function(
+                    "extrapolate_first_order")
+
+
         # protect function
         self.protect_mod = SourceModule(
                 open(protect_dir + "protect.cu").read(),
@@ -168,6 +183,33 @@ class GPU_domain(Domain):
             self.evaluate_segment_mod.get_function("evaluate_segment_dirichlet_1")
         self.evaluate_segment_dirichlet_2_func = \
             self.evaluate_segment_mod.get_function("evaluate_segment_dirichlet_2")
+
+
+        # get_absolute function
+        self.get_absolute_mod = SourceModule(
+                open(get_absolute_dir+"get_absolute.cu").read(),
+                include_dirs=[get_absolute_dir]
+                )
+            
+        self.get_absolute_func = \
+            self.get_absolute_mod.get_function("get_absolute")
+        
+
+        # manning_friction function
+        self.manning_friction_mod = SourceModule(
+                open(manning_friction_dir+"manning_friction.cu").read(),
+                include_dirs=[manning_friction_dir]
+                )
+
+        self.manning_friction_sloped_func = \
+            self.manning_friction_mod.get_function(
+                "_manning_friction_sloped")
+
+        self.manning_friction_flat_func = \
+            self.manning_friction_mod.get_function(
+                "_manning_friction_flat")
+
+
 
     def lock_array_page(self):
         self.neighbours = get_page_locked_array(self.neighbours)
@@ -661,8 +703,6 @@ class GPU_domain(Domain):
                             grid =((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
                             )
 
-
-
             # using vertex limiter
             else:
                 self.protect_against_infinitesimal_and_negative_heights()
@@ -671,7 +711,15 @@ class GPU_domain(Domain):
                     if self._order_ == 1:
                         for name in self.conserved_quantities:
                             Q = self.quantities[name]
-                            Q.extrapolate_first_order_sw()
+                            #Q.extrapolate_first_order()
+                            self.extrapolate_first_order_func(
+                                    numpy.int32(self.number_of_elements),
+                                    Q.centroid_values_gpu,
+                                    Q.vertex_values_gpu,
+                                    Q.edge_values_gpu,
+                                    block = (W1, W2, W3),
+                                    grid =((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
+                                    )
                     elif self._order_ == 2:
                         self.extrapolate_second_order_sw()
                     else:
@@ -846,6 +894,7 @@ class GPU_domain(Domain):
 
     def update_boundary(self):
         if self.using_gpu:
+            #FIXME:result not correct
             W1 = 32
             W2 = 1
             W3 = 1
@@ -935,7 +984,135 @@ class GPU_domain(Domain):
         else:
             Generic_Domain.update_boundary(self)
 
-    
+    def ensure_numeric(A, typecode=None):
+        """From numerical_tools"""
+        if A is None:
+            return None
+        elif typecode is None:
+            if isinstance(A, numpy.ndarray):
+                return A
+            else:
+                return numpy.array(A)
+        else:
+            return numpy.array(A, dtype=typecode, copy=False)
+
+
+
+    def get_absolute(self, points):
+        """From geo_reference get_absolute"""
+        is_list = isinstance(poins, list)
+        points = self.ensure_numeric(points, list)
+
+        if len( points.shape) == 1:
+            msg = 'Single point must have two elements'
+            if not len(points) == 2:
+                raise ShapeError, msg  
+
+        msg = 'Input must be an N x 2 array or list of (x,y) values. '
+        msg += 'I got an %d x %d array' %points.shape    
+        if not points.shape[1] == 2:
+            raise ShapeError, msg    
+
+        if not self.mesh.geo_reference.is_absolute():
+            #import copy
+            #points = copy.copy(points) # Don't destroy input             
+            #points[:,0] += self.mesh.geo_reference.xllcorner 
+            #points[:,1] += self.mesh.geo_reference.yllcorner
+            W1 = 32
+            W2 = 1
+            W3 = 1
+            self.get_absolute_func(
+                numpy.int32(points.shape[0]),
+                numpy.float64(self.mesh.geo_reference.xllcorner),
+                numpy.float64(self.mesh.geo_reference.yllcorner),
+                self.vertex_coordinates_gpu,
+                block = (W1, W2, W3),
+                grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
+                )
+
+
+        if is_list:
+            points = points.tolist()
+
+        return points
+
+
+    def get_vertex_coordinates(self, triangle_id=None, absolute=False):
+        if self.using_gpu:
+            V = self.vertex_coordinates
+            if triangle_id is None:
+                if absolute is True:
+                    if not self.mesh.geo_reference.is_absolute():
+                        #V = self.mesh.geo_reference.get_absolute(V)
+                        V = self.get_absolute(V)
+                return V
+            else:
+                i = triangle_id
+                msg =  'triangle_id must be an integer'
+                assert int(i) == i, msg
+                assert 0 <= i < self.number_of_triangles
+
+                i3 = 3*i
+                if absolute is True and \
+                    not self.geo_reference.is_absolute():
+                    
+                    offset=num.array([self.geo_reference.get_xllcorner(),
+                        self.geo_reference.get_yllcorner()], num.float)
+
+                    return V[i3:i3+3,:] + offset   
+                else:
+                    return V[i3:i3+3,:]
+        else:
+            return Domain.get_vertex_coordinates()
+                    
+                
+    def manning_friction_implicit(self):
+        """From shallow_water_domain"""  
+        if self.using_gpu:
+           #FIXME
+           x = self.get_vertex_coordinates()
+   
+           if self.use_sloped_mannings:
+               self.manning_friction_sloped_func(
+                   numpy.int32(self.number_of_elements),
+                   numpy.float64(self.g),
+                   numpy.float64(self.minimum_allowed_height),
+   
+                   self.vertex_coordinates_gpu,
+                   self.quantities['stage'].centroid_values_gpu,
+                   self.quantities['xmomentum'].centroid_values_gpu,
+                   self.quantities['ymomentum'].centroid_values_gpu,
+                   self.quantities['elevation'].centroid_values_gpu,
+   
+                   self.quantities['friction'].centroid_values_gpu,
+                   self.quantities['xmomentum'].semi_implicit_update_gpu,
+                   self.quantities['ymomentum'].semi_implicit_update_gpu,
+                   block = (W1, W2, W3),
+                   grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
+                   )
+           else:
+               self.manning_friction_flat_func(
+                   numpy.int32(self.number_of_elements),
+                   numpy.float64(self.g),
+                   numpy.float64(self.minimum_allowed_height),
+   
+                   self.quantities['stage'].centroid_values_gpu,
+                   self.quantities['xmomentum'].centroid_values_gpu,
+                   self.quantities['ymomentum'].centroid_values_gpu,
+                   self.quantities['elevation'].centroid_values_gpu,
+   
+                   self.quantities['friction'].centroid_values_gpu,
+                   self.quantities['xmomentum'].semi_implicit_update_gpu,
+                   self.quantities['ymomentum'].semi_implicit_update_gpu,
+                   
+                   block = (W1, W2, W3),
+                   grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
+                   )
+   
+        else:
+            from anuga.shallow_water.shallow_water_domain import manning_friction_implicit
+            manning_friction_implicit(self)
+   
 
     def evolve(self, 
                 yieldstep=None,
@@ -968,6 +1145,7 @@ class GPU_domain(Domain):
 
 
 
+    
 
 
 
@@ -992,3 +1170,6 @@ def asy_cpy(a, a_gpu):
     strm = drv.Stream()
     drv.memcpy_htod_async(a_gpu, a, strm)
     return strm
+
+def cpy_back(a, a_gpu):
+    drv.memcpy_dtoh(a, a_gpu)
