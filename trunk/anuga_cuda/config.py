@@ -9,3 +9,6 @@ interpolate_dir = "/home/u5044856/anuga-cuda/anuga_cuda/interpolate_from_vertice
 evaluate_dir = "/home/u5044856/anuga-cuda/anuga_cuda/evaluate_segment/"
 get_absolute_dir = "/home/u5044856/anuga-cuda/anuga_cuda/get_absolute/"
 manning_friction_dir = "/home/u5044856/anuga-cuda/anuga_cuda/manning_friction/"
+saxpy_dir = "/home/u5044856/anuga-cuda/anuga_cuda/saxpy_centroid_values/"
+set_boundary_dir = "/home/u5044856/anuga-cuda/anuga_cuda/set_boundary/"
+update_centroids_dir = "/home/u5044856/anuga-cuda/anuga_cuda/update_centroids_of_velocities_and_height/"
