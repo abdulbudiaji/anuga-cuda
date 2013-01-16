@@ -1,4 +1,5 @@
 //#define UNSORTED_DOMAIN
+#define USING_MULTI_FUNCTION
 
 #ifdef UNSORTED_DOMAIN
 __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
@@ -281,6 +282,14 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
 
 
 __global__ void compute_fluxes_central_structure_CUDA(
+        long N,
+        //double * elements,
+        double  g,
+        double epsilon,
+        double h0,
+        double limiting_threshold,
+        int optimise_dry_cells,
+
         double * timestep,
         long * neighbours,
         long * neighbour_edges,
@@ -299,8 +308,7 @@ __global__ void compute_fluxes_central_structure_CUDA(
         double * stage_explicit_update,
         double * xmom_explicit_update,
         double * ymom_explicit_update, 
-        double * max_speed_array,
-        double * elements)
+        double * max_speed_array)
 {
     const long k = 
             threadIdx.x+threadIdx.y*blockDim.x+
@@ -309,14 +317,17 @@ __global__ void compute_fluxes_central_structure_CUDA(
 
     double max_speed, length, inv_area, zl, zr;
 
-    double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
+    //double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
 
-    double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
+    //double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
 
     int i, m, n;
     int ki, nm = 0, ki2; // Index shorthands
 
     double ql[3], qr[3], edgeflux[3];
+
+    if (k >= N)
+        return;
 
 #ifdef UNSORTED_DOMAIN
     int b[3]={0,1,2}, j;
@@ -352,10 +363,12 @@ __global__ void compute_fluxes_central_structure_CUDA(
             zr = bed_edge_values[nm];
         }
 
-        if (elements[Doptimise_dry_cells]) {
-            if (fabs(ql[0] - zl) < elements[Depsilon] &&
-                    fabs(qr[0] - zr) < elements[Depsilon]) {
-
+        //if (elements[Doptimise_dry_cells]) {
+        if (optimise_dry_cells){
+            //if (fabs(ql[0] - zl) < elements[Depsilon] &&
+            //        fabs(qr[0] - zr) < elements[Depsilon]) {
+            if ( fabs(ql[0] - zl) < epsilon &&
+                    fabs(qr[0] - zr) < epsilon) {
                 max_speed = 0.0;
                 continue;
             }
@@ -366,7 +379,8 @@ __global__ void compute_fluxes_central_structure_CUDA(
 
         _flux_function_central(ql, qr, zl, zr,
                 normals[ki2], normals[ki2 + 1],
-                elements[Depsilon], h0, limiting_threshold, elements[Dg],
+                //elements[Depsilon], h0, limiting_threshold, elements[Dg],
+                epsilon, h0, limiting_threshold, g,
                 edgeflux, &max_speed);
 
         length = edgelengths[ki];
@@ -386,7 +400,8 @@ __global__ void compute_fluxes_central_structure_CUDA(
 
 
         if (tri_full_flag[k] == 1) {
-            if (max_speed > elements[Depsilon]) {
+            //if (max_speed > elements[Depsilon]) {
+            if ( max_speed > epsilon) {
                 timestep[k] = min(timestep[k], radii[k] / max_speed);
 
                 if (n >= 0) {
@@ -835,7 +850,12 @@ __global__ void compute_fluxes_central_structure_cuda_single(
 #else
     for (i=0; i<3; i++) {
 #endif
+
+#ifdef REARRANGED_DOMAIN
         ki = k + i*N;
+#else
+        ki = k * 3 + i;
+#endif
         n = neighbours[ki];
 
         q_left[0] = stage_edge_values[ki];
@@ -852,7 +872,11 @@ __global__ void compute_fluxes_central_structure_cuda_single(
             z_right = z_left;
         } else {
             m = neighbour_edges[ki];
+#ifdef REARRANGED_DOMAIN
             nm = n + m*N;
+#else
+            nm = n *3 + m;
+#endif
 
             q_right[0] = stage_edge_values[nm];
             q_right[1] = xmom_edge_values[nm];
@@ -869,8 +893,13 @@ __global__ void compute_fluxes_central_structure_cuda_single(
         }
 
 
+#ifdef REARRANGED_DOMAIN
         n1 = normals[k + 2*i*N];
         n2 = normals[k + (2*i+1)*N];
+#else
+        n1 = normals[2*ki];
+        n2 = normals[2*ki + 1];
+#endif
 
 
         /////////////////////////////////////////////////////////

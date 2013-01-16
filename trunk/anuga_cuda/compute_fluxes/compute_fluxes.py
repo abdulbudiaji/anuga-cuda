@@ -483,393 +483,6 @@ def compute_fluxes_central_structure_cuda(
     global compute_fluxes_central_structure_call
     compute_fluxes_central_structure_call += 1
     
-    single_function_string = """
-
-    /**********************************************************/
-    /* This function is the conbination of below 4 functions: */
-    /*   compute_fluxes_central_structure_CUDA()              */
-    /*   _flux_function_central()                             */
-    /*   _compute_speed()                                     */
-    /*   _rotate()                                            */
-    /**********************************************************/
-    __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
-    {
-        int temp;
-        if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
-         {
-            temp = _list[2];
-            _list[2] = _list[1];
-            _list[1] = temp;
-         }
-        if ( neighbours[_list[1]]>=0 and neighbours[ _list[1] ] < k and (neighbours[_list[0]]<0 or neighbours[_list[1]]<neighbours[_list[0]]) )
-        {
-            temp = _list[1];
-            _list[1] = _list[0];
-            _list[0] = temp;
-        }
-        if ( neighbours[_list[2]]>=0 and neighbours[ _list[2] ] < k and (neighbours[_list[1]]<0 or neighbours[_list[2]]<neighbours[_list[1]]) )
-        {
-            temp = _list[2];
-            _list[2] = _list[1];
-            _list[1] = temp;
-        }
-    }
-
-
-    __device__ int _rotate(double *q, double n1, double n2) {
-        /*Rotate the momentum component q (q[1], q[2])
-          from x,y coordinates to coordinates based on normal vector (n1, n2).
-    
-          Result is returned in array 3x1 r
-          To rotate in opposite direction, call rotate with (q, n1, -n2)
-    
-          Contents of q are changed by this function */
-   
-    
-        double q1, q2;
-    
-        // Shorthands
-        q1 = q[1]; // uh momentum
-        q2 = q[2]; // vh momentum
-    
-        // Rotate
-        q[1] = n1 * q1 + n2*q2;
-        q[2] = -n2 * q1 + n1*q2;
-    
-        return 0;
-    }
-
-
-    __device__ double _compute_speed(double *uh,
-            double *h,
-            double epsilon,
-            double h0,
-            double limiting_threshold) {
-    
-        double u;
-    
-        if (*h < limiting_threshold) {
-            // Apply limiting of speeds according to the ANUGA manual
-            if (*h < epsilon) {
-                *h = 0.0; // Could have been negative
-                u = 0.0;
-            } else {
-                u = *uh / (*h + h0 / *h);
-            }
-    
-    
-            // Adjust momentum to be consistent with speed
-            *uh = u * *h;
-        } else {
-            // We are in deep water - no need for limiting
-            u = *uh / *h;
-        }
-    
-        return u;
-    }
-    
-    __global__ void _flux_function_central_2(
-            long N,
-            double * elements,
-            double * timestep,
-            long * neighbours,
-            long * neighbour_edges,
-            double * normals,
-            double * edgelengths,
-            double * radii,
-            double * areas,
-            long * tri_full_flag,
-            double * stage_edge_values,
-            double * xmom_edge_values,
-            double * ymom_edge_values,
-            double * bed_edge_values,
-            double * stage_boundary_values,
-            double * xmom_boundary_values,
-            double * ymom_boundary_values,
-            double * stage_explicit_update,
-            double * xmom_explicit_update,
-            double * ymom_explicit_update, 
-            double * max_speed_array)
-            /*
-            double * elements,
-            double * timestep,
-            long * neighbours,
-            long * neighbour_edges,
-            double * normals,
-            double * edgelengths,
-            double * radii,
-            double * areas,
-            long * tri_full_flag,
-            double * stage_edge_values,
-            double * xmom_edge_values,
-            double * ymom_edge_values,
-            double * bed_edge_values,
-            double * stage_boundary_values,
-            double * xmom_boundary_values,
-            double * ymom_boundary_values,
-            double * stage_explicit_update,
-            double * xmom_explicit_update,
-            double * ymom_explicit_update, 
-            double * max_speed_array
-            ) */
-    {  
-        int j;
-    
-        double w_left, h_left, uh_left, vh_left, u_left;
-        double w_right, h_right, uh_right, vh_right, u_right;
-        double s_min, s_max, soundspeed_left, soundspeed_right;
-        double denom, inverse_denominator, z;
-        double temp;
-    
-        // Workspace (allocate once, use many)
-        double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
-    
-
-        //const int k = threadIdx.x + blockIdx.x * blockDim.x;
-        const int k = threadIdx.x+threadIdx.y*blockDim.x+
-                (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
-
-        double q_left[3], q_right[3];
-        double z_left,  z_right;
-        double n1,  n2;
-        double epsilon = elements[Depsilon];
-        double h0 = elements[DH0] * elements[DH0];
-        double limiting_threshold = elements[DH0] * 10;
-        double g= elements[Dg];
-        double edgeflux[3],  max_speed;
-        double length, inv_area;
-        
-        int i, m, n;
-        //int N = blockDim.x*blockDim.y*gridDim.x*gridDim.y;
-        int B = blockDim.x*blockDim.y;
-        int T = threadIdx.x+threadIdx.y*blockDim.x;
-        int ki, nm;
-
-		__shared__ double sh_data[32*9];
-
-        if (k >=N )
-            return;
-
-#ifdef UNSORTED_DOMAIN
-        int b[3]={0,1,2}, l;
-
-        spe_bubble_sort( b, neighbours+k*3, k);
-        for (l = 0; l < 3; l++) {
-            i = b[l];
-#else
-        for (i=0; i<3; i++) {
-#endif
-            ki = k + i*N;
-            n = neighbours[ki];
-
-            q_left[0] = stage_edge_values[ki];
-            q_left[1] = xmom_edge_values[ki];
-            q_left[2] = ymom_edge_values[ki];
-            z_left = bed_edge_values[ki];
-
-            if (n<0) {
-                m= -n -1;
-
-                q_right[0] = stage_boundary_values[m];
-                q_right[1] = xmom_boundary_values[m];
-                q_right[2] = ymom_boundary_values[m];
-                z_right = z_left;
-            } else {
-                m = neighbour_edges[ki];
-                nm = n + m*N;
-
-                q_right[0] = stage_edge_values[nm];
-                q_right[1] = xmom_edge_values[nm];
-                q_right[2] = ymom_edge_values[nm];
-                z_right = bed_edge_values[nm];
-            }
-
-            if(elements[Doptimise_dry_cells]) {
-                if(fabs(q_left[0] - z_left) < elements[Depsilon] &&
-                    fabs(q_right[0] - z_right) < elements[Depsilon] ) {
-                    max_speed = 0.0;
-                    continue;
-                }
-            }
-
-
-            n1 = normals[k + 2*i*N];
-            n2 = normals[k + (2*i+1)*N];
-
-
-       		/////////////////////////////////////////////////////////
-
-
-       	 	// Copy conserved quantities to protect from modification
-       	 	q_left_rotated[0] = q_left[0];
-       	 	q_right_rotated[0] = q_right[0];
-       	 	q_left_rotated[1] = q_left[1];
-       	 	q_right_rotated[1] = q_right[1];
-       	 	q_left_rotated[2] = q_left[2];
-       	 	q_right_rotated[2] = q_right[2];
-    
-       	 	// Align x- and y-momentum with x-axis
-       	 	//_rotate(q_left_rotated, n1, n2);
-       	 	q_left_rotated[1] = n1*q_left[1] + n2*q_left[2];
-       	 	q_left_rotated[2] = -n2*q_left[1] + n1*q_left[2];
-
-       	 	//_rotate(q_right_rotated, n1, n2);
-       	 	q_right_rotated[1] = n1*q_right[1] + n2*q_right[2];
-       	 	q_right_rotated[2] = -n2*q_right[1] + n1*q_right[2];
-       	 	
-    
-       	 	if (fabs(z_left - z_right) > 1.0e-10) {
-       	 	    //report_python_error(AT, "Discontinuous Elevation");
-       	 	    //return 0.0;
-       	 	}
-       	 	z = 0.5 * (z_left + z_right); // Average elevation values.
-    
-       	 	// Compute speeds in x-direction
-       	 	w_left = q_left_rotated[0];
-       	 	h_left = w_left - z;
-       	 	uh_left = q_left_rotated[1];
-       	 	//u_left = _compute_speed(&uh_left, &h_left,
-       	 	//        epsilon, h0, limiting_threshold);
-       	 	
-       	 	if (h_left < limiting_threshold) {   
-       	 	    
-       	 	    if (h_left < epsilon) {
-       	 	        h_left = 0.0;  // Could have been negative
-       	 	        u_left = 0.0;
-       	 	    } else {
-       	 	        u_left = uh_left/(h_left + h0/ h_left);    
-       	 	    }
-
-       	 	    uh_left = u_left * h_left;
-       	 	} else {
-       	 	    u_left = uh_left/ h_left;
-       	 	}
-    
-       	 	w_right = q_right_rotated[0];
-       	 	h_right = w_right - z;
-       	 	uh_right = q_right_rotated[1];
-       	 	//u_right = _compute_speed(&uh_right, &h_right,
-       	 	//        epsilon, h0, limiting_threshold);
-
-       	 	if (h_right < limiting_threshold) {   
-       	 	    
-       	 	    if (h_right < epsilon) {
-       	 	        h_right = 0.0;  // Could have been negative
-       	 	        u_right = 0.0;
-       	 	    } else {
-       	 	        u_right = uh_right/(h_right + h0/ h_right);    
-       	 	    }
-
-       	 	    uh_right = u_right * h_right;
-       	 	} else {
-       	 	    u_right = uh_right/ h_right;
-       	 	}
-
-       	 	// Momentum in y-direction
-       	 	vh_left = q_left_rotated[2];
-       	 	vh_right = q_right_rotated[2];
-    
-       	 	soundspeed_left = sqrt(g * h_left);
-       	 	soundspeed_right = sqrt(g * h_right);
-    
-       	 	s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
-       	 	if (s_max < 0.0) {
-       	 	    s_max = 0.0;
-       	 	}
-    
-       	 	s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
-       	 	if (s_min > 0.0) {
-       	 	    s_min = 0.0;
-       	 	}
-    
-       	 	// Flux formulas
-       	 	flux_left[0] = u_left*h_left;
-       	 	flux_left[1] = u_left * uh_left + 0.5 * g * h_left*h_left;
-       	 	flux_left[2] = u_left*vh_left;
-    
-       	 	flux_right[0] = u_right*h_right;
-       	 	flux_right[1] = u_right * uh_right + 0.5 * g * h_right*h_right;
-       	 	flux_right[2] = u_right*vh_right;
-    
-       	 	// Flux computation
-       	 	denom = s_max - s_min;
-       	 	if (denom < epsilon) { // FIXME (Ole): Try using h0 here
-       	 	    memset(edgeflux, 0, 3 * sizeof (double));
-       	 	    max_speed = 0.0;
-       	 	}
-       	 	else {
-       	 	    inverse_denominator = 1.0 / denom;
-       	 	    for (j = 0; j < 3; j++) {
-       	 	        edgeflux[j] = s_max * flux_left[j] - s_min * flux_right[j];
-       	 	        edgeflux[j] += s_max * s_min * (q_right_rotated[j]-q_left_rotated[j]);
-       	 	        edgeflux[j] *= inverse_denominator;
-       	 	    }
-    
-       	 	    // Maximal wavespeed
-       	 	    max_speed = max(fabs(s_max), fabs(s_min));
-    
-       	 	    // Rotate back
-       	 	    //_rotate(edgeflux, n1, -n2);
-       	 	    temp = edgeflux[1];
-       	 	    edgeflux[1] = n1* temp -n2*edgeflux[2];
-       	 	    edgeflux[2] = n2*temp + n1*edgeflux[2];
-       	 	}
-    
-       	 	//////////////////////////////////////////////////////
-
-       	 	length = edgelengths[ki];
-       	 	edgeflux[0] *= length;
-       	 	edgeflux[1] *= length;
-       	 	edgeflux[2] *= length;
-
-	   	 	sh_data[T + i*B]= -edgeflux[0];
-	   	 	sh_data[T + (i+3)*B]= -edgeflux[1];
-	   	 	sh_data[T + (i+6)*B]= -edgeflux[2];
-	   	 	__syncthreads();
-
-
-       	 	//stage_explicit_update[k] -= edgeflux[0];
-       	 	//xmom_explicit_update[k] -= edgeflux[1];
-       	 	//ymom_explicit_update[k] -= edgeflux[2];
-
-       	 	if (tri_full_flag[k] == 1) {
-       	 	    if (max_speed > elements[Depsilon]) {
-       	 	        timestep[k] = min(timestep[k], radii[k]/ max_speed);
-
-       	 	        if (n>=0){
-       	 	            timestep[k] = min(timestep[k], radii[n]/max_speed);
-       	 	        }
-       	 	    }
-       	 	}
-
-        }
-
-
-        inv_area = 1.0 / areas[k];
-        //stage_explicit_update[k] *= inv_area;
-        //xmom_explicit_update[k] *= inv_area;
-        //ymom_explicit_update[k] *= inv_area;
-
-		stage_explicit_update[k] = 
-                (sh_data[T] + sh_data[T+B]+sh_data[T+B*2]) * inv_area;
-
-		xmom_explicit_update[k] = 
-                (sh_data[T+B*3] + sh_data[T+B*4]+sh_data[T+B*5]) * inv_area;
-
-		ymom_explicit_update[k] = 
-                (sh_data[T+B*6] + sh_data[T+B*7]+sh_data[T+B*8]) * inv_area;
-
-        max_speed_array[k] = max_speed;
-    }
-
-    """
-
-    single_function_template = string.Template(single_function_string)
-    #self.cudacode   = template.substitute( 
-    #        PRECISION = 'float' if prec==np.float32 else 'double')
-        
-    single_function_module = SourceModule( single_function_template,
-                    no_extern_c=True, options=['--ptxas-options=-v'])
 
     mod = SourceModule("""
     
@@ -892,7 +505,7 @@ def compute_fluxes_central_structure_cuda(
         
         do{        
             assumed=old;        
-            old= __longlong_as_double(atomicCAS((unsignedlonglongint*)address,
+            old= __longlong_as_double(atomicCAS((unsigned long long int*)address,
                     __double_as_longlong(assumed),
                     __double_as_longlong(val+assumed)));    
         }while(assumed!=old);    
@@ -1804,34 +1417,71 @@ def compute_fluxes_central_structure_cuda(
         W3 =1
 
         # Source the cuda function
-        compute_fluxes_central_function = mod.get_function(name)
+        #compute_fluxes_central_function = mod.get_function(name)
         #from anuga_cuda.compute_fluxes.py_compute_fluxes import get_func_info
         #get_func_info(compute_fluxes_central_function)
+        from anuga_cuda.config import compute_fluxes_dir
+        compute_fluxes_mod = SourceModule(
+            open(compute_fluxes_dir+"compute_fluxes.cu").read(),
+            )
+        compute_fluxes_central_function = compute_fluxes_mod.get_function(
+           # "compute_fluxes_central_structure_cuda_single")
+           "compute_fluxes_central_structure_CUDA")
+        if 1:
+            compute_fluxes_central_function( 
+                    numpy.uint(domain.number_of_elements),
+                    numpy.float64(domain.g),
+                    numpy.float64(domain.epsilon),
+                    numpy.float64(domain.H0 * domain.H0),
+                    numpy.float64(domain.H0*10),
+                    numpy.uint(domain.optimise_dry_cells),
 
-        compute_fluxes_central_function( 
-                numpy.uint(domain.number_of_elements),
-                cuda.InOut( elements ), 
-                cuda.InOut( timestep_array ), 
-                cuda.In( domain.neighbours ), 
-                cuda.In( domain.neighbour_edges ),
-                cuda.In( domain.normals ), 
-                cuda.In( domain.edgelengths ), 
-                cuda.In( domain.radii ), 
-                cuda.In( domain.areas ), 
-                cuda.In( domain.tri_full_flag ),
-                cuda.In( domain.quantities['stage'].edge_values ), 
-                cuda.In( domain.quantities['xmomentum'].edge_values ), 
-                cuda.In( domain.quantities['ymomentum'].edge_values ), 
-                cuda.In( domain.quantities['elevation'].edge_values ), 
-                cuda.In( domain.quantities['stage'].boundary_values ), 
-                cuda.In( domain.quantities['xmomentum'].boundary_values ), 
-                cuda.In( domain.quantities['ymomentum'].boundary_values ), 
-                cuda.InOut( domain.quantities['stage'].explicit_update ), 
-                cuda.InOut( domain.quantities['xmomentum'].explicit_update ), 
-                cuda.InOut( domain.quantities['ymomentum'].explicit_update ),  
-                cuda.InOut( domain.max_speed), 
-                block = ( W1, W2, W3),
-                grid = (N/(W1*W2*W3), 1) )
+                    cuda.InOut( timestep_array ), 
+                    cuda.In( domain.neighbours ), 
+                    cuda.In( domain.neighbour_edges ),
+                    cuda.In( domain.normals ), 
+                    cuda.In( domain.edgelengths ), 
+                    cuda.In( domain.radii ), 
+                    cuda.In( domain.areas ), 
+                    cuda.In( domain.tri_full_flag ),
+                    cuda.In( domain.quantities['stage'].edge_values ), 
+                    cuda.In( domain.quantities['xmomentum'].edge_values ), 
+                    cuda.In( domain.quantities['ymomentum'].edge_values ), 
+                    cuda.In( domain.quantities['elevation'].edge_values ), 
+                    cuda.In( domain.quantities['stage'].boundary_values ), 
+                    cuda.In( domain.quantities['xmomentum'].boundary_values ), 
+                    cuda.In( domain.quantities['ymomentum'].boundary_values ), 
+                    cuda.InOut( domain.quantities['stage'].explicit_update ), 
+                    cuda.InOut( domain.quantities['xmomentum'].explicit_update ), 
+                    cuda.InOut( domain.quantities['ymomentum'].explicit_update ),  
+                    cuda.InOut( domain.max_speed), 
+                    block = ( W1, W2, W3),
+                    grid = ((N+W1*W2*W3-1)/(W1*W2*W3), 1) )
+        else:
+            compute_fluxes_central_function( 
+                    numpy.uint(domain.number_of_elements),
+                    cuda.InOut( elements ), 
+                    cuda.InOut( timestep_array ), 
+                    cuda.In( domain.neighbours ), 
+                    cuda.In( domain.neighbour_edges ),
+                    cuda.In( domain.normals ), 
+                    cuda.In( domain.edgelengths ), 
+                    cuda.In( domain.radii ), 
+                    cuda.In( domain.areas ), 
+                    cuda.In( domain.tri_full_flag ),
+                    cuda.In( domain.quantities['stage'].edge_values ), 
+                    cuda.In( domain.quantities['xmomentum'].edge_values ), 
+                    cuda.In( domain.quantities['ymomentum'].edge_values ), 
+                    cuda.In( domain.quantities['elevation'].edge_values ), 
+                    cuda.In( domain.quantities['stage'].boundary_values ), 
+                    cuda.In( domain.quantities['xmomentum'].boundary_values ), 
+                    cuda.In( domain.quantities['ymomentum'].boundary_values ), 
+                    cuda.InOut( domain.quantities['stage'].explicit_update ), 
+                    cuda.InOut( domain.quantities['xmomentum'].explicit_update ), 
+                    cuda.InOut( domain.quantities['ymomentum'].explicit_update ),  
+                    cuda.InOut( domain.max_speed), 
+                    block = ( W1, W2, W3),
+                    grid = ((N+W1*W2*W3-1)/(W1*W2*W3), 1) )
 		
         
         # Get the smallest timestep
@@ -2108,13 +1758,13 @@ if __name__ == '__main__':
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
-    #domain2 = domain_create()
-    domain2 = generate_domain()
+    domain2 = domain_create()
+    #domain2 = generate_domain()
     sort_domain(domain2)
 
 
-    #domain1 = domain_create()
-    domain1 = generate_domain()
+    domain1 = domain_create()
+    #domain1 = generate_domain()
     #domain2 = rearrange_domain(domain1)
     
     print " Number of elements is: %d" % domain1.number_of_elements

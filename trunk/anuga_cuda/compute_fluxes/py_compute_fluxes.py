@@ -44,8 +44,8 @@ from anuga_cuda.merimbula_data.sort_domain import \
 
 
 domain1 = domain_create()
-domain2 = rearrange_domain(domain1)
-#domain2 = domain_create()
+#domain2 = rearrange_domain(domain1)
+domain2 = domain_create()
 
 N = domain2.number_of_elements
 timestep_array = numpy.zeros( N, dtype=numpy.float64)
