@@ -315,7 +315,7 @@ __global__ void compute_fluxes_central_structure_CUDA(
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
 
-    double max_speed, length, inv_area, zl, zr;
+    double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
 
     //double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
 
@@ -409,7 +409,9 @@ __global__ void compute_fluxes_central_structure_CUDA(
                 }
             }
         }
+        
 
+        max_speed_total = max(max_speed_total, max_speed);
     } // End edge i (and neighbour n)
 
 
@@ -419,7 +421,7 @@ __global__ void compute_fluxes_central_structure_CUDA(
     xmom_explicit_update[k] *= inv_area;
     ymom_explicit_update[k] *= inv_area;
 
-    max_speed_array[k] =  max_speed;
+    max_speed_array[k] =  max_speed_total;
 }
 
 

@@ -1425,8 +1425,8 @@ def compute_fluxes_central_structure_cuda(
             open(compute_fluxes_dir+"compute_fluxes.cu").read(),
             )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
-           # "compute_fluxes_central_structure_cuda_single")
-           "compute_fluxes_central_structure_CUDA")
+            #"compute_fluxes_central_structure_cuda_single")
+            "compute_fluxes_central_structure_CUDA")
         if 1:
             compute_fluxes_central_function( 
                     numpy.uint(domain.number_of_elements),
@@ -1752,8 +1752,8 @@ if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
     from anuga_cuda.merimbula_data.sort_domain import sort_domain, rearrange_domain
     from anuga_cuda.merimbula_data.utility import approx_cmp
-    #from anuga_cuda.merimbula_data.channel3 import generate_domain
-    from anuga_cuda.merimbula_data.channel1 import generate_domain
+    from anuga_cuda.merimbula_data.channel3 import generate_domain
+    #from anuga_cuda.merimbula_data.channel1 import generate_domain
 
 
     # This will reorder edges in order to let the one bordering on
