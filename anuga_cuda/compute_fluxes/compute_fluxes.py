@@ -1752,19 +1752,19 @@ if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
     from anuga_cuda.merimbula_data.sort_domain import sort_domain, rearrange_domain
     from anuga_cuda.merimbula_data.utility import approx_cmp
-    from anuga_cuda.merimbula_data.channel3 import generate_domain
-    #from anuga_cuda.merimbula_data.channel1 import generate_domain
+    #from anuga_cuda.merimbula_data.channel3 import generate_domain
+    from anuga_cuda.merimbula_data.channel1 import generate_domain
 
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
-    domain2 = domain_create()
-    #domain2 = generate_domain()
+    #domain2 = domain_create()
+    domain2 = generate_domain()
     sort_domain(domain2)
 
 
-    domain1 = domain_create()
-    #domain1 = generate_domain()
+    #domain1 = domain_create()
+    domain1 = generate_domain()
     #domain2 = rearrange_domain(domain1)
     
     print " Number of elements is: %d" % domain1.number_of_elements
@@ -1862,6 +1862,8 @@ if __name__ == '__main__':
     for i in range(domain1.number_of_elements):
         if ( domain1.max_speed[i] != domain2.max_speed[i]):
             counter += 1
+            if counter < 10:
+                print i, domain1.max_speed[i], domain2.max_speed[i]
     print "---------> # of differences: %d" % counter
 
 
