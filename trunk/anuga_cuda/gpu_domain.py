@@ -87,7 +87,8 @@ class GPU_domain(Domain):
                 )
 
         self.compute_fluxes_func = self.compute_fluxes_mod.get_function(
-                "compute_fluxes_central_structure_cuda_single")
+                #"compute_fluxes_central_structure_cuda_single")
+                "compute_fluxes_central_structure_CUDA")
 
         # gravity_wb function
         self.gravity_wb_mod = SourceModule(
@@ -398,6 +399,14 @@ class GPU_domain(Domain):
             get_device_array(
                     self.quantities['ymomentum'].explicit_update)
         
+        # semi_implicit_update
+        self.quantities['xmomentum'].semi_implicit_update_gpu = \
+            get_device_array(
+                self.quantities['xmomentum'].semi_implicit_update)
+        self.quantities['ymomentum'].semi_implicit_update_gpu = \
+            get_device_array(
+                self.quantities['ymomentum'].semi_implicit_update)
+
         # get vertex values
         self.quantities['stage'].vertex_values_gpu = \
             get_device_array(self.quantities['stage'].vertex_values)
@@ -450,6 +459,7 @@ class GPU_domain(Domain):
 
         asy_cpy(self.timestep_array, self.timestep_array_gpu)
 
+        # domain arrays
         asy_cpy(self.neighbours, self.neighbours_gpu)
         asy_cpy(self.neighbour_edges, self.neighbour_edges_gpu)
         asy_cpy(self.surrogate_neighbours, self.surrogate_neighbours_gpu)
@@ -459,6 +469,8 @@ class GPU_domain(Domain):
         asy_cpy(self.areas, self.areas_gpu)
         asy_cpy(self.tri_full_flag, self.tri_full_flag_gpu)
         asy_cpy(self.max_speed, self.max_speed_gpu)
+        asy_cpy(self.boundary_cells, self.boundary_cells_gpu)
+        asy_cpy(self.boundary_edges, self.boundary_edges_gpu)
 
         # domain coordinates
         asy_cpy(self.vertex_coordinates, self.vertex_coordinates_gpu)
@@ -480,17 +492,38 @@ class GPU_domain(Domain):
         asy_cpy(
                 self.quantities['elevation'].edge_values,
                 self.quantities['elevation'].edge_values_gpu)
+        asy_cpy(
+                self.quantities['height'].edge_values,
+                self.quantities['height'].edge_values_gpu)
+        asy_cpy(
+                self.quantities['xvelocity'].edge_values,
+                self.quantities['xvelocity'].edge_values_gpu)
+        asy_cpy(
+                self.quantities['yvelocity'].edge_values,
+                self.quantities['yvelocity'].edge_values_gpu)
 
         # get boundary values
         asy_cpy(
                 self.quantities['stage'].boundary_values,
                 self.quantities['stage'].boundary_values_gpu)
         asy_cpy(
+                self.quantities['elevation'].boundary_values,
+                self.quantities['elevation'].boundary_values_gpu)
+        asy_cpy(
+                self.quantities['height'].boundary_values,
+                self.quantities['height'].boundary_values_gpu)
+        asy_cpy(
                 self.quantities['xmomentum'].boundary_values,
                 self.quantities['xmomentum'].boundary_values_gpu)
         asy_cpy(
                 self.quantities['ymomentum'].boundary_values,
                 self.quantities['ymomentum'].boundary_values_gpu)
+        asy_cpy(
+                self.quantities['xvelocity'].boundary_values,
+                self.quantities['xvelocity'].boundary_values_gpu)
+        asy_cpy(
+                self.quantities['yvelocity'].boundary_values,
+                self.quantities['yvelocity'].boundary_values_gpu)
 
         # get explicit update
         asy_cpy(
@@ -502,6 +535,15 @@ class GPU_domain(Domain):
         asy_cpy(
                 self.quantities['ymomentum'].explicit_update,
                 self.quantities['ymomentum'].explicit_update_gpu)
+
+        # semi_implicit_update
+        asy_cpy(
+                self.quantities['xmomentum'].semi_implicit_update,
+                self.quantities['xmomentum'].semi_implicit_update_gpu)
+        asy_cpy(
+                self.quantities['ymomentum'].semi_implicit_update,
+                self.quantities['ymomentum'].semi_implicit_update_gpu)
+
 
         # get vertex values
         asy_cpy(
@@ -530,9 +572,25 @@ class GPU_domain(Domain):
         asy_cpy(
                 self.quantities['ymomentum'].centroid_values,
                 self.quantities['ymomentum'].centroid_values_gpu)
+        asy_cpy(
+                self.quantities['friction'].centroid_values,
+                self.quantities['friction'].centroid_values_gpu)
+        asy_cpy(
+                self.quantities['height'].centroid_values,
+                self.quantities['height'].centroid_values_gpu)
+        asy_cpy(
+                self.quantities['xvelocity'].centroid_values,
+                self.quantities['xvelocity'].centroid_values_gpu)
+        asy_cpy(
+                self.quantities['yvelocity'].centroid_values,
+                self.quantities['yvelocity'].centroid_values_gpu)
 
 
-
+        # conserved_quantities arrays
+        for name in self.conserved_quantities:
+            Q = self.quantities[name]
+            asy_cpy( Q.x_gradient, Q.x_gradient_gpu)
+            asy_cpy( Q.y_gradient, Q.y_gradient_gpu)
 
 
     def compute_fluxes(self):
@@ -575,6 +633,7 @@ class GPU_domain(Domain):
                 )
                 
             #strm_g = drv.Stream()
+            drv.memcpy_dtoh(self.timestep_array, self.timestep_array_gpu)
 
             self.gravity_wb_func(
                 self.quantities['stage'].vertex_values_gpu,
@@ -595,7 +654,6 @@ class GPU_domain(Domain):
                 #stream =strm_g
                 )
 
-            drv.memcpy_dtoh(self.timestep_array, self.timestep_array_gpu)
             #drv.memcpy_dtoh_async(
             #        self.timestep_array, 
             #        self.timestep_array_gpu, 
@@ -1128,12 +1186,16 @@ class GPU_domain(Domain):
     def manning_friction_implicit(self):
         """From shallow_water_domain"""  
         if self.using_gpu:
-           #FIXME
-           x = self.get_vertex_coordinates()
+            N = self.number_of_elements
+            W1 = 32
+            W2 = 1
+            W3 = 1
+            #FIXME
+            x = self.get_vertex_coordinates()
    
-           if self.use_sloped_mannings:
-               self.manning_friction_sloped_func(
-                   numpy.int32(self.number_of_elements),
+            if self.use_sloped_mannings:
+                self.manning_friction_sloped_func(
+                   numpy.int32(N),
                    numpy.float64(self.g),
                    numpy.float64(self.minimum_allowed_height),
    
@@ -1147,11 +1209,11 @@ class GPU_domain(Domain):
                    self.quantities['xmomentum'].semi_implicit_update_gpu,
                    self.quantities['ymomentum'].semi_implicit_update_gpu,
                    block = (W1, W2, W3),
-                   grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
+                   grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                    )
-           else:
-               self.manning_friction_flat_func(
-                   numpy.int32(self.number_of_elements),
+            else:
+                self.manning_friction_flat_func(
+                   numpy.int32(N),
                    numpy.float64(self.g),
                    numpy.float64(self.minimum_allowed_height),
    
@@ -1165,11 +1227,12 @@ class GPU_domain(Domain):
                    self.quantities['ymomentum'].semi_implicit_update_gpu,
                    
                    block = (W1, W2, W3),
-                   grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
+                   grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                    )
    
         else:
-            from anuga.shallow_water.shallow_water_domain import manning_friction_implicit
+            from anuga.shallow_water.shallow_water_domain import \
+                    manning_friction_implicit
             manning_friction_implicit(self)
 
 
@@ -1219,6 +1282,11 @@ class GPU_domain(Domain):
         else:
             from anuga.shallow_water.shallow_water_domain import manning_friction_implicit
             manning_friction_implicit(self)
+
+
+    def compute_forcing_terms(self):
+        for f in self.forcing_terms:
+            f()
 
     def backup_conserved_quantities(self):
         if self.using_gpu:
@@ -1297,6 +1365,20 @@ class GPU_domain(Domain):
                 skip_initial_step=False):
 
         if self.using_gpu:
+            from anuga.shallow_water.shallow_water_domain import \
+                    manning_friction_implicit, manning_friction_explicit
+
+            f = self.forcing_terms
+            for i in range(len(f)):
+                if f[i] == manning_friction_implicit:
+                    f[i] = self.manning_friction_implicit
+                elif f[i] == manning_friction_explicit:
+                    f[i] == self.manning_friction_explicit
+                #FIXME
+                # in shallow_water_domain set_gravity_methon function
+                # gravity functions can be the elements of forcing_terms
+                
+                    
             #self.lock_array_page()
 
             self.allocate_device_array()
@@ -1343,9 +1425,14 @@ def get_device_array(a):
     return drv.mem_alloc(a.nbytes)
 
 def asy_cpy(a, a_gpu):
-    strm = drv.Stream()
-    drv.memcpy_htod_async(a_gpu, a, strm)
-    return strm
+    global auto_init_context
+
+    if auto_init_context:
+        strm = drv.Stream()
+        drv.memcpy_htod_async(a_gpu, a, strm)
+        return strm
+    else:
+        drv.memcpy_htod(a_gpu, a)
 
 def cpy_back(a, a_gpu):
     drv.memcpy_dtoh(a, a_gpu)
