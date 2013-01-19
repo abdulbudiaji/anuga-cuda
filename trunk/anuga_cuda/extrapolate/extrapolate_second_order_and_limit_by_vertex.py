@@ -25,7 +25,11 @@
 def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
     
     mod = SourceModule("""
+#ifndef USING_UNION
     __global__ void _limit_vertices_by_all_neighbours(
+#else
+    __device__ int _limit_vertices_by_all_neighbours(
+#endif
             //int N, 
             double beta,
             double* centroid_values,
@@ -35,7 +39,9 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
             double* x_gradient,
             double* y_gradient) 
     {
-        const int k = threadIdx.x + blockIdx.x * blockDim.x;
+        const int k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     
         int i, k3;
         long n;
@@ -90,7 +96,11 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
         //}
     }
     
+#ifndef USING_UNION
     __global__ void _extrapolate_from_gradient(
+#else
+    __device__ int _extrapolate_from_gradient(
+#endif
             //int N,
             double* centroids,
             double* centroid_values,
@@ -98,9 +108,12 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
             double* vertex_values,
             double* edge_values,
             double* a,
-            double* b) {
+            double* b) 
+    {
     
-        const int k = threadIdx.x + blockIdx.x * blockDim.x;
+        const int k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     
         int k2, k3, k6;
         double x, y, x0, y0, x1, y1, x2, y2;
@@ -135,8 +148,11 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
         //}
     }
     
-    
-    __global__ void  _compute_gradients(
+#ifndef USING_UNION 
+    __global__ void _compute_gradients(
+#else   
+    __device__ int _compute_gradients(
+#endif
             //int N,
             double* centroids,
             double* centroid_values,
@@ -145,7 +161,10 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
             double* a,
             double* b)
     {
-        const int k = threadIdx.x + blockIdx.x * blockDim.x;
+        const int k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+        
         int i, k0, k1, k2;
         double x0, x1, x2, y0, y1, y2, q0, q1, q2;
         double det;
@@ -530,7 +549,7 @@ def extrapolate_second_order_and_limit_by_vertex_single(domain, Q):
 
 
 
-def update_centroids_of_velocities_and_height(domain, kind = 'cuda', step=3):
+def update_centroids_of_velocities_and_height(domain,kind = 'cuda', step=3):
     domain.update_centroids_of_velocities_and_height()
     for name in ['height', 'xvelocity', 'yvelocity']:
         Q = domain.quantities[name]
@@ -702,7 +721,7 @@ if __name__ == '__main__':
 
     domain2 = domain_create()
     
-    testing_2 = False
+    testing_2 = True
     testing_3 = True
     domain3 = domain_create()
 
@@ -715,7 +734,7 @@ if __name__ == '__main__':
     from pycuda.compiler import SourceModule
     import numpy
 
-    step = 1
+    step = 3
 
     print "~~~~~~~ domain 2 ~~~~~~~"
     update_centroids_of_velocities_and_height(domain2, 'cuda', step)
