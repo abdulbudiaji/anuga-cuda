@@ -549,8 +549,8 @@ def extrapolate_second_order_and_limit_by_vertex_single(domain, Q):
 
 
 
-def update_centroids_of_velocities_and_height(domain,kind = 'cuda', step=3):
-    domain.update_centroids_of_velocities_and_height()
+def distribute_using_vertex_limiter(domain,kind = 'cuda', step=3):
+    domain.protect_against_infinitesimal_and_negative_heights()
     for name in ['height', 'xvelocity', 'yvelocity']:
         Q = domain.quantities[name]
         if domain._order_ == 1:
@@ -727,7 +727,10 @@ if __name__ == '__main__':
 
 
     print "~~~~~~~ domain 1 ~~~~~~~"
-    domain1.update_other_quantities()
+    domain1.protect_against_infinitesimal_and_negative_heights()
+    for name in domain1.conserved_quantities:
+        Q = domain1.quantities[name]
+        Q.extrapolate_second_order_and_limit_by_vertex()
 
     import pycuda.driver as cuda
     import pycuda.autoinit
@@ -737,7 +740,7 @@ if __name__ == '__main__':
     step = 3
 
     print "~~~~~~~ domain 2 ~~~~~~~"
-    update_centroids_of_velocities_and_height(domain2, 'cuda', step)
+    distribute_using_vertex_limiter(domain2, 'cuda', step)
 
     if testing_2:
         print "\n~~~~~~~ compare 1 2~~~~~~~"
@@ -792,8 +795,8 @@ if __name__ == '__main__':
 
     if testing_3:
         print "~~~~~~~ domain 3 ~~~~~~~"
-        #update_centroids_of_velocities_and_height(domain3, True, 0)
-        update_centroids_of_velocities_and_height(domain3, 'python', step)
+        #distribute_using_vertex_limiter(domain3, True, 0)
+        distribute_using_vertex_limiter(domain3, 'python', step)
 
         print "\n~~~~~~~ compare 1 3~~~~~~~"
         for name in ['height', 'xvelocity', 'yvelocity']:
