@@ -80,8 +80,13 @@ class Set_Elevation:
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
-def domain_create():
-    domain = create_domain_from_file(mesh_filename)
+def domain_create(gpu=False):
+    from anuga_cuda import GPU_domain
+    if not gpu:
+        domain = create_domain_from_file(mesh_filename)
+    else:
+        domain = create_domain_from_file(mesh_filename, GPU_domain)
+        domain.using_gpu = False
     domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
     domain.set_datadir('Data')
     domain.set_name('merimbula_new')

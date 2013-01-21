@@ -41,6 +41,12 @@ def generate_domain():
     Bo = anuga.Dirichlet_boundary([-5, 0, 0])    # Outflow
     
     domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
+    import sys
+    if len(sys.argv) > 1 and "gpu" in sys.argv:
+        domain.using_gpu = True
+    else:
+        domain.using_gpu = False
+    print sys.argv, "gpu" in sys.argv
     return domain
 
 def evolve_domain(domain):
