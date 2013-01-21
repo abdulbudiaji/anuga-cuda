@@ -25,6 +25,7 @@ import numpy as num
 #------------------------
 	
 from anuga import Domain
+from anuga_cuda import GPU_domain
 from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
 from anuga import Time_boundary
@@ -80,7 +81,7 @@ class Set_Elevation:
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
-domain = create_domain_from_file(mesh_filename)
+domain = create_domain_from_file(mesh_filename, GPU_domain)
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
 domain.set_datadir('Data')
 domain.set_name('merimbula_new')

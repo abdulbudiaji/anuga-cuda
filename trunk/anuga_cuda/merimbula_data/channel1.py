@@ -11,15 +11,18 @@ Water flowing down a channel
 import sys
 import anuga
 from anuga_cuda.gpu_domain import GPU_domain
-def generate_domain():
+
+def generate_domain(gpu=True):
     #--------------------------------------------------------------------------
     # Setup computational domain
     #--------------------------------------------------------------------------
     points, vertices, boundary = anuga.rectangular_cross(10, 5,
                                                    len1=10.0, len2=5.0) # Mesh
     
-    #domain = anuga.Domain(points, vertices, boundary)  # Create domain
-    domain = GPU_domain(points, vertices, boundary)  # Create domain
+    if gpu:
+        domain = GPU_domain(points, vertices, boundary)  # Create domain
+    else:
+        domain = anuga.Domain(points, vertices, boundary)  # Create domain
     domain.set_name('channel1')                  # Output name
     
     #--------------------------------------------------------------------------
@@ -41,18 +44,23 @@ def generate_domain():
     
     domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
-    if len(sys.argv) > 1 and "gpu" in sys.argv:
-        domain.using_gpu = True
-    else:
-        domain.using_gpu = False
-    print sys.argv, "gpu" in sys.argv
+    if gpu:
+        if len(sys.argv) > 1 and "gpu" in sys.argv:
+            domain.using_gpu = True
+        else:
+            domain.using_gpu = False
+        print sys.argv, "gpu" in sys.argv
+
     return domain
+
+
+
 
 def evolve_domain( domain ):
     #--------------------------------------------------------------------------
     # Evolve system through time
     #--------------------------------------------------------------------------
-    for t in domain.evolve(yieldstep=0.2, finaltime=10.0):
+    for t in domain.evolve(yieldstep=0.2, finaltime=40):
         print domain.flux_timestep
         print domain.timestepping_statistics()
     

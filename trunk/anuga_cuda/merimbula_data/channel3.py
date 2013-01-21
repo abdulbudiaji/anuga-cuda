@@ -7,8 +7,9 @@ Water flowing down a channel with more complex topography
 # Import necessary modules
 #------------------------------------------------------------------------------
 import anuga
+from anuga_cuda import GPU_domain
 
-def generate_domain():
+def generate_domain(gpu=False):
     #--------------------------------------------------------------------------
     # Setup computational domain
     #--------------------------------------------------------------------------
@@ -18,7 +19,10 @@ def generate_domain():
     
     points, vertices, boundary = anuga.rectangular_cross(int(length/dx),
                                         int(width/dy), len1=length, len2=width)
-    domain = anuga.Domain(points, vertices, boundary)
+    if gpu:
+        domain = GPU_domain(points, vertices, boundary )
+    else:
+        domain = anuga.Domain(points, vertices, boundary)
     domain.set_name('channel3')                  # Output name
     print domain.statistics()
     
@@ -60,7 +64,7 @@ def generate_domain():
     domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
     return domain
 
-def evolve_domain():
+def evolve_domain(domain):
     #--------------------------------------------------------------------------
     # Evolve system through time
     #--------------------------------------------------------------------------
