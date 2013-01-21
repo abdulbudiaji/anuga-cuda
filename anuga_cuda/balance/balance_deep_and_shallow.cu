@@ -1,5 +1,5 @@
 __global__ void  _balance_deep_and_shallow(
-        //int N,
+        int N,
         double H0,
         double alpha_balance,
         int tight_slope_limiters,
@@ -24,6 +24,9 @@ __global__ void  _balance_deep_and_shallow(
     double epsilon = 1.0e-6; // FIXME: Temporary measure
     double hv[3]; // Depths at vertices
     double uc, vc; // Centroid speeds
+
+    if (k >= N )
+        return;
 
     // Compute linear combination between w-limited stages and
     // h-limited stages close to the bed elevation.
