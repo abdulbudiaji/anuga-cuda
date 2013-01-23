@@ -39,13 +39,17 @@ ANUGA modules
 from anuga_cuda.config import compute_fluxes_dir
 from anuga_cuda.merimbula_data.utility import approx_cmp
 from anuga_cuda.merimbula_data.generate_domain import domain_create    
+from anuga_cuda.merimbula_data.channel1 import generate_domain
 from anuga_cuda.merimbula_data.sort_domain import \
             sort_domain, rearrange_domain
 
 
-domain1 = domain_create()
+#domain1 = domain_create()
 #domain2 = rearrange_domain(domain1)
-domain2 = domain_create()
+#domain2 = domain_create()
+domain1 = generate_domain()
+domain2 = generate_domain()
+sort_domain(domain2)
 
 N = domain2.number_of_elements
 timestep_array = numpy.zeros( N, dtype=numpy.float64)
@@ -54,21 +58,25 @@ timestep_array = numpy.zeros( N, dtype=numpy.float64)
 for i in range(N):
     timestep_array[i] = domain2.evolve_max_timestep
     
-if not (N % 320 == 0):
+if (N % 320 == 0):
     W1 = 32
-    W2 = 10
+    #W2 = 10
+    W2 = 1
     W3 = 1
 elif (N % 256 == 0):
     W1 = 16
     W2 = 16
     W3 = 1
-elif (N % 32 ==0):
+#elif (N % 32 ==0):
+else:
     W1 = 32
     W2 = 1
     W3 = 1
-else:
-    raise Exception('N can not be splited')
-    
+#else:
+#    raise Exception('N can not be splited')
+print "N=%d, W1=%d, W2=%d, W3=%d" % (N, W1, W2, W3)
+
+
 macro ="#define THREAD_BLOCK_SIZE %d\n" % (W1*W2*W3) 
 mod = SourceModule(
         macro + open(compute_fluxes_dir+"compute_fluxes.cu","r").read(),
@@ -77,7 +85,8 @@ mod = SourceModule(
         )
 
 compute_fluxes_central_function = mod.get_function(
-            "compute_fluxes_central_structure_cuda_single")
+            #"compute_fluxes_central_structure_cuda_single")
+            "compute_fluxes_central_structure_CUDA")
 
 
 """********** ********** ********** ********** **********
@@ -268,6 +277,45 @@ if testing_async:
     strm.synchronize()
     b = numpy.argsort(timestep_array)
     domain2.flux_timestep = timestep_array[ b[0] ]
+
+
+
+
+    start.record()
+    start_time = time()
+    compute_fluxes_central_function( 
+            numpy.uint64( N ),
+            numpy.float64( domain2.g ),
+            numpy.float64( domain2.epsilon ),
+            numpy.float64( domain2.H0 * domain2.H0 ),
+            numpy.float64( domain2.H0*10 ),
+            numpy.uint32( domain2.optimise_dry_cells),
+            timestep_gpuptr, 
+            neighbours_gpuptr, 
+            nei_edges_gpuptr,
+            normals_gpuptr, 
+            edgelen_gpuptr,
+            radii_gpuptr,
+            areas_gpuptr,
+            tri_gpuptr,
+            stage_edge_val_gpuptr,
+            xmom_edge_val_gpuptr,
+            ymom_edge_val_gpuptr,
+            bed_edge_val_gpuptr,
+            stage_bou_val_gpuptr,
+            xmom_bou_val_gpuptr,
+            ymom_bou_val_gpuptr,
+            stage_up_gpuptr,
+            xmom_up_gpuptr,
+            ymom_up_gpuptr,
+            maxspeed_gpuptr,
+            block = ( W1, W2, W3),
+            grid = (N/(W1*W2*W3), 1))
+    end.record()
+    end.synchronize()
+    duration = time() - start_time
+    secs = start.time_till(end)*1e-3
+    print "Function exe time: %3.7f / %3.7f" % (secs, duration)
 
 
 """********** ********** ********** ********** **********

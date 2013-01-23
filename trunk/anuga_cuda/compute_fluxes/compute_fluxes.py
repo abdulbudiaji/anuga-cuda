@@ -1420,9 +1420,9 @@ def compute_fluxes_central_structure_cuda(
         #compute_fluxes_central_function = mod.get_function(name)
         #from anuga_cuda.compute_fluxes.py_compute_fluxes import get_func_info
         #get_func_info(compute_fluxes_central_function)
-        from anuga_cuda.config import compute_fluxes_dir
+        from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
-            open(compute_fluxes_dir+"compute_fluxes.cu").read(),
+            open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
             )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
             #"compute_fluxes_central_structure_cuda_single")
@@ -1742,8 +1742,10 @@ def compute_fluxex_central_structure_single(domain, k = 1, i =0, call = 2):
 
 
 if __name__ == '__main__':
-    import pycuda.driver as cuda
+    import pycuda.driver as drv
     import pycuda.autoinit
+    ctx = pycuda.autoinit.context
+
     from pycuda.compiler import SourceModule
 
     import numpy 
@@ -1752,52 +1754,110 @@ if __name__ == '__main__':
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
     from anuga_cuda.merimbula_data.sort_domain import sort_domain, rearrange_domain
     from anuga_cuda.merimbula_data.utility import approx_cmp
-    #from anuga_cuda.merimbula_data.channel3 import generate_domain
-    from anuga_cuda.merimbula_data.channel1 import generate_domain
+    from anuga_cuda.merimbula_data.channel3 import generate_domain
+    #from anuga_cuda.merimbula_data.channel1 import generate_domain
 
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
-    #domain2 = domain_create()
-    domain2 = generate_domain()
+    domain2 = domain_create(gpu = True)
+    #domain2 = generate_domain()
     sort_domain(domain2)
 
 
-    #domain1 = domain_create()
-    domain1 = generate_domain()
+    domain1 = domain_create()
+    #domain1 = generate_domain()
     #domain2 = rearrange_domain(domain1)
     
     print " Number of elements is: %d" % domain1.number_of_elements
     """
     CUDA Function
     """
+    print "CUDA Function"
+    testing = False
+    if  testing:
+        from anuga_cuda import kernel_path as kp
+        compute_fluxes_mod = SourceModule(
+                open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
+                )
+        compute_fluxes_central_function = compute_fluxes_mod.get_function(
+                #"compute_fluxes_central_structure_cuda_single")
+        "compute_fluxes_central_structure_CUDA")
+
+        domain2.allocate_device_array()
+        domain2.asynchronous_transfer()
+        ctx.synchronize()
+        W1 = 32
+        W2 = 1
+        W3 = 1
+        #domain2.compute_fluxes_func(
+        compute_fluxes_central_function(
+                numpy.uint(domain2.number_of_elements),
+                numpy.float64(domain2.g),
+                numpy.float64(domain2.epsilon),
+                numpy.float64(domain2.H0 * domain2.H0),
+                numpy.float64(domain2.H0 * 10),
+                numpy.uint(domain2.optimise_dry_cells),
+
+                domain2.timestep_array_gpu,
+                domain2.neighbours_gpu,
+                domain2.neighbour_edges_gpu,
+                domain2.normals_gpu,
+                domain2.edgelengths_gpu,
+                domain2.radii_gpu,
+                domain2.areas_gpu,
+                domain2.tri_full_flag_gpu,
+                domain2.quantities['stage'].edge_values_gpu,
+                domain2.quantities['xmomentum'].edge_values_gpu,
+                domain2.quantities['ymomentum'].edge_values_gpu,
+                domain2.quantities['elevation'].edge_values_gpu,
+                domain2.quantities['stage'].boundary_values_gpu,
+                domain2.quantities['xmomentum'].boundary_values_gpu,
+                domain2.quantities['ymomentum'].boundary_values_gpu,
+                domain2.quantities['stage'].explicit_update_gpu,
+                domain2.quantities['xmomentum'].explicit_update_gpu,
+                domain2.quantities['ymomentum'].explicit_update_gpu,
+                domain2.max_speed_gpu,
+                block = (W1, W2, W3),
+                grid = ((domain2.number_of_elements+W1*W2*W3-1)/(W1*W2*W3), 1)
+                )
+
+        ctx.synchronize()
+        drv.memcpy_dtoh(domain2.quantities['stage'].explicit_update,
+                        domain2.quantities['stage'].explicit_update_gpu)
+        drv.memcpy_dtoh(domain2.quantities['xmomentum'].explicit_update,
+                        domain2.quantities['xmomentum'].explicit_update_gpu)
+        drv.memcpy_dtoh(domain2.quantities['ymomentum'].explicit_update,
+                        domain2.quantities['ymomentum'].explicit_update_gpu)
+        
+        drv.memcpy_dtoh(domain2.max_speed,
+                        domain2.max_speed_gpu)
+        
+        drv.memcpy_dtoh(domain2.timestep_array,
+                        domain2.timestep_array_gpu)
+        
+        b = numpy.argsort(domain2.timestep_array)
+        domain2.flux_timestep = domain2.timestep_array[b[0]] 
+
     if domain2.compute_fluxes_method == 'original':
-
-        compute_fluxes_central_structure_cuda(domain2)
+        pass
+        #compute_fluxes_central_structure_cuda(domain2)
         #gravity_c(domain2)
-
     elif domain2.compute_fluxes_method == 'wb_1':
         pass
-        #compute_fluxes_wb_cuda(domain2)
-        #gravity_c(domain2)
-
     elif domain2.compute_fluxes_method == 'wb_2':
-
         #compute_fluxes_central_structure_cuda(domain2)
         compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
 	    		name= "compute_fluxes_central_structure_CUDA")
     	#compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
 		#		name= "_flux_function_central_2")
         #gravity_wb_c(domain2)
-
     elif domain2.compute_fluxes_method == 'wb_3':
         pass
-        #compute_fluxes_ext_wb_3(domain2)
-        #gravity_wb_c(domain2)
-
     else:
         raise Exception('unknown compute_fluxes_method')
 
+    print "ANUGA C Function"
 
 
     """
@@ -1814,9 +1874,6 @@ if __name__ == '__main__':
         #gravity_c(domain1)
         
     elif domain1.compute_fluxes_method == 'wb_1':
-        # Calc pressure terms using Simpson rule in flux
-        # computations. Then they match up exactly with
-        # standard gravity term - g h grad(z)
         from shallow_water_ext import compute_fluxes_ext_wb
         from shallow_water_ext import gravity as gravity_c
 
@@ -1825,8 +1882,6 @@ if __name__ == '__main__':
         #gravity_c(domain1)
 
     elif domain1.compute_fluxes_method == 'wb_2':
-        # Use standard flux calculation, but calc gravity
-        # as -g h grad(w) - sum midpoint edge pressure terms
         from shallow_water_ext import compute_fluxes_ext_central_structure
         from shallow_water_ext import gravity_wb as gravity_wb_c
 
@@ -1836,9 +1891,6 @@ if __name__ == '__main__':
         #gravity_wb_c(domain1)
         #print "\n C compute flux duration is %lf\n" % (time()-t1)
     elif domain1.compute_fluxes_method == 'wb_3':
-        # Calculate pure flux terms with simpsons rule, and
-        # gravity flux and gravity forcing via
-        # as -g h grad(w) - sum midpoint edge pressure terms
         from shallow_water_ext import compute_fluxes_ext_wb_3
         from shallow_water_ext import gravity_wb as gravity_wb_c
 
