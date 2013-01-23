@@ -1257,9 +1257,9 @@ def compute_fluxes_central_structure_cuda(
     # FIXME: can be done by CUDA threads
     for i in range(N):
         timestep_array[i] = domain.evolve_max_timestep
-        domain.quantities['stage'].explicit_update[i] = 0.0
-        domain.quantities['xmomentum'].explicit_update[i]=0.0
-        domain.quantities['ymomentum'].explicit_update[i] =0.0
+        #domain.quantities['stage'].explicit_update[i] = 0.0
+        #domain.quantities['xmomentum'].explicit_update[i]=0.0
+        #domain.quantities['ymomentum'].explicit_update[i] =0.0
     
 
     # FIXME: add hardware dependency 
@@ -1522,8 +1522,14 @@ def _compute_speed(uh, h, epsilon, h0, limiting_threshold):
 
 
     
-def _flux_function_central(q_left, q_right, z_left, z_right, n1, n2, epsilon, h0, 
-        limiting_threshold, g, edgeflux, max_speed):
+def _flux_function_central(
+        q_left, q_right, 
+        z_left, z_right, 
+        n1, n2, 
+        epsilon, h0, 
+        limiting_threshold, g, edgeflux, 
+        max_speed):
+
     import numpy
     import math
     q_left_rotated = numpy.zeros(3, dtype=numpy.float64)
@@ -1561,27 +1567,27 @@ def _flux_function_central(q_left, q_right, z_left, z_right, n1, n2, epsilon, h0
     w_right = q_right_rotated[0]
     h_right = w_right - z
     uh_right = q_right_rotated[1]
-    #u_right = _compute_speed(uh_right, h_right,
-    #        epsilon, h0, limiting_threshold)
-    if h_right < limiting_threshold:
-        if h_right < epsilon :
-            h_right = 0.0
-            u_right = 0.0
-        else :
-            u_right = uh_right / (h_right + h0 / h_right)
+    u_right = _compute_speed(uh_right, h_right,
+            epsilon, h0, limiting_threshold)
+    #if h_right < limiting_threshold:
+    #    if h_right < epsilon :
+    #        h_right = 0.0
+    #        u_right = 0.0
+    #    else :
+    #        u_right = uh_right / (h_right + h0 / h_right)
 
-        uh_right = u_right * h_right
-    else :
-        u_right = uh_right / h_right
+    #    uh_right = u_right * h_right
+    #else :
+    #    u_right = uh_right / h_right
 
     
     vh_left = q_left_rotated[2]
     vh_right = q_right_rotated[2]
 
-    #_compute_speed(vh_left, h_left,
-    #        epsilon, h0, limiting_threshold)
-    #_compute_speed(vh_right, h_right,
-    #        epsilon, h0, limiting_threshold)
+    _compute_speed(vh_left, h_left,
+            epsilon, h0, limiting_threshold)
+    _compute_speed(vh_right, h_right,
+            epsilon, h0, limiting_threshold)
 
     
     soundspeed_left = math.sqrt(g * h_left)
@@ -1611,7 +1617,6 @@ def _flux_function_central(q_left, q_right, z_left, z_right, n1, n2, epsilon, h0
         edgeflux[1] = 0.0
         edgeflux[2] = 0.0
         max_speed = 0.0
-    
     else:
         inverse_denominator = 1.0 / denom
         for i in range(3):
@@ -1627,7 +1632,7 @@ def _flux_function_central(q_left, q_right, z_left, z_right, n1, n2, epsilon, h0
 
         edgeflux[1] = n1 * q1 + -n2*q2
         edgeflux[2] = n2 * q1 + n1*q2
-
+    return max_speed
     
 
 # This function helps to reorder the compute sequence so as to make it 
@@ -1654,7 +1659,7 @@ def spe_bubble_sort( _list , neighbours, k):
 
 
 
-def compute_fluxex_central_structure_single(domain, k = 1, i =0, call = 2):
+def compute_fluxes_central_structure_single(domain, k =-1, i =0, call = 2):
     import numpy
     
     ql = numpy.zeros(3, dtype=numpy.float64)
@@ -1662,10 +1667,95 @@ def compute_fluxex_central_structure_single(domain, k = 1, i =0, call = 2):
     edgeflux = numpy.zeros(3, dtype=numpy.float64)
     counter = 0
 
-    for k in range(domain.number_of_elements):
+    if k < 0:
+        for k in range(domain.number_of_elements):
+            max_speed_total = 0
+        ### Used to generated single triangle values
+        #if k:
+            
+            domain.quantities['stage'].explicit_update[k] = 0.0
+            domain.quantities['xmomentum'].explicit_update[k] = 0.0
+            domain.quantities['ymomentum'].explicit_update[k] = 0.0
+            
+            ### To change the calculation order as same as the C
+            #b = [0,1,2]
+            #spe_bubble_sort(b, domain.neighbours[k], k)
+            #for i in b:
+            max_speed = 0
+            for i in range(3):
 
-    ### Used to generated single triangle values
-    #if k:
+            ### The original C Function
+            #for i in range(3):
+
+            ### Used to generate single triangle values
+            #if i>=0:
+
+                ### The original C sequential Function
+                #if domain.already_computed_flux[k][i] == call:
+                #    continue
+
+                n = domain.neighbours[k][i]
+
+
+                ql[0] = domain.quantities['stage'].edge_values[k][i]
+                ql[1] = domain.quantities['xmomentum'].edge_values[k][i]
+                ql[2] = domain.quantities['ymomentum'].edge_values[k][i]
+                zl = domain.quantities['elevation'].edge_values[k][i]
+
+                if n < 0:
+                    m = -n -1
+                    qr[0] = domain.quantities['stage'].boundary_values[m]
+                    qr[1] = domain.quantities['xmomentum'].boundary_values[m]
+                    qr[2] = domain.quantities['ymomentum'].boundary_values[m]
+                    zr = zl
+                else:
+                    m = domain.neighbour_edges[k][i]
+
+                    qr[0] = domain.quantities['stage'].edge_values[n][m]
+                    qr[1] = domain.quantities['xmomentum'].edge_values[n][m]
+                    qr[2] = domain.quantities['ymomentum'].edge_values[n][m]
+                    zr = domain.quantities['elevation'].edge_values[n][m]
+
+                if domain.optimise_dry_cells:
+                    if abs(ql[0] -zl) < domain.epsilon and \
+                        abs(qr[0] - zr) < domain.epsilon:
+                        max_speed = 0
+                        continue
+
+
+                max_speed = _flux_function_central(ql, qr, zl, zr, 
+                            domain.normals[k][2*i], domain.normals[k][2*i + 1],
+                            domain.epsilon, pow(domain.H0,2), 
+                            10*domain.H0, domain.g, edgeflux, max_speed)
+
+                edgeflux[0] *= domain.edgelengths[k][i]
+                edgeflux[1] *= domain.edgelengths[k][i]
+                edgeflux[2] *= domain.edgelengths[k][i]
+                
+                ### Original C Function
+                domain.quantities['stage'].explicit_update[k] -= edgeflux[0]
+                domain.quantities['xmomentum'].explicit_update[k] -= edgeflux[1]
+                domain.quantities['ymomentum'].explicit_update[k] -= edgeflux[2]
+
+                ### The original C sequential Function
+                #if n >= 0:
+                #    domain.quantities['stage'].explicit_update[n] += edgeflux[0]
+                #    domain.quantities['xmomentum'].explicit_update[n] += edgeflux[1]
+                #    domain.quantities['ymomentum'].explicit_update[n] += edgeflux[2]
+                #    domain.already_computed_flux[n][m] = call
+                if n>=0 and n < k :
+                    max_speed = 0
+                else:
+                    max_speed_total = max(max_speed_total, max_speed) 
+            
+            inv_area = 1.0 / domain.areas[k]
+            domain.quantities['stage'].explicit_update[k] *= inv_area
+            domain.quantities['xmomentum'].explicit_update[k] *= inv_area
+            domain.quantities['ymomentum'].explicit_update[k] *= inv_area
+            
+            domain.max_speed[k] = max_speed_total
+    else:
+        max_speed_total = 0
         
         domain.quantities['stage'].explicit_update[k] = 0.0
         domain.quantities['xmomentum'].explicit_update[k] = 0.0
@@ -1675,6 +1765,7 @@ def compute_fluxex_central_structure_single(domain, k = 1, i =0, call = 2):
         #b = [0,1,2]
         #spe_bubble_sort(b, domain.neighbours[k], k)
         #for i in b:
+        max_speed = 0
         for i in range(3):
 
         ### The original C Function
@@ -1689,7 +1780,6 @@ def compute_fluxex_central_structure_single(domain, k = 1, i =0, call = 2):
 
             n = domain.neighbours[k][i]
 
-            max_speed = 0
 
             ql[0] = domain.quantities['stage'].edge_values[k][i]
             ql[1] = domain.quantities['xmomentum'].edge_values[k][i]
@@ -1710,7 +1800,14 @@ def compute_fluxex_central_structure_single(domain, k = 1, i =0, call = 2):
                 qr[2] = domain.quantities['ymomentum'].edge_values[n][m]
                 zr = domain.quantities['elevation'].edge_values[n][m]
 
-            _flux_function_central(ql, qr, zl, zr, 
+            if domain.optimise_dry_cells:
+                if abs(ql[0] -zl) < domain.epsilon and \
+                    abs(qr[0] - zr) < domain.epsilon:
+                    max_speed = 0
+                    continue
+
+
+            max_speed = _flux_function_central(ql, qr, zl, zr, 
                         domain.normals[k][2*i], domain.normals[k][2*i + 1],
                         domain.epsilon, pow(domain.H0,2), 
                         10*domain.H0, domain.g, edgeflux, max_speed)
@@ -1730,13 +1827,16 @@ def compute_fluxex_central_structure_single(domain, k = 1, i =0, call = 2):
             #    domain.quantities['xmomentum'].explicit_update[n] += edgeflux[1]
             #    domain.quantities['ymomentum'].explicit_update[n] += edgeflux[2]
             #    domain.already_computed_flux[n][m] = call
-                
+            print k, max_speed
+            max_speed_total = max(max_speed_total, max_speed) 
         
         inv_area = 1.0 / domain.areas[k]
         domain.quantities['stage'].explicit_update[k] *= inv_area
         domain.quantities['xmomentum'].explicit_update[k] *= inv_area
         domain.quantities['ymomentum'].explicit_update[k] *= inv_area
         
+        domain.max_speed[k] = max_speed_total
+        return max_speed_total
 
 
 
@@ -1752,11 +1852,15 @@ if __name__ == '__main__':
     from time import time
     
     from anuga_cuda.merimbula_data.generate_domain import domain_create    
-    from anuga_cuda.merimbula_data.sort_domain import sort_domain, rearrange_domain
+    from anuga_cuda.merimbula_data.sort_domain import \
+        sort_domain, rearrange_domain
     from anuga_cuda.merimbula_data.utility import approx_cmp
     from anuga_cuda.merimbula_data.channel3 import generate_domain
     #from anuga_cuda.merimbula_data.channel1 import generate_domain
 
+
+    testing_gpu_domain = False
+    testing_python_version = False
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
@@ -1774,11 +1878,10 @@ if __name__ == '__main__':
     CUDA Function
     """
     print "CUDA Function"
-    testing = False
-    if  testing:
+    if  testing_gpu_domain:
         from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
-                open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
+                open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read()
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
                 #"compute_fluxes_central_structure_cuda_single")
@@ -1838,31 +1941,34 @@ if __name__ == '__main__':
         
         b = numpy.argsort(domain2.timestep_array)
         domain2.flux_timestep = domain2.timestep_array[b[0]] 
-
-    if domain2.compute_fluxes_method == 'original':
-        pass
-        #compute_fluxes_central_structure_cuda(domain2)
-        #gravity_c(domain2)
-    elif domain2.compute_fluxes_method == 'wb_1':
-        pass
-    elif domain2.compute_fluxes_method == 'wb_2':
-        #compute_fluxes_central_structure_cuda(domain2)
-        compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
-	    		name= "compute_fluxes_central_structure_CUDA")
-    	#compute_fluxes_central_structure_cuda(domain2, parallelFlag=1, \
-		#		name= "_flux_function_central_2")
-        #gravity_wb_c(domain2)
-    elif domain2.compute_fluxes_method == 'wb_3':
-        pass
     else:
-        raise Exception('unknown compute_fluxes_method')
+        if domain2.compute_fluxes_method == 'original':
+            pass
+            #compute_fluxes_central_structure_cuda(domain2)
+            #gravity_c(domain2)
+        elif domain2.compute_fluxes_method == 'wb_1':
+            pass
+        elif domain2.compute_fluxes_method == 'wb_2':
+            #compute_fluxes_central_structure_cuda(domain2)
+            compute_fluxes_central_structure_cuda(
+                    domain2, 
+                    parallelFlag=1, 
+	        		name= "compute_fluxes_central_structure_CUDA")
+        	#compute_fluxes_central_structure_cuda(
+            #       domain2, parallelFlag=1, \
+	    	#		name= "_flux_function_central_2")
+            #gravity_wb_c(domain2)
+        elif domain2.compute_fluxes_method == 'wb_3':
+            pass
+        else:
+            raise Exception('unknown compute_fluxes_method')
 
-    print "ANUGA C Function"
 
 
     """
     ANUGA C Function
     """
+    print "ANUGA C Function"
 
 
     if domain1.compute_fluxes_method == 'original':
@@ -1995,102 +2101,62 @@ if __name__ == '__main__':
     """
 
 
-	
-    #print "\n~~~~~~~~~~~~~ domain 4 ~~~~~~~~~~~~"
-    #domain4 = domain_create()
+    if testing_python_version:
+        print "\n~~~~~~~~~~~~~ domain 4 ~~~~~~~~~~~~"
+        domain4 = domain_create()
 
-    #sort_domain(domain4)
+        sort_domain(domain4)
 
-    #compute_fluxex_central_structure_single(domain4)
-
-
-    #counter_stage = 0
-    #counter_xmom = 0
-    #counter_ymom = 0
-    #for i in range(domain1.number_of_elements):
-    #    if abs(domain1.quantities['stage'].explicit_update[i] != \
-    #            domain4.quantities['stage'].explicit_update[i]) > \
-    #            abs(domain1.quantities['stage'].explicit_update[i])*pow(10,-6):
-    #        counter_stage += 1
-
-    #    if abs(domain1.quantities['xmomentum'].explicit_update[i] != \
-    #            domain4.quantities['xmomentum'].explicit_update[i]) > \
-    #            abs(domain1.quantities['xmomentum'].explicit_update[i])*pow(10,-6):
-    #        counter_xmom += 1
-    #        if counter_xmom < 30:
-    #            print i, domain1.quantities['xmomentum'].explicit_update[i], \
-    #                    domain4.quantities['xmomentum'].explicit_update[i]
-
-    #    if abs(domain1.quantities['ymomentum'].explicit_update[i] != \
-    #            domain4.quantities['ymomentum'].explicit_update[i]) > \
-    #            abs(domain1.quantities['ymomentum'].explicit_update[i])*pow(10,-6):
-    #        counter_ymom += 1
-    #print "-------  of diff with domain1 :%d, %d, %d\n" % \
-    #        (counter_stage, counter_xmom, counter_ymom)
-    #
+        compute_fluxes_central_structure_single(domain4)
 
 
-    #counter_stage = 0
-    #counter_xmom = 0
-    #counter_ymom = 0
-    #for i in range(domain2.number_of_elements):
-    #    if domain2.quantities['stage'].explicit_update[i] != \
-    #            domain4.quantities['stage'].explicit_update[i]:
-    #        counter_stage += 1
+        counter_stage = 0
+        counter_xmom = 0
+        counter_ymom = 0
+        counter_max = 0
+        for i in range(domain1.number_of_elements):
+            if domain1.quantities['stage'].explicit_update[i] != \
+                    domain4.quantities['stage'].explicit_update[i]:
+                counter_stage += 1
 
-    #    if domain2.quantities['xmomentum'].explicit_update[i] != \
-    #            domain4.quantities['xmomentum'].explicit_update[i]:
-    #        counter_xmom += 1
-    #        if counter_xmom < 10:
-    #            print i, domain2.quantities['xmomentum'].explicit_update[i], \
-    #                    domain4.quantities['xmomentum'].explicit_update[i]
+            if domain1.quantities['xmomentum'].explicit_update[i] != \
+                    domain4.quantities['xmomentum'].explicit_update[i] :
+                counter_xmom += 1
 
-    #    if domain2.quantities['ymomentum'].explicit_update[i] != \
-    #            domain4.quantities['ymomentum'].explicit_update[i]:
-    #        counter_ymom += 1
-    #print "-------  of diff with domain2 :%d, %d, %d\n" % \
-    #        (counter_stage, counter_xmom, counter_ymom)
-	#
+            if domain1.quantities['ymomentum'].explicit_update[i] != \
+                    domain4.quantities['ymomentum'].explicit_update[i]:
+                counter_ymom += 1
 
-    
-
-
-
-    #"""
-    #    anuga_gpu function
-    #"""
-    #print "\n~~~~~~~~~~~~~ domain 5 ~~~~~~~~~~~~"
-    #domain5 = domain_create()
-    #
-    #from anuga_cuda.anuga_gpu.gpu_python_glue import compute_fluxes_ext_central_new_gpu 
-
-    #compute_fluxes_ext_central_new_gpu(domain5.timestep, 
-    #        domain5, 
-    #        domain5.quantities['stage'], 
-    #        domain1.quantities['xmomentum'], 
-    #        domain5.quantities['ymomentum'], 
-    #        domain5.quantities['elevation'])
-
-    #cnt_seu = 0
-    #cnt_xeu = 0
-    #cnt_yeu = 0
-    #for i in range(domain1.number_of_elements):
-    #    if domain1.quantities['stage'].explicit_update[i] != \
-    #            domain5.quantities['stage'].explicit_update[i]:
-    #        cnt_seu += 1
-    #        if cnt_seu < 10:
-    #            print i, domain1.quantities['stage'].explicit_update[i],\
-    #                    domain5.quantities['stage'].explicit_update[i]
-    #    
-    #    if domain1.quantities['xmomentum'].explicit_update[i] != \
-    #            domain5.quantities['xmomentum'].explicit_update[i]:
-    #        cnt_xeu += 1
-
-    #    if domain1.quantities['ymomentum'].explicit_update[i] != \
-    #            domain5.quantities['ymomentum'].explicit_update[i]:
-    #        cnt_yeu += 1
-    #print "*****  of diff 1 - 5  %d, %d, %d" % (cnt_seu, cnt_seu, cnt_seu)
+            if domain1.max_speed[i] != domain4.max_speed[i]:
+                counter_max += 1
+                if i < 5:
+                    print i, domain1.max_speed[i], domain4.max_speed[i]
+        print "-------  of diff with domain1 :%d, %d, %d, %d\n" % \
+                (counter_stage, counter_xmom, counter_ymom, counter_max)
+        
 
 
+        counter_stage = 0
+        counter_xmom = 0
+        counter_ymom = 0
+        counter_max = 0
+        for i in range(domain2.number_of_elements):
+            if domain2.quantities['stage'].explicit_update[i] != \
+                    domain4.quantities['stage'].explicit_update[i]:
+                counter_stage += 1
 
+            if domain2.quantities['xmomentum'].explicit_update[i] != \
+                    domain4.quantities['xmomentum'].explicit_update[i]:
+                counter_xmom += 1
 
+            if domain2.quantities['ymomentum'].explicit_update[i] != \
+                    domain4.quantities['ymomentum'].explicit_update[i]:
+                counter_ymom += 1
+
+            if domain2.max_speed[i] != domain4.max_speed[i]:
+                counter_max += 1
+                if i < 5:
+                    print i, domain2.max_speed[i], domain4.max_speed[i]
+        print "-------  of diff with domain2 :%d, %d, %d, %d\n" % \
+                (counter_stage, counter_xmom, counter_ymom, counter_max)
+	    

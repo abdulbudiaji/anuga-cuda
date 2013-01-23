@@ -6,8 +6,8 @@ import numpy
 auto_init_context = False
 show_func_info = True
 
-using_page_locked_array = True
-testing_async = True
+using_page_locked_array = False
+testing_async = False
 using_page_locked_mapped_pointer = False
 testing_pl_mapped = False
 
@@ -36,7 +36,7 @@ cuda = drv
 """
 ANUGA modules
 """
-from anuga_cuda.config import compute_fluxes_dir
+from anuga_cuda import kernel_path as kp
 from anuga_cuda.merimbula_data.utility import approx_cmp
 from anuga_cuda.merimbula_data.generate_domain import domain_create    
 from anuga_cuda.merimbula_data.channel1 import generate_domain
@@ -79,9 +79,9 @@ print "N=%d, W1=%d, W2=%d, W3=%d" % (N, W1, W2, W3)
 
 macro ="#define THREAD_BLOCK_SIZE %d\n" % (W1*W2*W3) 
 mod = SourceModule(
-        macro + open(compute_fluxes_dir+"compute_fluxes.cu","r").read(),
+        macro + open(kp["compute_fluxes_dir"]+"compute_fluxes.cu","r").read(),
         #options=["--ptxas-options=-v"],
-        include_dirs=[compute_fluxes_dir]
+        include_dirs=[kp["compute_fluxes_dir"]]
         )
 
 compute_fluxes_central_function = mod.get_function(
