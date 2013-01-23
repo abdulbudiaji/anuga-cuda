@@ -152,11 +152,10 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
     w_left = q_left_rotated[0];
     h_left = w_left - z;
     uh_left = q_left_rotated[1];
-    //u_left = _compute_speed(&uh_left, &h_left,
-    //        epsilon, h0, limiting_threshold);
-
+    u_left = _compute_speed(&uh_left, &h_left,
+            epsilon, h0, limiting_threshold);
+/*
     if (h_left < limiting_threshold) {   
-
         if (h_left < epsilon) {
             h_left = 0.0;  // Could have been negative
             u_left = 0.0;
@@ -168,13 +167,13 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
     } else {
         u_left = uh_left/ h_left;
     }
-
+*/
     w_right = q_right_rotated[0];
     h_right = w_right - z;
     uh_right = q_right_rotated[1];
-    //u_right = _compute_speed(&uh_right, &h_right,
-    //        epsilon, h0, limiting_threshold);
-
+    u_right = _compute_speed(&uh_right, &h_right,
+            epsilon, h0, limiting_threshold);
+/*
     if (h_right < limiting_threshold) {   
 
         if (h_right < epsilon) {
@@ -188,10 +187,7 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
     } else {
         u_right = uh_right/ h_right;
     }
-
-
-
-
+*/
     // Momentum in y-direction
     vh_left = q_left_rotated[2];
     vh_right = q_right_rotated[2];
@@ -199,10 +195,10 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
     // Limit y-momentum if necessary
     // Leaving this out, improves speed significantly (Ole 27/5/2009)
     // All validation tests pass, so do we really need it anymore?
-    //_compute_speed(&vh_left, &h_left,
-    //        epsilon, h0, limiting_threshold);
-    //_compute_speed(&vh_right, &h_right,
-    //        epsilon, h0, limiting_threshold);
+    _compute_speed(&vh_left, &h_left,
+            epsilon, h0, limiting_threshold);
+    _compute_speed(&vh_right, &h_right,
+            epsilon, h0, limiting_threshold);
 
     // Maximal and minimal wave speeds
     soundspeed_left = sqrt(g * h_left);
@@ -282,7 +278,7 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
 
 
 __global__ void compute_fluxes_central_structure_CUDA(
-        long N,
+        int N,
         //double * elements,
         double  g,
         double epsilon,
@@ -329,6 +325,9 @@ __global__ void compute_fluxes_central_structure_CUDA(
     if (k >= N)
         return;
 
+    stage_explicit_update[k] = 0;
+    xmom_explicit_update[k] = 0;
+    ymom_explicit_update[k] = 0;
 #ifdef UNSORTED_DOMAIN
     int b[3]={0,1,2}, j;
     spe_bubble_sort( b, neighbours+k*3, k);
@@ -410,8 +409,8 @@ __global__ void compute_fluxes_central_structure_CUDA(
             }
         }
         
-
-        max_speed_total = max(max_speed_total, max_speed);
+        if (n < 0 ||  n > k)
+            max_speed_total = max(max_speed_total, max_speed);
     } // End edge i (and neighbour n)
 
 
