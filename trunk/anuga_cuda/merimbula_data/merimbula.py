@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 """Run parallel shallow water domain.
 
@@ -42,11 +43,14 @@ from anuga import create_domain_from_file
 #--------------------------------------------------------------------------
 
 #mesh_filename = "merimbula_10785_1.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+#mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
+from anuga_cuda.config import merimbula_tsh_file as mesh_filename
+x0 = 756000.0
+x1 = 756500.0
 yieldstep = 50
-finaltime = 500
+finaltime = 50
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -82,6 +86,9 @@ class Set_Elevation:
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 domain = create_domain_from_file(mesh_filename, GPU_domain)
+
+if 'gpu' in sys.argv:
+    domain.using_gpu = True
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
 domain.set_datadir('Data')
 domain.set_name('merimbula_new')

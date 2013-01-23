@@ -280,6 +280,7 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
 __global__ void compute_fluxes_central_structure_CUDA(
         int N,
         //double * elements,
+        double evolve_max_timestep,
         double  g,
         double epsilon,
         double h0,
@@ -324,6 +325,8 @@ __global__ void compute_fluxes_central_structure_CUDA(
 
     if (k >= N)
         return;
+
+    timestep[k] = evolve_max_timestep;
 
     stage_explicit_update[k] = 0;
     xmom_explicit_update[k] = 0;

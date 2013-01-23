@@ -60,7 +60,7 @@ def evolve_domain( domain ):
     #--------------------------------------------------------------------------
     # Evolve system through time
     #--------------------------------------------------------------------------
-    for t in domain.evolve(yieldstep=0.2, finaltime=40):
+    for t in domain.evolve(yieldstep=0.2, finaltime=5):
         print domain.flux_timestep
         print domain.timestepping_statistics()
     

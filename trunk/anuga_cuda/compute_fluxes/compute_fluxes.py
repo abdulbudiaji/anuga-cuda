@@ -1859,7 +1859,7 @@ if __name__ == '__main__':
     #from anuga_cuda.merimbula_data.channel1 import generate_domain
 
 
-    testing_gpu_domain = False
+    testing_gpu_domain = True
     testing_python_version = False
 
     # This will reorder edges in order to let the one bordering on
@@ -1896,6 +1896,7 @@ if __name__ == '__main__':
         #domain2.compute_fluxes_func(
         compute_fluxes_central_function(
                 numpy.uint(domain2.number_of_elements),
+                numpy.float64(domain2.evolve_max_timestep),
                 numpy.float64(domain2.g),
                 numpy.float64(domain2.epsilon),
                 numpy.float64(domain2.H0 * domain2.H0),

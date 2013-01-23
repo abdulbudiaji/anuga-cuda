@@ -1,4 +1,6 @@
 __global__ void gravity_wb(
+        long N,
+        double g,
         double * stage_vertex_values, 
         double * stage_edge_values, 
         double * stage_centroid_values, 
@@ -9,9 +11,7 @@ __global__ void gravity_wb(
         double * ymom_explicit_update, 
         double * normals, 
         double * areas, 
-        double * edgelengths,
-        double g,
-        long N
+        double * edgelengths
         )
 {
     const int k = 
