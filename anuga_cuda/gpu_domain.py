@@ -633,18 +633,14 @@ class GPU_domain(Domain):
             asy_cpy( Q.x_gradient, Q.x_gradient_gpu)
             asy_cpy( Q.y_gradient, Q.y_gradient_gpu)
 
-        ctx.synchronize()
 
     def compute_fluxes(self):
-        print "      -> compute_fluxes_func"
         if self.using_gpu :
             W1 = 32
             W2 = 1
             W3 = 1
             
 
-            ctx.synchronize()
-            #print "      -->1"
             #strm_cf = drv.Stream()
 
             self.compute_fluxes_func(
@@ -680,13 +676,9 @@ class GPU_domain(Domain):
                 #stream = strm_cf
                 )
                 
-            ctx.synchronize()
-            #print "      -->2"
             #strm_g = drv.Stream()
             drv.memcpy_dtoh(self.timestep_array, self.timestep_array_gpu)
 
-            ctx.synchronize()
-            #print "      -->3"
             self.gravity_wb_func(
                 numpy.uint64(self.number_of_elements),
                 numpy.float64(self.g),
@@ -712,17 +704,12 @@ class GPU_domain(Domain):
             #        strm_cf
             #        )
 
-            #strm_cf.synchronize()
             
             
-            ctx.synchronize()
-            #print "      -->4"
             b = numpy.argsort( self.timestep_array)
             self.flux_timestep = self.timestep_array[ b[0] ]
         else:
             Domain.compute_fluxes(self)
-        ctx.synchronize()
-        print "      ->"
 
 
     def balance_deep_and_shallow(self):
@@ -756,7 +743,6 @@ class GPU_domain(Domain):
 
 
     def distribute_to_vertices_and_edges(self):
-        print "      -> distribute_to_vertices_and_edges"
         if  self.using_gpu:
             W1 = 32
             W2 = 1
@@ -960,8 +946,6 @@ class GPU_domain(Domain):
                             )
         else:
             Domain.distribute_to_vertices_and_edges(self)
-        ctx.synchronize()
-        print "      ->"
 
 
     def protect_against_infinitesimal_and_negative_heights(self):
@@ -1072,8 +1056,8 @@ class GPU_domain(Domain):
         else:
             Domain.extrapolate_second_order_sw(self)
 
+
     def update_boundary(self):
-        print "      -> update_boundary"
         if self.using_gpu:
             #FIXME:result not correct
             W1 = 32
@@ -1164,8 +1148,7 @@ class GPU_domain(Domain):
                 
         else:
             Generic_Domain.update_boundary(self)
-        ctx.synchronize()
-        print "      ->"
+
 
     def ensure_numeric(A, typecode=None):
         """From numerical_tools"""
@@ -1178,7 +1161,6 @@ class GPU_domain(Domain):
                 return numpy.array(A)
         else:
             return numpy.array(A, dtype=typecode, copy=False)
-
 
 
     def get_absolute(self, points):
@@ -1258,9 +1240,7 @@ class GPU_domain(Domain):
             W3 = 1
             #FIXME
             x = self.get_vertex_coordinates()
-            print "      -->1"
             if self.use_sloped_mannings:
-                print "      -->2"
                 self.manning_friction_sloped_func(
                    numpy.int32(N),
                    numpy.float64(self.g),
@@ -1279,7 +1259,6 @@ class GPU_domain(Domain):
                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                    )
             else:
-                print "      -->3"
                 self.manning_friction_flat_func(
                    numpy.int32(N),
                    numpy.float64(self.g),
@@ -1353,20 +1332,15 @@ class GPU_domain(Domain):
 
 
     def compute_forcing_terms(self):
-        print "      -> compute_forcing_terms"
         if self.using_gpu:
             for f in self.forcing_terms:
-                print f
                 f()
         else:
             for f in self.forcing_terms:
                 f(self)
-        ctx.synchronize()
-        print "      ->"
 
 
     def update_conserved_quantities(self):
-        print "      -> update_conserved_quantities"
         if self.using_gpu :
             N = self.number_of_elements
             W1 = 32 
@@ -1387,8 +1361,6 @@ class GPU_domain(Domain):
                 drv.memset_d32(Q.semi_implicit_update_gpu, 0, N*2)
         else:
             Domain.update_conserved_quantities(self)
-        ctx.synchronize()
-        print "      ->"
 
 
     def backup_conserved_quantities(self):
@@ -1400,6 +1372,7 @@ class GPU_domain(Domain):
                         Q.centroid_values_gpu)
         else:
             Domain.backup_conserved_quantities(self)
+
 
     def saxpy_conserved_quantities(self, a, b):
         if self.using_gpu:
@@ -1459,13 +1432,16 @@ class GPU_domain(Domain):
         else:
             Domain.update_centroids_of_velocities_and_height(self)
 
+
     def copy_back_necessary_data(self):
         pass       
+
 
     def store_timestep(self):
         if self.using_gpu:
             self.copy_back_necessary_data()
         self.writer.store_timestep()
+
 
     def evolve(self, 
                 yieldstep=None,
@@ -1475,7 +1451,7 @@ class GPU_domain(Domain):
 
         print " # of elements: %d" % self.number_of_elements
         if self.using_gpu:
-            from anuga_cuda.merimbula_data.sort_domain import sort_domain
+            from anuga_cuda import sort_domain
             sort_domain(self)
 
             from anuga.shallow_water.shallow_water_domain import \

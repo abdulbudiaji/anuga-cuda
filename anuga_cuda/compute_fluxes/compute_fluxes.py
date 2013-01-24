@@ -1851,11 +1851,10 @@ if __name__ == '__main__':
     import numpy 
     from time import time
     
-    from anuga_cuda.merimbula_data.generate_domain import domain_create    
-    from anuga_cuda.merimbula_data.sort_domain import \
-        sort_domain, rearrange_domain
-    from anuga_cuda.merimbula_data.utility import approx_cmp
-    from anuga_cuda.merimbula_data.channel3 import generate_domain
+    from anuga_cuda import mer_domain as domain_create    
+    from anuga_cuda import sort_domain, rearrange_domain
+    from anuga_cuda import approx_cmp
+    from anuga_cuda import c3_domain as generate_domain
     #from anuga_cuda.merimbula_data.channel1 import generate_domain
 
 

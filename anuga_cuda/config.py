@@ -1,6 +1,9 @@
-#merimbula_tsh_file = "/home/659/zxw659/anuga-cuda/anuga_cuda/merimbula_data/merimbula_43200.tsh"
+testing_domain_path="/home/u5044856/anuga-cuda/anuga_cuda/testing_domains/"
 
-merimbula_tsh_file = "/home/u5044856/anuga-cuda/anuga_cuda/merimbula_data/merimbula_43200.tsh"
+merimbula_dir = testing_domain_path+"merimbula/"
+
+cairns_dir= testing_domain_path+"cairns/"
+
 
 kernel_path = {
     "compute_fluxes_dir" : \

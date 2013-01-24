@@ -1,0 +1,96 @@
+2013-01-24 10:39:03,002 INFO           anuga.utilities.log:0   |Logfile is './anuga.log' with logging level of INFO, console logging level is CRITICAL
+2013-01-24 10:39:03,004 CRITICAL                   caching:840 |Caching: looking for cached files /home/u5044856/.python_cache/_convert_dem_from_ascii2netcdf[-6414095553150537936]_{Result,Args,Admin}.z
+2013-01-24 10:39:03,006 CRITICAL                   caching:846 |Caching: Dependencies are ['cairns.prj', 'cairns.asc']
+2013-01-24 10:39:03,007 CRITICAL                   caching:2355|+----------------------------------------------------------
+| Thu Jan 24 10:39:03 2013. Caching statistics (retrieving)
++----------------------------------------------------------
+
+2013-01-24 10:39:03,007 CRITICAL                   caching:2281|| Function:     _convert_dem_from_ascii2netcdf
+2013-01-24 10:39:03,007 CRITICAL                   caching:2300|| Argument:     'cairns.asc'
+2013-01-24 10:39:03,007 CRITICAL                   caching:2312|| Keyword Args: {'name_out': None, 'verbose': True}
+2013-01-24 10:39:03,007 CRITICAL                   caching:2202|| CPU time:     0.93 seconds
+2013-01-24 10:39:03,008 CRITICAL                   caching:2204|| Loading time: 0.0 seconds
+2013-01-24 10:39:03,008 CRITICAL                   caching:2206|| Time saved:   0.93 seconds
+2013-01-24 10:39:03,008 CRITICAL                   caching:2223||
+2013-01-24 10:39:03,008 CRITICAL                   caching:2224|| Caching dir:  /home/u5044856/.python_cache/
+2013-01-24 10:39:03,008 CRITICAL                   caching:2237|| Result file:  _convert_dem_from_ascii2netcdf[-6414095553150537936]_Result.z(10 bytes, compressed)
+2013-01-24 10:39:03,008 CRITICAL                   caching:2237|| Args file:    _convert_dem_from_ascii2netcdf[-6414095553150537936]_Args.z(63 bytes, compressed)
+2013-01-24 10:39:03,009 CRITICAL                   caching:2237|| Admin file:   _convert_dem_from_ascii2netcdf[-6414095553150537936]_Admin.z(1372 bytes, compressed)
+2013-01-24 10:39:03,009 CRITICAL                   caching:2239||
+2013-01-24 10:39:03,009 CRITICAL                   caching:2241|| Dependencies:  
+2013-01-24 10:39:03,009 CRITICAL                   caching:2266|| cairns.prj: Thu Jan 24 08:54:18 2013     177 bytes
+2013-01-24 10:39:03,009 CRITICAL                   caching:2266|| cairns.asc: Thu Jan 24 08:54:18 2013 9385419 bytes
+2013-01-24 10:39:03,009 CRITICAL                   caching:2368|+----------------------------------------------------------
+
+2013-01-24 10:39:03,012 CRITICAL                   caching:840 |Caching: looking for cached files /home/u5044856/.python_cache/_dem2pts[-5267528791734047519]_{Result,Args,Admin}.z
+2013-01-24 10:39:03,014 CRITICAL                   caching:846 |Caching: Dependencies are ['cairns.dem']
+2013-01-24 10:39:03,016 CRITICAL                   caching:2355|+----------------------------------------------------------
+| Thu Jan 24 10:39:03 2013. Caching statistics (retrieving)
++----------------------------------------------------------
+
+2013-01-24 10:39:03,016 CRITICAL                   caching:2281|| Function:     _dem2pts
+2013-01-24 10:39:03,016 CRITICAL                   caching:2300|| Argument:     'cairns.dem'
+2013-01-24 10:39:03,017 CRITICAL                   caching:2312|| Keyword Args: {'northing_min': None, 'verbose': True, 'northing_max': None, 'name_out': None, 'easting_min': None, 'easting_max': None}
+2013-01-24 10:39:03,017 CRITICAL                   caching:2202|| CPU time:     430.31 seconds
+2013-01-24 10:39:03,017 CRITICAL                   caching:2204|| Loading time: 0.0 seconds
+2013-01-24 10:39:03,017 CRITICAL                   caching:2206|| Time saved:   430.31 seconds
+2013-01-24 10:39:03,018 CRITICAL                   caching:2223||
+2013-01-24 10:39:03,018 CRITICAL                   caching:2224|| Caching dir:  /home/u5044856/.python_cache/
+2013-01-24 10:39:03,018 CRITICAL                   caching:2237|| Result file:  _dem2pts[-5267528791734047519]_Result.z(10 bytes, compressed)
+2013-01-24 10:39:03,019 CRITICAL                   caching:2237|| Args file:    _dem2pts[-5267528791734047519]_Args.z(102 bytes, compressed)
+2013-01-24 10:39:03,019 CRITICAL                   caching:2237|| Admin file:   _dem2pts[-5267528791734047519]_Admin.z(1520 bytes, compressed)
+2013-01-24 10:39:03,019 CRITICAL                   caching:2239||
+2013-01-24 10:39:03,019 CRITICAL                   caching:2241|| Dependencies:  
+2013-01-24 10:39:03,020 CRITICAL                   caching:2266|| cairns.dem: Thu Jan 24 09:52:51 2013 15054956 bytes
+2013-01-24 10:39:03,020 CRITICAL                   caching:2368|+----------------------------------------------------------
+
+2013-01-24 10:39:03,023 CRITICAL                   caching:840 |Caching: looking for cached files /home/u5044856/.python_cache/_create_domain_from_regions[5200212099232348809]_{Result,Args,Admin}.z
+2013-01-24 10:39:03,025 CRITICAL                   caching:846 |Caching: Dependencies are []
+2013-01-24 10:39:03,075 CRITICAL                   caching:2355|+----------------------------------------------------------
+| Thu Jan 24 10:39:03 2013. Caching statistics (retrieving)
++----------------------------------------------------------
+
+2013-01-24 10:39:03,075 CRITICAL                   caching:2281|| Function:     _create_domain_from_regions
+2013-01-24 10:39:03,075 CRITICAL                   caching:2303|| Arguments:    ([[301278.51, 8236065.96], [712193.31, 8272240.51], [710437.26, 7980034.44], [368008.27, 7961069.14]], {'ocean_east': [1], 'top': [0], 'onshore': [3], 'bottom': [2]})
+2013-01-24 10:39:03,076 CRITICAL                   caching:2312|| Keyword Args: {'poly_geo_reference': None, 'minimum_triangle_angle': 28.0, 'mesh_filename': 'cairns.msh', 'interior_regions': [[[[361840.48, 8146491.7], [364587.69, 8143955.81], [368497.18, 8139518.01], [383303.37, 8139440.53], [385720.08, 8136770.8], [391637.14, 8132861.31], [394260.48, 8131336.84], [397912.85, ...
+2013-01-24 10:39:03,076 CRITICAL                   caching:2202|| CPU time:     0.26 seconds
+2013-01-24 10:39:03,076 CRITICAL                   caching:2204|| Loading time: 0.05 seconds
+2013-01-24 10:39:03,076 CRITICAL                   caching:2206|| Time saved:   0.21 seconds
+2013-01-24 10:39:03,076 CRITICAL                   caching:2223||
+2013-01-24 10:39:03,077 CRITICAL                   caching:2224|| Caching dir:  /home/u5044856/.python_cache/
+2013-01-24 10:39:03,077 CRITICAL                   caching:2237|| Result file:  _create_domain_from_regions[5200212099232348809]_Result(25631744 bytes)
+2013-01-24 10:39:03,077 CRITICAL                   caching:2237|| Args file:    _create_domain_from_regions[5200212099232348809]_Args(1531 bytes)
+2013-01-24 10:39:03,077 CRITICAL                   caching:2237|| Admin file:   _create_domain_from_regions[5200212099232348809]_Admin(570 bytes)
+2013-01-24 10:39:03,077 CRITICAL                   caching:2239||
+2013-01-24 10:39:03,077 CRITICAL                   caching:2268|| No dependencies
+2013-01-24 10:39:03,078 CRITICAL                   caching:2368|+----------------------------------------------------------
+
+2013-01-24 10:39:03,126 CRITICAL                   caching:840 |Caching: looking for cached files /home/u5044856/.python_cache/_fit_to_mesh[-7688108539072928154]_{Result,Args,Admin}.z
+2013-01-24 10:39:03,129 CRITICAL                   caching:846 |Caching: Dependencies are ['cairns.pts']
+2013-01-24 10:39:03,161 CRITICAL                   caching:2355|+----------------------------------------------------------
+| Thu Jan 24 10:39:03 2013. Caching statistics (retrieving)
++----------------------------------------------------------
+
+2013-01-24 10:39:03,161 CRITICAL                   caching:2281|| Function:     _fit_to_mesh
+2013-01-24 10:39:03,161 CRITICAL                   caching:2300|| Argument:     'cairns.pts'
+2013-01-24 10:39:03,162 CRITICAL                   caching:2312|| Keyword Args: {'data_origin': None, 'point_attributes': None, 'mesh': Mesh: 8974 vertices, 17831 triangles, 115 boundary segments, 'vertex_coordinates': None, 'verbose': True, 'alpha': 0.1, 'mesh_origin': None, 'attribute_name': None, 'triangles': None, 'max_read_lines': 5000}
+2013-01-24 10:39:03,162 CRITICAL                   caching:2202|| CPU time:     198.18 seconds
+2013-01-24 10:39:03,162 CRITICAL                   caching:2204|| Loading time: 0.0 seconds
+2013-01-24 10:39:03,162 CRITICAL                   caching:2206|| Time saved:   198.18 seconds
+2013-01-24 10:39:03,162 CRITICAL                   caching:2223||
+2013-01-24 10:39:03,163 CRITICAL                   caching:2224|| Caching dir:  /home/u5044856/.python_cache/
+2013-01-24 10:39:03,163 CRITICAL                   caching:2237|| Result file:  _fit_to_mesh[-7688108539072928154]_Result(71930 bytes)
+2013-01-24 10:39:03,163 CRITICAL                   caching:2237|| Args file:    _fit_to_mesh[-7688108539072928154]_Args(6285546 bytes)
+2013-01-24 10:39:03,163 CRITICAL                   caching:2237|| Admin file:   _fit_to_mesh[-7688108539072928154]_Admin(1464 bytes)
+2013-01-24 10:39:03,163 CRITICAL                   caching:2239||
+2013-01-24 10:39:03,164 CRITICAL                   caching:2241|| Dependencies:  
+2013-01-24 10:39:03,164 CRITICAL                   caching:2266|| cairns.pts: Thu Jan 24 10:00:01 2013 44726000 bytes
+2013-01-24 10:39:03,164 CRITICAL                   caching:2368|+----------------------------------------------------------
+
+2013-01-24 10:39:03,166 CRITICAL                  quantity:981 |Applying fitted data to domain
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  2013-01-24 12:48:43,207 CRITICAL                       log:171 |
+  File "<stdin>", line 1
+    d.
+     ^
+SyntaxError: invalid syntax
+
