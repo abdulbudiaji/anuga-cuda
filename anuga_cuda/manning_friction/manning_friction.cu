@@ -30,11 +30,12 @@ __global__ void _manning_friction_flat(
         z = (z0 + z1 + z2) / 3.0;
         h = w[k] - z;
         if (h >= eps) {
-            S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+            S = -g *eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
             S /= pow(h, 7.0 / 3); //Expensive (on Ole's home computer)
-            //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
-            //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
-
+            //seems to save about 15% over manning_friction
+            //S /= exp((7.0/3.0)*log(h));      
+            //FIXME: Could use a Taylor expansion
+            //S /= h*h*(1 + h/3.0 - h*h/9.0); 
 
             //Update momentum
             xmom[k] += S * uh[k];
@@ -101,7 +102,7 @@ __global__ void _manning_friction_sloped(
         z = (z0 + z1 + z2) / 3.0;
         h = w[k] - z;
         if (h >= eps) {
-            S = -g * eta[k] * eta[k] * zs * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+            S =-g *eta[k] *eta[k] *zs *sqrt((uh[k] *uh[k] + vh[k] * vh[k]));
             S /= pow(h, 7.0 / 3); //Expensive (on Ole's home computer)
             //S /= exp((7.0/3.0)*log(h));      
             //seems to save about 15% over manning_friction
