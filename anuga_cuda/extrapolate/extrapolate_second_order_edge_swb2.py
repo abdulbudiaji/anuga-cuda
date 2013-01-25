@@ -6,23 +6,58 @@ from pycuda import driver as drv
 from anuga_cuda import generate_merimbula_domain
 from anuga_cuda import generate_cairns_domain
 
-#domain1 = generate_merimbula_domain()
-#domain2 = generate_merimbula_domain(gpu=True)
+using_tsunami_domain = True
 
-domain1 = generate_cairns_domain(False)
-domain2 = generate_cairns_domain(True)
+if using_tsunami_domain:
+    domain1 = generate_cairns_domain(False)
+    domain2 = generate_cairns_domain(True)
+else:
+    domain1 = generate_merimbula_domain()
+    domain2 = generate_merimbula_domain(gpu=True)
+
 
 domain1.evolve(yieldstep = 50, finaltime = 500)
 domain1.evolve(yieldstep = 50, finaltime = 500)
 domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.distribute_to_vertices_and_edges()
+if using_tsunami_domain:
+    domain1.distribute_to_vertices_and_edges()
+else:
+    from swb2_domain_ext import \
+            extrapolate_second_order_edge_sw as extrapol2_ext
+
+    # Shortcuts
+    Stage = domain1.quantities['stage']
+    Xmom = domain1.quantities['xmomentum']
+    Ymom = domain1.quantities['ymomentum']
+    Elevation = domain1.quantities['elevation']
+    
+    extrapol2_ext(domain1,
+            domain1.surrogate_neighbours,
+            domain1.number_of_boundaries,
+            domain1.centroid_coordinates,
+            Stage.centroid_values,
+            Xmom.centroid_values,
+            Ymom.centroid_values,
+            Elevation.centroid_values,
+            domain1.edge_coordinates,
+            Stage.edge_values,
+            Xmom.edge_values,
+            Ymom.edge_values,
+            Elevation.edge_values,
+            Stage.vertex_values,
+            Xmom.vertex_values,
+            Ymom.vertex_values,
+            Elevation.vertex_values,
+            int(domain1.optimise_dry_cells),
+            int(domain1.extrapolate_velocity_second_order))
 
 
 N = domain2.number_of_elements
 domain2.evolve(yieldstep = 50, finaltime = 500)
 domain2.evolve(yieldstep = 50, finaltime = 500)
 domain2.evolve(yieldstep = 50, finaltime = 500)
-domain2.protect_against_infinitesimal_and_negative_heights()
+if using_tsunami_domain:
+    domain2.protect_against_infinitesimal_and_negative_heights()
 
 W1 = 4
 W2 = 1
@@ -80,14 +115,6 @@ domain2.extrapolate_second_order_edge_swb2_func(
         grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
     )
 
-cnt_xc = 0
-cnt_yc = 0
-cnt_se = 0
-cnt_xe = 0
-cnt_ye = 0
-cnt_sv = 0
-cnt_xv = 0
-cnt_yv = 0
 
 xc1 = domain1.quantities['xmomentum'].centroid_values
 yc1 = domain1.quantities['ymomentum'].centroid_values
@@ -107,22 +134,40 @@ sv2 = domain2.quantities['stage'].vertex_values
 xv2 = domain2.quantities['xmomentum'].vertex_values
 yv2 = domain2.quantities['ymomentum'].vertex_values
 
-print "xmom_centroid_values all closed? " ,numpy.allclose(xc1, xc2)
-print "ymom_centroid_values all closed? " ,numpy.allclose(yc1, yc2)
-print "stage_edge_values all closed?  " ,numpy.allclose(se1, se2)
-print "xmom_edge_values all closed?  " ,numpy.allclose(xe1, xe2)
-print "ymom_edge_values all closed?  " ,numpy.allclose(ye1, ye2)
-print "stage_vertex_values all closed?  " ,numpy.allclose(sv1, sv2)
-print "xmom_vertex_values all closed?  " ,numpy.allclose(xv1, xv2)
-print "ymom_vertex_values all closed?  " ,numpy.allclose(yv1, yv2)
-
-#print se1, se2
 res = []
-for i in range(N):
-    if (se1[i] != se2[i]).any():
-        cnt_se += 1
-        res.append(i)
-        #if cnt_se :
-        #    print i, se1[i], se2[i]
-print " Number of diff: is %d " % cnt_se
-print res
+res.append( numpy.allclose(xc1, xc2) )
+res.append( numpy.allclose(yc1, yc2) )
+res.append( numpy.allclose(se1, se2) )
+res.append( numpy.allclose(xe1, xe2) )
+res.append( numpy.allclose(ye1, ye2) )
+res.append( numpy.allclose(sv1, sv2) )
+res.append( numpy.allclose(xv1, xv2) )
+res.append( numpy.allclose(yv1, yv2) )
+
+print "\n\nxmom_centroid_values all closed? " ,res[0]
+print "ymom_centroid_values all closed? " ,res[1]
+print "stage_edge_values all closed?  " ,res[2]
+print "xmom_edge_values all closed?  " ,res[3]
+print "ymom_edge_values all closed?  " ,res[4]
+print "stage_vertex_values all closed?  " ,res[5]
+print "xmom_vertex_values all closed?  " ,res[6]
+print "ymom_vertex_values all closed?  " ,res[7]
+
+if not res.count(True) == 8:
+    cnt_xc = 0
+    cnt_yc = 0
+    cnt_se = 0
+    cnt_xe = 0
+    cnt_ye = 0
+    cnt_sv = 0
+    cnt_xv = 0
+    cnt_yv = 0
+    res = []
+    for i in range(N):
+        if (se1[i] != se2[i]).any():
+            cnt_se += 1
+            res.append(i)
+            if cnt_se :
+                print i, se1[i], se2[i]
+    print " Number of diff: is %d " % cnt_se
+    print res
