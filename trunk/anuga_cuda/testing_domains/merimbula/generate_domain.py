@@ -11,77 +11,80 @@
    n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
 
-#------------------------------------------------------------------------------
-# Import necessary modules
-#------------------------------------------------------------------------------
-
-import os
-import sys
-import time
-import numpy as num
-
-#------------------------
-# ANUGA Modules
-#------------------------
-	
-from anuga import Domain
-from anuga import Reflective_boundary
-from anuga import Dirichlet_boundary
-from anuga import Time_boundary
-from anuga import Transmissive_boundary
-
-from anuga import rectangular_cross
-from anuga import create_domain_from_file
-
-from anuga_cuda import GPU_domain, merimbula_dir
-
-
 #--------------------------------------------------------------------------
-# Setup parameters
-#--------------------------------------------------------------------------
-
-#mesh_filename = "merimbula_10785.tsh" ; x0 = 756000.0 ; x1 = 756500.0
-mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
-#mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
-#mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
-mesh_filename = merimbula_dir + mesh_filename
-yieldstep = 50
-finaltime = 500
-verbose = True
-
-#--------------------------------------------------------------------------
-# Setup procedures
-#--------------------------------------------------------------------------
-class Set_Stage:
-    """Set an initial condition with constant water height, for x0<x<x1
-    """
-
-    def __init__(self, x0=0.25, x1=0.5, h=1.0):
-        self.x0 = x0
-        self.x1 = x1
-        self.h  = h
-
-    def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1))+1.0
-
-
-class Set_Elevation:
-    """Set an elevation
-    """
-
-    def __init__(self, h=1.0):
-        self.x0 = x0
-        self.x1 = x1
-        self.h  = h
-
-    def __call__(self, x, y):
-        return x/self.h
+# Evolution
+#---------------------------------------------------------------------------
+def generate_merimbula_domain(gpu=False):
+    #-----------------------------------------------------------------------
+    # Import necessary modules
+    #-----------------------------------------------------------------------
     
+    import os
+    import sys
+    import time
+    import numpy as num
+    
+    #------------------------
+    # ANUGA Modules
+    #------------------------
+    	
+    from anuga import Domain
+    from anuga import Reflective_boundary
+    from anuga import Dirichlet_boundary
+    from anuga import Time_boundary
+    from anuga import Transmissive_boundary
+    
+    from anuga import rectangular_cross
+    from anuga import create_domain_from_file
+    
+    from anuga_cuda import GPU_domain, merimbula_dir
+    
+    
+    #-----------------------------------------------------------------------
+    # Setup parameters
+    #-----------------------------------------------------------------------
+    
+    #mesh_filename = "merimbula_10785.tsh" ; x0 = 756000.0 ; x1 = 756500.0
+    mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
+    #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
+    #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
+    mesh_filename = merimbula_dir + mesh_filename
+    yieldstep = 50
+    finaltime = 500
+    verbose = True
+    
+    #-----------------------------------------------------------------------
+    # Setup procedures
+    #-----------------------------------------------------------------------
+    class Set_Stage:
+        """Set an initial condition with constant water height, for x0<x<x1
+        """
+    
+        def __init__(self, x0=0.25, x1=0.5, h=1.0):
+            self.x0 = x0
+            self.x1 = x1
+            self.h  = h
+    
+        def __call__(self, x, y):
+            return self.h*((x>self.x0)&(x<self.x1))+1.0
+    
+    
+    class Set_Elevation:
+        """Set an elevation
+        """
+    
+        def __init__(self, h=1.0):
+            self.x0 = x0
+            self.x1 = x1
+            self.h  = h
+    
+        def __call__(self, x, y):
+            return x/self.h
+        
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
-def domain_create(gpu=False):
     if not gpu:
         domain = create_domain_from_file(mesh_filename)
     else:
@@ -144,16 +147,13 @@ def domain_create(gpu=False):
     domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Br})
 
     return domain
-#------------------------------------------------------------------------------
-# Evolution
-#------------------------------------------------------------------------------
-def domain_evolve( domain ):
+def evolve_merimbula_domain( domain ):
     t0 = time.time()
 
     for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 	    domain.write_time()
 
-def domain_evolve_single_step(domain):
+def evolve_merimbula_domain_single_step(domain):
     domain.evolve(yieldstep=yieldstep, finaltime=finaltime)
 
 #barrier()
@@ -169,5 +169,5 @@ def domain_evolve_single_step(domain):
 
 
 if __name__ == "__main__":
-    domain = domain_create()
-    domain_evolve(domain)
+    domain = generate_merimbula_domain()
+    evolve_merimbula_domain(domain)
