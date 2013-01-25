@@ -1,14 +1,14 @@
 import numpy
 from pycuda import driver as drv
-from anuga_cuda.merimbula_data.generate_domain import domain_create
+from anuga_cuda import generate_merimbula_domain
 
-domain1 = domain_create()
-domain2 = domain_create(gpu=True)
+domain1 = generate_merimbula_domain()
+domain2 = generate_merimbula_domain(gpu=True)
 
+domain1.evolve(yieldstep = 50, finaltime = 500)
+domain1.evolve(yieldstep = 50, finaltime = 500)
+domain1.evolve(yieldstep = 50, finaltime = 500)
 domain1.protect_against_infinitesimal_and_negative_heights()
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
 
 N = domain2.number_of_elements
 domain2.evolve(yieldstep = 50, finaltime = 500)
