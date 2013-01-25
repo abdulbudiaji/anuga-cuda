@@ -1851,11 +1851,10 @@ if __name__ == '__main__':
     import numpy 
     from time import time
     
-    from anuga_cuda import mer_domain as domain_create    
     from anuga_cuda import sort_domain, rearrange_domain
     from anuga_cuda import approx_cmp
-    from anuga_cuda import c3_domain as generate_domain
-    #from anuga_cuda.merimbula_data.channel1 import generate_domain
+    from anuga_cuda import generate_merimbula_domain
+    from anuga_cuda import generate_channel3_domain
 
 
     testing_gpu_domain = True
@@ -1863,13 +1862,13 @@ if __name__ == '__main__':
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
-    domain2 = domain_create(gpu = True)
-    #domain2 = generate_domain()
+    domain2 = generate_merimbula_domain(gpu = True)
+    #domain2 = generate_channel3_domain()
     sort_domain(domain2)
 
 
-    domain1 = domain_create()
-    #domain1 = generate_domain()
+    domain1 = generate_merimbula_domain()
+    #domain1 = generate_channel3_domain()
     #domain2 = rearrange_domain(domain1)
     
     print " Number of elements is: %d" % domain1.number_of_elements
@@ -1939,8 +1938,9 @@ if __name__ == '__main__':
         drv.memcpy_dtoh(domain2.timestep_array,
                         domain2.timestep_array_gpu)
         
-        b = numpy.argsort(domain2.timestep_array)
-        domain2.flux_timestep = domain2.timestep_array[b[0]] 
+        #b = numpy.argsort(domain2.timestep_array)
+        #domain2.flux_timestep = domain2.timestep_array[b[0]] 
+        domain2.flux_timestep = numpy.min(domain2.timestep_array)
     else:
         if domain2.compute_fluxes_method == 'original':
             pass
@@ -2071,7 +2071,7 @@ if __name__ == '__main__':
 
 
     #print "\n~~~~~~~~~~~~~~~~~~~ domain 3 ~~~~~~~~~~~~~~~~~"
-    #domain3 = domain_create()
+    #domain3 = generate_merimbula_domain()
 
     #compute_fluxes_central_structure_cuda(domain3, parallelFlag=1, \
 	#		name= "_flux_function_central_2")
@@ -2103,7 +2103,7 @@ if __name__ == '__main__':
 
     if testing_python_version:
         print "\n~~~~~~~~~~~~~ domain 4 ~~~~~~~~~~~~"
-        domain4 = domain_create()
+        domain4 = generate_merimbula_domain()
 
         sort_domain(domain4)
 

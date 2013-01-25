@@ -1,0 +1,42 @@
+#!/bin/bash
+
+Py=python
+gpu=-gpu
+cuda_dir=/home/u5044856/anuga-cuda/anuga_cuda/
+
+echo -e "***********************************************"
+echo -e "*   Starting testing following modules/cases: *"
+echo -e "*---------------------------------------------*"
+echo -e "* channel1.py," 
+echo -e "* channel3.py," 
+echo -e "* merimbula.py," 
+echo -e "* runcairns.py," 
+echo -e "* compute_fluxes.py," 
+echo -e "*=============================================*"
+echo -e "* Let's started ......                        *"
+echo -e "* channel1.py"
+$Py ${cuda_dir}testing_domains/channel1.py $gpu
+if [ "$?" ]; then
+    echo -e "* channel3.py"
+    $Py ${cuda_dir}testing_domains/channel3.py $gpu
+else
+    echo -e "* Error: channel1.py running faild"
+fi
+if [ "$?" ]; then
+    echo -e "* merimbula.py                                *"
+    $Py ${cuda_dir}testing_domains/merimbula/merimbula.py $gpu
+else
+    echo -e "* Error: channel3.py running faild"
+fi
+if [ "$?" ]; then
+    echo -e "* runcairns.py                                *"
+    $Py ${cuda_dir}testing_domains/cairns/runcairns.py $gpu
+else
+    echo -e "* Error: merimbula.py running faild"
+fi
+if [ "$?" ]; then
+    echo -e ""
+else
+    echo -e "* Error: runcairns.py running faild"
+fi
+#$Py ${cuda_dir} $gpu

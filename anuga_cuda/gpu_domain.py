@@ -69,9 +69,11 @@ class GPU_domain(Domain):
             number_of_full_nodes=None,
             number_of_full_triangles=None,
             ghost_layer_width=2,
-            using_gpu=False): 
+            using_gpu=False,
+            domain=None): 
 
-        Domain.__init__(self,
+        if domain == None:
+            Domain.__init__(self,
                 coordinates,
                 vertices,
                 boundary,
@@ -92,6 +94,8 @@ class GPU_domain(Domain):
                 number_of_full_nodes,
                 number_of_full_triangles,
                 ghost_layer_width)
+        else:
+            self.__dict__.update(domain.__dict__)
 
         self.boundary_index = {}
 
@@ -484,8 +488,6 @@ class GPU_domain(Domain):
             Q.semi_implicit_update_gpu = \
                     get_device_array( Q.semi_implicit_update)
 
-
-
     def asynchronous_transfer(self):
         # auxiliary arrays
         for tag in self.tag_boundary_cells:
@@ -634,6 +636,39 @@ class GPU_domain(Domain):
             asy_cpy( Q.y_gradient, Q.y_gradient_gpu)
 
 
+
+    def apply_protection_against_isolated_degenerate_timesteps(self):
+        if self.using_gpu:
+            if self.protect_against_isolated_degenerate_timesteps is False:
+                return
+            
+            cpy_back(self.max_speed, self.max_speed_gpu)
+            ctx.synchronize()
+            if numpy.max(self.max_speed) < 10.0:
+                return
+
+            from anuga.utilities.numerical_tools import \
+                    histogram, create_bins
+            
+            bins = create_bins(self.max_speed, 10)
+            hist = histogram(self.max_speed, bins)
+
+            if len(hist) > 1 and hist[-1] > 0 and \
+                hist[4] == hist[5] == hist[6] == hist[7] == hist[8] == 0:
+
+                d = 0
+                for i in range(self.number_of_triangles):
+                    if self.max_speed[i] > bins[-1]:
+                        print "1"
+                        self.get_quantity('xmomentum').\
+                            set_values(0.0, indices=[i])
+                        self.get_quantity('ymomentum').\
+                            set_values(0.0, indices=[i])
+                        self.max_speed[i]=0.0
+                        d += 1
+        else:
+            Domain.apply_protection_against_isolated_degenerate_timesteps(self)
+
     def compute_fluxes(self):
         if self.using_gpu :
             W1 = 32
@@ -706,8 +741,9 @@ class GPU_domain(Domain):
 
             
             
-            b = numpy.argsort( self.timestep_array)
-            self.flux_timestep = self.timestep_array[ b[0] ]
+            #b = numpy.argsort( self.timestep_array)
+            #self.flux_timestep = self.timestep_array[ b[0] ]
+            self.flux_timestep = numpy.min(self.timestep_array)
         else:
             Domain.compute_fluxes(self)
 
@@ -1367,6 +1403,7 @@ class GPU_domain(Domain):
         if self.using_gpu:
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
+                #FIXME: may use asynchronous_transfer
                 drv.memcpy_dtod(
                         Q.centroid_backup_values_gpu, 
                         Q.centroid_values_gpu)
@@ -1449,7 +1486,7 @@ class GPU_domain(Domain):
                 duration=None,
                 skip_initial_step=False):
 
-        print " # of elements: %d" % self.number_of_elements
+        print " --> Number of elements: %d" % self.number_of_elements
         if self.using_gpu:
             from anuga_cuda import sort_domain
             sort_domain(self)

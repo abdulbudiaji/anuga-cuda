@@ -9,7 +9,7 @@ Water flowing down a channel with more complex topography
 import anuga
 from anuga_cuda import GPU_domain
 
-def generate_domain(gpu=False):
+def generate_channel3_domain(gpu=False):
     #--------------------------------------------------------------------------
     # Setup computational domain
     #--------------------------------------------------------------------------
@@ -64,7 +64,7 @@ def generate_domain(gpu=False):
     domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
     return domain
 
-def evolve_domain(domain):
+def evolve_channel3_domain(domain):
     #--------------------------------------------------------------------------
     # Evolve system through time
     #--------------------------------------------------------------------------

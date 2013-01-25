@@ -12,12 +12,10 @@ from anuga_cuda.testing_domains.utility import *
 
 
 # Import Channel1 domain
-from anuga_cuda.testing_domains.channel1 import generate_domain as c1_domain
+from anuga_cuda.testing_domains.channel1 import *
 # Import Channel3 domain
-from anuga_cuda.testing_domains.channel3 import generate_domain as c3_domain
+from anuga_cuda.testing_domains.channel3 import *
 # Import Merimbula domain
-from anuga_cuda.testing_domains.merimbula.generate_domain import \
-            domain_create as mer_domain
+from anuga_cuda.testing_domains.merimbula.generate_domain import *
 # Import Cairns domain
-from anuga_cuda.testing_domains.cairns.runcairns import \
-            generate_domain as cairns_domain
+from anuga_cuda.testing_domains.cairns.runcairns import *

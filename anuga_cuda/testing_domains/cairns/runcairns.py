@@ -26,7 +26,7 @@ import anuga
 import project                 # Definition of file names and polygons
 from anuga_cuda import GPU_domain
 
-def generate_domain(gpu=False):
+def generate_cairns_domain(gpu=False):
     #-----------------------------------------------------------------------
     # Preparation of topographic data
     # Convert ASC 2 DEM 2 PTS using source data 
@@ -54,6 +54,9 @@ def generate_domain(gpu=False):
             use_cache=True,
             verbose=True)
 
+    if gpu :
+        #domain.__class__ = GPU_domain
+        domain = GPU_domain(domain=domain)
     # Print some stats about mesh and domain
     print 'Number of triangles = ', len(domain)
     print 'The extent is ', domain.get_extent()
@@ -132,7 +135,7 @@ def generate_domain(gpu=False):
     return domain
 
                          
-def evolve(domain):
+def evolve_cairns_domain(domain):
     #-----------------------------------------------------------------------
     # Evolve system through time
     #-----------------------------------------------------------------------
@@ -173,4 +176,5 @@ def evolve(domain):
 
 
 if __name__ == "__main__":
-    domain = generate_domain()
+    domain = generate_cairns_domain()
+    #evolve_cairns_domain(domain)

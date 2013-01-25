@@ -12,7 +12,7 @@ import sys
 import anuga
 from anuga_cuda.gpu_domain import GPU_domain
 
-def generate_domain(gpu=True):
+def generate_channel1_domain(gpu=True):
     #--------------------------------------------------------------------------
     # Setup computational domain
     #--------------------------------------------------------------------------
@@ -58,7 +58,7 @@ def generate_domain(gpu=True):
 
 
 
-def evolve_domain( domain ):
+def evolve_channel1_domain( domain ):
     #--------------------------------------------------------------------------
     # Evolve system through time
     #--------------------------------------------------------------------------
@@ -68,6 +68,6 @@ def evolve_domain( domain ):
     
 
 if __name__ == '__main__':
-    domain = generate_domain()
-    evolve_domain(domain)
+    domain = generate_channel1_domain()
+    evolve_channel1_domain(domain)
 
