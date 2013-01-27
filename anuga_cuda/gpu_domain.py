@@ -3,6 +3,7 @@
 # System module
 import numpy 
 
+
 # ANUGA module
 from anuga import Domain
 from anuga.abstract_2d_finite_volumes.generic_domain \
@@ -12,6 +13,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
         Transmissive_boundary, Dirichlet_boundary, Compute_fluxes_boundary, \
         Time_boundary, Time_boundary, Time_boundary
 from anuga.shallow_water.boundaries import Reflective_boundary
+
 
 # PyCUDA module
 import pycuda.driver as drv
@@ -29,18 +31,6 @@ else:
 
 
 # Config info
-#from anuga_cuda.config import compute_fluxes_dir
-#from anuga_cuda.config import gravity_dir
-#from anuga_cuda.config import extrapolate_dir
-#from anuga_cuda.config import protect_dir
-#from anuga_cuda.config import balance_dir
-#from anuga_cuda.config import interpolate_dir
-#from anuga_cuda.config import evaluate_dir
-#from anuga_cuda.config import get_absolute_dir
-#from anuga_cuda.config import manning_friction_dir
-#from anuga_cuda.config import saxpy_dir
-#from anuga_cuda.config import set_boundary_dir
-#from anuga_cuda.config import update_centroids_dir
 from anuga_cuda import kernel_path as kp
 
 
@@ -113,7 +103,9 @@ class GPU_domain(Domain):
             self.timestep_array = numpy.zeros(
                     self.number_of_elements,
                     dtype = numpy.float64)
-       
+ 
+
+
         # compute_fluxes function
         self.compute_fluxes_mod = SourceModule(
                 open( kp["compute_fluxes_dir"] + \
@@ -125,6 +117,8 @@ class GPU_domain(Domain):
                 #"compute_fluxes_central_structure_cuda_single")
                 "compute_fluxes_central_structure_CUDA")
 
+
+
         # gravity_wb function
         self.gravity_wb_mod = SourceModule(
                 open( kp["gravity_dir"]+"gravity.cu","r ").read(),
@@ -133,6 +127,8 @@ class GPU_domain(Domain):
 
         self.gravity_wb_func = self.gravity_wb_mod.get_function(
                 "gravity_wb")
+
+
 
         # extrapolate_second_order_sw function
         self.extrapolate_second_order_sw_mod = SourceModule(
@@ -149,6 +145,8 @@ class GPU_domain(Domain):
         self.extrapolate_second_order_sw_false_func = \
             self.extrapolate_second_order_sw_mod.get_function(
                 "extrapolate_second_order_sw_false")
+
+
 
         # extrapolate_second_order_and_limit_by_vertex_or_edge function
         self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod = \
@@ -169,6 +167,8 @@ class GPU_domain(Domain):
                 get_function(
                     "extrapolate_second_order_and_limit_by_edge")
 
+
+
         # extrapolate_first_order function
         self.extrapolate_first_order_mod = \
             SourceModule(
@@ -182,17 +182,33 @@ class GPU_domain(Domain):
                     "extrapolate_first_order")
 
 
+
+        # extrapolate_second_order_edge_swb2 function
+        self.extrapolate_second_order_edge_swb2_mod = \
+            SourceModule(
+                open( kp["extrapolate_dir"] +\
+                        "extrapolate_second_order_edge_swb2.cu").read(),
+                include_dirs= [ kp["extrapolate_dir"] ]
+                )
+
+        self.extrapolate_second_order_edge_swb2_func = \
+            self.extrapolate_second_order_edge_swb2_mod.get_function(
+                    "_extrapolate_second_order_edge_sw")
+
+
+
         # protect function
         self.protect_mod = SourceModule(
                 open( kp["protect_dir"] + "protect.cu").read(),
                 include_dirs=[ kp["protect_dir"] ]
                 )
 
-        self.protect_sw_func = self.protect_mod.get_function(
-                "_protect_sw")
-        self.protect_swb2_func = self.protect_mod.get_function(
-                "_protect_swb2")
-        
+        self.protect_sw_func = self.protect_mod.get_function("_protect_sw")
+        self.protect_swb2_func=self.protect_mod.get_function(
+                    "_protect_swb2")
+
+
+
         # balance function
         self.balance_deep_and_shallow_mod = SourceModule(
                 open( kp["balance_dir"] + "balance_deep_and_shallow.cu").read(),
@@ -202,6 +218,8 @@ class GPU_domain(Domain):
         self.balance_deep_and_shallow_func = \
             self.balance_deep_and_shallow_mod.get_function(
                 "_balance_deep_and_shallow")
+
+
 
         # interpolate_from_vertices_to_edges function
         self.interpolate_from_vertices_to_edges_mod = SourceModule(
@@ -213,6 +231,7 @@ class GPU_domain(Domain):
         self.interpolate_from_vertices_to_edges_func = \
             self.interpolate_from_vertices_to_edges_mod.get_function(
                 "_interpolate_from_vertices_to_edges")
+
 
 
         # evaluate_segment function
@@ -232,6 +251,7 @@ class GPU_domain(Domain):
                 "evaluate_segment_dirichlet_2")
 
 
+
         # get_absolute function
         self.get_absolute_mod = SourceModule(
                 open( kp["get_absolute_dir"] +"get_absolute.cu").read(),
@@ -240,7 +260,8 @@ class GPU_domain(Domain):
             
         self.get_absolute_func = \
             self.get_absolute_mod.get_function("get_absolute")
-        
+
+
 
         # manning_friction function
         self.manning_friction_mod = SourceModule(
@@ -257,7 +278,8 @@ class GPU_domain(Domain):
             self.manning_friction_mod.get_function(
                 "_manning_friction_flat")
 
-        
+
+
         # saxpy_centroid_values function
         self.saxpy_centroid_values_mod = SourceModule(
                 open( kp["saxpy_dir"] + "saxpy_centroid_values.cu").read(),
@@ -268,7 +290,8 @@ class GPU_domain(Domain):
             self.saxpy_centroid_values_mod.get_function(
                 "_saxpy_centroid_values")
 
-        
+
+
         # set_boundry function
         self.set_boundary_mod = SourceModule(
                 open( kp["set_boundary_dir"] + "set_boundary.cu").read(),
@@ -278,6 +301,8 @@ class GPU_domain(Domain):
         self.set_boundary_values_from_edges_func = \
             self.set_boundary_mod.get_function(
                 "set_boundary_values_from_edges")
+
+
 
         # update_centroids_of_velocities_and_height function
         self.update_centroids_of_velocities_and_height_mod = SourceModule(
@@ -289,12 +314,15 @@ class GPU_domain(Domain):
             self.update_centroids_of_velocities_and_height_mod.\
             get_function("update_centroids_of_velocities_and_height")
 
+
         
         # update function
         self.update_mod = SourceModule(
                 open(kp["update_dir"]+"update.cu").read(),
                 include_dirs=[ kp["update_dir"] ])
         self.update_func = self.update_mod.get_function("update")
+
+
 
     def lock_array_page(self):
         self.neighbours = get_page_locked_array(self.neighbours)
@@ -637,6 +665,7 @@ class GPU_domain(Domain):
 
 
 
+
     def apply_protection_against_isolated_degenerate_timesteps(self):
         if self.using_gpu:
             if self.protect_against_isolated_degenerate_timesteps is False:
@@ -668,6 +697,7 @@ class GPU_domain(Domain):
                         d += 1
         else:
             Domain.apply_protection_against_isolated_degenerate_timesteps(self)
+
 
     def compute_fluxes(self):
         if self.using_gpu :
@@ -1413,16 +1443,20 @@ class GPU_domain(Domain):
 
     def saxpy_conserved_quantities(self, a, b):
         if self.using_gpu:
+            N = self.number_of_elements
+            W1 = 32
+            W2 = 1
+            W3 = 1
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
-                self.saxpy_centroid_values(
-                    numpy.int32(self.number_of_elements),
+                self.saxpy_centroid_values_func(
+                    numpy.int32( N ),
                     numpy.float64(a),
                     numpy.float64(b),
                     Q.centroid_values_gpu,
                     Q.centroid_backup_values_gpu,
                     block = (W1, W2, W3),
-                    grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
         else:
             Domain.saxpy_conserved_quantities(self, a, b)
@@ -1430,23 +1464,25 @@ class GPU_domain(Domain):
 
     def update_centroids_of_velocities_and_height(self):
         if self.using_gpu:
-            N = self.quantities['elevation'].boundary_values.shape[0]
+            N = self.number_of_elements
+            Nb = self.quantities['stage'].boundary_values.shape[0]
             W1 = 32
             W2 = 1
             W3 = 1
 
             self.set_boundary_values_from_edges_func(
-                numpy.int32(N),
+                numpy.int32(Nb),
                 self.boundary_cells_gpu,
                 self.boundary_edges_gpu,
                 self.quantities['elevation'].boundary_values_gpu,
                 self.quantities['elevation'].edge_values_gpu,
                 block = (W1, W2, W3),
-                grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                grid=((Nb+W1*W2*W3-1)/(W1*W2*W3),1)
                 )
 
             self.update_centroids_of_velocities_and_height_func(
                 numpy.int32(N),
+                numpy.int32(Nb),
                 self.quantities['stage'].centroid_values_gpu,
                 self.quantities['xmomentum'].centroid_values_gpu,
                 self.quantities['ymomentum'].centroid_values_gpu,

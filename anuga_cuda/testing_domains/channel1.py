@@ -12,6 +12,9 @@ import sys
 import anuga
 from anuga_cuda.gpu_domain import GPU_domain
 
+
+finaltime= 10
+
 def generate_channel1_domain(gpu=True):
     #--------------------------------------------------------------------------
     # Setup computational domain
@@ -21,6 +24,14 @@ def generate_channel1_domain(gpu=True):
     
     if gpu:
         domain = GPU_domain(points, vertices, boundary)  # Create domain
+        if '-gpu' in sys.argv:
+            domain.using_gpu = True
+            print " --> Enable GPU version"
+        for i in range(len(sys.argv)):
+            if sys.argv[i] == '-fs':
+                global finaltime
+                finaltime = float(sys.argv[i+1])
+                print " --> Finaltime is reset as %f" % finaltime
     else:
         domain = anuga.Domain(points, vertices, boundary)  # Create domain
     domain.set_name('channel1')                  # Output name
@@ -44,14 +55,6 @@ def generate_channel1_domain(gpu=True):
     
     domain.set_boundary({'left': Bi, 'right': Br, 'top': Br, 'bottom': Br})
 
-    if gpu:
-        if '-gpu' in sys.argv:
-            domain.using_gpu = True
-            print " --> Enable GPU version"
-        for i in range(len(sys.argv)):
-            if sys.argv[i] == '-fs':
-                finaltime = float(sys.argv[i+1])
-                print " --> Finaltime is reset as %f" % finaltime
 
     return domain
 
@@ -59,10 +62,11 @@ def generate_channel1_domain(gpu=True):
 
 
 def evolve_channel1_domain( domain ):
-    #--------------------------------------------------------------------------
+    #-----------------------------------------------------------------------
     # Evolve system through time
-    #--------------------------------------------------------------------------
-    for t in domain.evolve(yieldstep=0.2, finaltime=5):
+    #-----------------------------------------------------------------------
+    global finaltime
+    for t in domain.evolve(yieldstep=0.2, finaltime=finaltime):
         print domain.flux_timestep
         print domain.timestepping_statistics()
     
