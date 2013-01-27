@@ -92,6 +92,8 @@ for i in range(len(sys.argv)):
     if sys.argv[i] == '-fs':
         finaltime = float(sys.argv[i+1])
         print " --> Finaltime is reset as %f" % finaltime
+
+
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
 domain.set_datadir('Data')
 domain.set_name('merimbula_new')

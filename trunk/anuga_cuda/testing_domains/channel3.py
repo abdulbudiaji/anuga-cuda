@@ -3,16 +3,19 @@
 Water flowing down a channel with more complex topography
 """
 
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------
 # Import necessary modules
-#------------------------------------------------------------------------------
+#---------------------------------------------------------------------------
+import sys
 import anuga
 from anuga_cuda import GPU_domain
 
-def generate_channel3_domain(gpu=False):
-    #--------------------------------------------------------------------------
+finaltime = 16.0
+
+def generate_channel3_domain(gpu=True):
+    #-----------------------------------------------------------------------
     # Setup computational domain
-    #--------------------------------------------------------------------------
+    #-----------------------------------------------------------------------
     length = 40.
     width = 5.
     dx = dy = .1           # Resolution: Length of subdivisions on both axes
@@ -21,14 +24,23 @@ def generate_channel3_domain(gpu=False):
                                         int(width/dy), len1=length, len2=width)
     if gpu:
         domain = GPU_domain(points, vertices, boundary )
+        if '-gpu' in sys.argv:
+            domain.using_gpu = True
+            print " --> Enable GPU version"
+        for i in range(len(sys.argv)):
+            if sys.argv[i] == '-fs':
+                global finaltime
+                finaltime = float(sys.argv[i+1])
+                print " --> Finaltime is reset as %f" % finaltime
+
     else:
         domain = anuga.Domain(points, vertices, boundary)
     domain.set_name('channel3')                  # Output name
-    print domain.statistics()
+    #print domain.statistics()
     
-    #--------------------------------------------------------------------------
+    #-----------------------------------------------------------------------
     # Setup initial conditions
-    #--------------------------------------------------------------------------
+    #-----------------------------------------------------------------------
     def topography(x,y):
         """Complex topography defined by a function of vectors x and y."""
     
@@ -54,9 +66,9 @@ def generate_channel3_domain(gpu=False):
     domain.set_quantity('friction', 0.01)                  # Constant friction
     domain.set_quantity('stage', expression='elevation') # Dry initial condition
     
-    #--------------------------------------------------------------------------
+    #-----------------------------------------------------------------------
     # Setup boundary conditions
-    #--------------------------------------------------------------------------
+    #-----------------------------------------------------------------------
     Bi = anuga.Dirichlet_boundary([0.4, 0, 0])          # Inflow
     Br = anuga.Reflective_boundary(domain)              # Solid reflective wall
     Bo = anuga.Dirichlet_boundary([-5, 0, 0])           # Outflow
@@ -65,14 +77,18 @@ def generate_channel3_domain(gpu=False):
     return domain
 
 def evolve_channel3_domain(domain):
-    #--------------------------------------------------------------------------
+    #-----------------------------------------------------------------------
     # Evolve system through time
-    #--------------------------------------------------------------------------
-    for t in domain.evolve(yieldstep=0.1, finaltime=16.0):
+    #-----------------------------------------------------------------------
+    global finaltime
+    for t in domain.evolve(yieldstep=0.1, finaltime=finaltime):
         print domain.timestepping_statistics()
     
-        if domain.get_quantity('stage').\
-               get_values(interpolation_points=[[10, 2.5]]) > 0:
-            print 'Stage > 0: Changing to outflow boundary'
-            domain.set_boundary({'right': Bo})
+        #if domain.get_quantity('stage').\
+        #       get_values(interpolation_points=[[10, 2.5]]) > 0:
+        #    print 'Stage > 0: Changing to outflow boundary'
+        #    domain.set_boundary({'right': Bo})
             
+if __name__ == '__main__':
+    domain = generate_channel3_domain()
+    evolve_channel3_domain(domain)

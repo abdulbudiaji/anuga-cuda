@@ -13,18 +13,21 @@ if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
     domain2 = generate_cairns_domain(True)
 else:
-    domain1 = generate_channel3_domain()
-    domain2 = generate_channel3_domain(gpu=True)
+    domain1 = generate_merimbula_domain(False)
+    domain2 = generate_merimbula_domain(True)
+
+    #domain1 = generate_channel3_domain()
+    #domain2 = generate_channel3_domain(gpu=True)
 
 
-#domain1.evolve(yieldstep = 50, finaltime = 500)
-#domain1.evolve(yieldstep = 50, finaltime = 500)
-#domain1.evolve(yieldstep = 50, finaltime = 500)
+domain1.evolve(yieldstep = 50, finaltime = 500)
+domain1.evolve(yieldstep = 50, finaltime = 500)
+domain1.evolve(yieldstep = 50, finaltime = 500)
     
 
-#domain2.evolve(yieldstep = 50, finaltime = 500)
-#domain2.evolve(yieldstep = 50, finaltime = 500)
-#domain2.evolve(yieldstep = 50, finaltime = 500)
+domain2.evolve(yieldstep = 50, finaltime = 500)
+domain2.evolve(yieldstep = 50, finaltime = 500)
+domain2.evolve(yieldstep = 50, finaltime = 500)
 
 N = domain2.boundary_cells.shape[0]
 W1 = 32

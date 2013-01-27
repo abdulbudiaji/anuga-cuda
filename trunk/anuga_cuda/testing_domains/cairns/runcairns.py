@@ -59,8 +59,8 @@ def generate_cairns_domain(gpu=False):
         domain = GPU_domain(domain=domain)
     # Print some stats about mesh and domain
     print 'Number of triangles = ', len(domain)
-    print 'The extent is ', domain.get_extent()
-    print domain.statistics()
+    #print 'The extent is ', domain.get_extent()
+    #print domain.statistics()
                                         
     #-----------------------------------------------------------------------
     # Setup parameters of computational domain
