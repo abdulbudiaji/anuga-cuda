@@ -1,17 +1,35 @@
 
 import numpy
 from pycuda import driver as drv
-from anuga_cuda.merimbula_data.channel1 import generate_domain
-from anuga_cuda.merimbula_data.generate_domain import domain_create
+from anuga_cuda import generate_merimbula_domain
+from anuga_cuda import generate_channel3_domain
+from anuga_cuda import generate_cairns_domain
 
-#domain1 = generate_domain( gpu=False )
-#domain1 = generate_domain( gpu=False )
+using_tsunami_domain = True
 
-domain1 = domain_create( gpu=True )
-domain2 = domain_create( gpu=True )
+if using_tsunami_domain:
+    domain1 = generate_cairns_domain(False)
+    domain2 = generate_cairns_domain(True)
+else:
+    domain1 = generate_merimbula_domain(False)
+    domain2 = generate_merimbula_domain(True)
+
+
+
+
+domain1.evolve(yieldstep = 50, finaltime = 500)
+domain1.evolve(yieldstep = 50, finaltime = 500)
+domain1.evolve(yieldstep = 50, finaltime = 500)
+    
+
+domain2.evolve(yieldstep = 50, finaltime = 500)
+domain2.evolve(yieldstep = 50, finaltime = 500)
+domain2.evolve(yieldstep = 50, finaltime = 500)
+
 
 domain1.protect_against_infinitesimal_and_negative_heights()
 domain2.protect_against_infinitesimal_and_negative_heights()
+
 
 if domain1.optimised_gradient_limiter:
     if domain1._order_ == 1:
@@ -52,13 +70,14 @@ domain2.balance_deep_and_shallow_func(
 
     drv.In( domain2.quantities['stage'].centroid_values ),
     drv.In( domain2.quantities['elevation'].centroid_values ),
+    drv.InOut( domain2.quantities['stage'].vertex_values ),
+    drv.In( domain2.quantities['elevation'].vertex_values ),
+
+
     drv.In( domain2.quantities['xmomentum'].centroid_values ),
     drv.In( domain2.quantities['ymomentum'].centroid_values ),
-
-    drv.In( domain2.quantities['stage'].vertex_values ),
-    drv.In( domain2.quantities['elevation'].vertex_values ),
-    drv.In( domain2.quantities['xmomentum'].vertex_values ),
-    drv.In( domain2.quantities['ymomentum'].vertex_values ),
+    drv.InOut( domain2.quantities['xmomentum'].vertex_values ),
+    drv.InOut( domain2.quantities['ymomentum'].vertex_values ),
 
     block = (W1, W2, W3),
     grid = ( (N+ W1*W2*W3 - 1)/(W1*W2*W3), 1)
@@ -112,6 +131,8 @@ print numpy.allclose( yc1, yc2)
 for i in range(N):
     if (sv1[i] != sv2[i]).all():
         cnt_sv += 1
+        if cnt_sv <= 5:
+            print i, sv1[i], sv2[i]
     if (ev1[i] != ev2[i]).all():
         cnt_ev += 1
     if (xv1[i] != xv2[i]).all():

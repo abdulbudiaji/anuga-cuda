@@ -4,15 +4,15 @@ __global__ void  _balance_deep_and_shallow(
         double alpha_balance,
         int tight_slope_limiters,
         int use_centroid_velocities,
-        double* wc,
-        double* zc,
-        double* wv,
-        double* zv,
+        double* wc,     // stage_centroid_values
+        double* zc,     // elevation_centroid_values
+        double* wv,     // stage_vertex_values
+        double* zv,     // elevation_vertex_values
         //double* hvbar, // Retire this
-        double* xmomc,
-        double* ymomc,
-        double* xmomv,
-        double* ymomv
+        double* xmomc,  // xmom_centroid_values
+        double* ymomc,  // ymom_centroid_values
+        double* xmomv,  // xmom_vertex_values
+        double* ymomv   // ymom_vertex_values
         ) 
 {
     const int k = 
