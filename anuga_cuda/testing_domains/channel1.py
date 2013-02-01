@@ -24,14 +24,19 @@ def generate_channel1_domain(gpu=True):
     
     if gpu:
         domain = GPU_domain(points, vertices, boundary)  # Create domain
-        if '-gpu' in sys.argv:
-            domain.using_gpu = True
-            print " --> Enable GPU version"
         for i in range(len(sys.argv)):
-            if sys.argv[i] == '-fs':
-                global finaltime
+            if sys.argv[i] == '-gpu':
+                domain.using_gpu = True
+                print " --> Enable GPU version"
+            elif sys.argv[i] == '-fs':
                 finaltime = float(sys.argv[i+1])
                 print " --> Finaltime is reset as %f" % finaltime
+            elif sys.argv[i] == '-test':
+                domain.cotesting = True
+                print " --> Enable Cotesting"
+            elif sys.argv[i] == '-ustore':
+                domain.store = True
+                print " --> Disable storing"
     else:
         domain = anuga.Domain(points, vertices, boundary)  # Create domain
     domain.set_name('channel1')                  # Output name

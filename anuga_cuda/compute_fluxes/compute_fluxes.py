@@ -1864,13 +1864,41 @@ if __name__ == '__main__':
     # triangle with smaller index number compute first
     domain2 = generate_merimbula_domain(gpu = True)
     #domain2 = generate_channel3_domain()
-    sort_domain(domain2)
+    #sort_domain(domain2)
+    for t in domain2.evolve(yieldstep = 50, finaltime = 50):
+        pass
 
 
     domain1 = generate_merimbula_domain()
     #domain1 = generate_channel3_domain()
     #domain2 = rearrange_domain(domain1)
+    for t in domain1.evolve(yieldstep = 50, finaltime = 50):
+        pass
     
+
+    print numpy.allclose( domain2.quantities['stage'].edge_values,
+            domain1.quantities['stage'].edge_values)
+    print numpy.allclose( domain2.quantities['xmomentum'].edge_values,
+            domain1.quantities['xmomentum'].edge_values)
+    print numpy.allclose( domain2.quantities['ymomentum'].edge_values,
+            domain1.quantities['ymomentum'].edge_values)
+    print numpy.allclose( domain2.quantities['elevation'].edge_values,
+            domain1.quantities['elevation'].edge_values)
+    print numpy.allclose( domain2.quantities['stage'].boundary_values,
+            domain1.quantities['stage'].boundary_values)
+    print numpy.allclose( domain2.quantities['xmomentum'].boundary_values,
+            domain1.quantities['xmomentum'].boundary_values)
+    print numpy.allclose( domain2.quantities['ymomentum'].boundary_values,
+            domain1.quantities['ymomentum'].boundary_values)
+    print numpy.allclose( domain2.quantities['stage'].explicit_update,
+            domain1.quantities['stage'].explicit_update)
+    print numpy.allclose( domain2.quantities['xmomentum'].explicit_update,
+            domain1.quantities['xmomentum'].explicit_update)
+    print numpy.allclose( domain2.quantities['ymomentum'].explicit_update,
+            domain1.quantities['ymomentum'].explicit_update)
+    
+
+    sort_domain(domain2)
     print " Number of elements is: %d" % domain1.number_of_elements
     """
     CUDA Function
@@ -1888,7 +1916,7 @@ if __name__ == '__main__':
         domain2.allocate_device_array()
         domain2.asynchronous_transfer()
         ctx.synchronize()
-        W1 = 32
+        W1 = 256
         W2 = 1
         W3 = 1
         #domain2.compute_fluxes_func(
@@ -2009,6 +2037,12 @@ if __name__ == '__main__':
     
 
 
+    print numpy.allclose( domain2.quantities['stage'].explicit_update,
+            domain1.quantities['stage'].explicit_update)
+    print numpy.allclose( domain2.quantities['xmomentum'].explicit_update,
+            domain1.quantities['xmomentum'].explicit_update)
+    print numpy.allclose( domain2.quantities['ymomentum'].explicit_update,
+            domain1.quantities['ymomentum'].explicit_update)
     # Check correctness
     print "\n~~~~~~~~~~~~~ domain 2 ~~~~~~~~~~~~"
     print "******* flux_timestep : %lf %lf %d" % \

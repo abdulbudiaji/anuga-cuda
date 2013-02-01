@@ -85,13 +85,19 @@ class Set_Elevation:
 #--------------------------------------------------------------------------
 domain = create_domain_from_file(mesh_filename, GPU_domain)
 
-if '-gpu' in sys.argv:
-    domain.using_gpu = True
-    print " --> Enable GPU version"
 for i in range(len(sys.argv)):
-    if sys.argv[i] == '-fs':
+    if sys.argv[i] == '-gpu':
+        domain.using_gpu = True
+        print " --> Enable GPU version"
+    elif sys.argv[i] == '-fs':
         finaltime = float(sys.argv[i+1])
         print " --> Finaltime is reset as %f" % finaltime
+    elif sys.argv[i] == '-test':
+        domain.cotesting = True
+        print " --> Enable Cotesting"
+    elif sys.argv[i] == '-ustore':
+        domain.store = True
+        print " --> Disable storing"
 
 
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
