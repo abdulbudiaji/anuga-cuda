@@ -6,8 +6,8 @@ from pycuda import driver as drv
 from anuga_cuda import generate_merimbula_domain
 from anuga_cuda import generate_cairns_domain
 
-using_tsunami_domain = False
-testing_sloped=False
+using_tsunami_domain = True
+testing_sloped = False
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
@@ -66,8 +66,8 @@ else:
             drv.In( domain2.quantities['elevation'].centroid_values ),
             drv.In( domain2.quantities['friction'].centroid_values ),
 
-            drv.In( domain2.quantities['xmomentum'].semi_implicit_update ),
-            drv.In( domain2.quantities['ymomentum'].semi_implicit_update ),
+            drv.InOut(domain2.quantities['xmomentum'].semi_implicit_update ),
+            drv.InOut(domain2.quantities['ymomentum'].semi_implicit_update ),
 
             block = (W1, W2, W3),
             grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)

@@ -78,6 +78,7 @@ __device__ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
 }
 
 __global__ void extrapolate_second_order_sw_true (
+        int N,
         double epsilon,
         double minimum_allowed_height,
         double beta_w,
@@ -105,6 +106,8 @@ __global__ void extrapolate_second_order_sw_true (
 {
     const long k = threadIdx.x + threadIdx.y*blockDim.x +
                 (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+    if (k >= N )
+        return;
 
     int k3 = 3*k,
         k6 = 6*k;
@@ -557,6 +560,7 @@ __global__ void extrapolate_second_order_sw_true (
 
 
 __global__ void extrapolate_second_order_sw_false (
+        int N,
         double epsilon,
         double minimum_allowed_height,
         double beta_w,
@@ -581,6 +585,9 @@ __global__ void extrapolate_second_order_sw_false (
 {
     const long k = threadIdx.x + threadIdx.y*blockDim.x +
                 (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+
+    if ( k >= N )
+        return;
 
     int k3 = 3*k,
         k6 = 6*k;

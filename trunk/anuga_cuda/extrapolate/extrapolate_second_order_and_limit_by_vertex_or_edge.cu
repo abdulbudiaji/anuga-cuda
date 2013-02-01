@@ -301,6 +301,7 @@ __device__ int _compute_gradients(
 
 
 __global__ void extrapolate_second_order_and_limit_by_vertex(
+        int N,
         double beta,
         double * domain_centroid_coordinates,
         double * domain_vertex_coordinates,
@@ -315,6 +316,14 @@ __global__ void extrapolate_second_order_and_limit_by_vertex(
         double * quantity_y_gradient
         )
 {
+    
+    const int k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+
+    if (k >= N)
+        return;
+
     _compute_gradients(
             domain_centroid_coordinates,
             quantity_centroid_values,
@@ -345,6 +354,7 @@ __global__ void extrapolate_second_order_and_limit_by_vertex(
 
 
 __global__ void extrapolate_second_order_and_limit_by_edge(
+        int N,
         double beta,
         double * domain_centroid_coordinates,
         double * domain_vertex_coordinates,
@@ -359,6 +369,13 @@ __global__ void extrapolate_second_order_and_limit_by_edge(
         double * quantity_y_gradient
         )
 {
+    const int k = 
+            threadIdx.x+threadIdx.y*blockDim.x+
+            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+
+    if (k >= N)
+        return;
+
     _compute_gradients(
             domain_centroid_coordinates,
             quantity_centroid_values,
