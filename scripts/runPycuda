@@ -1,25 +1,30 @@
 #!/bin/bash
 
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib:/home/u5044856/.local/lib:$LD_LIBARAY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib:/home/u5044856/.local/lib/python2.7/site-packages/:$LD_LIBARAY_PATH
 
-export PYTHONPATH=/usr/bin/python:/home/u5044856/anuga_core/source:/usr/include/python2.7/numpy:/home/u5044856/anuga-cuda:/home/u5044856/.local/lib/python2.7/site-packages/pycuda-2012.1-py2.7-linux-x86_64.egg:$PYTHONPATH
+export PYTHONPATH=/usr/lib/python2.7/dist-packages/:/usr/bin/python:/home/u5044856/anuga_core/source:/usr/include/python2.7/numpy:/home/u5044856/anuga-cuda:/home/u5044856/.local/lib/python2.7/site-packages/:$PYTHONPATH
 
 export PATH=/usr/local/cuda/bin:/usr/bin/python:$PATH
 
-
-if [ $# != 1 ]
-then
+if [ "$#" == 0 ]; then
     echo "Usage: runPycuda <script_name>"
 else
+    file_name=${1##*/}
+    file_dir=${1%/*}
+    shift
+
     echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*"
-    echo -e "*-*- Executing $1 with profile "
+    echo -e "*-*- Executing $file_name with profile "
     echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*\n"
-    CUDA_PROFILE=1 python $1
-    pro_name=profile_$1.log
-    mv cuda_profile_0.log $pro_name
+    CUDA_PROFILE=1 python $file_dir/$file_name $@
+    
+    pro_name=profile_$file_name.log
+    mv cuda_profile_0.log $file_dir/$pro_name
+    
     echo -e "\n*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*"
     echo -e "*-*- Showing profile result in $pro_name "
     echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n"
-    cat $pro_name
+    pro_name=$pro_name
+    cat $file_dir/$pro_name
 fi
 
