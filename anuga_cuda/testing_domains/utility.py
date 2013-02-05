@@ -84,5 +84,6 @@ def configure_kernel_function_block_dimension(a, tl=None, td=None, dev=None):
 if __name__ == '__main__':
     from anuga_cuda import generate_merimbula_domain
     d = generate_merimbula_domain(True)
+    d.equip_kernel_functions()
 
     configure_kernel_function_block_dimension(d.compute_fluxes_func)

@@ -110,8 +110,13 @@ class GPU_domain(Domain):
                     dtype = numpy.float64)
  
 
+    """ GPU_domain functions
+    """
+
 
     def equip_kernel_functions(self):
+        """ Get kernel functions
+        """
 
         # compute_fluxes function
         self.compute_fluxes_mod = SourceModule(
@@ -393,12 +398,6 @@ class GPU_domain(Domain):
 
         self.update_block = self.update_func.max_threads_per_block
 
-
-
-    """ GPU_domain functions
-    """
-
-
     def lock_host_page(self):
         """ Use page-locked memory
 
@@ -577,6 +576,12 @@ class GPU_domain(Domain):
             get_device_array(self.quantities['xmomentum'].vertex_values)
         self.quantities['ymomentum'].vertex_values_gpu = \
             get_device_array(self.quantities['ymomentum'].vertex_values)
+        self.quantities['height'].vertex_values_gpu = \
+            get_device_array(self.quantities['height'].vertex_values)
+        self.quantities['xvelocity'].vertex_values_gpu = \
+            get_device_array(self.quantities['xvelocity'].vertex_values)
+        self.quantities['yvelocity'].vertex_values_gpu = \
+            get_device_array(self.quantities['yvelocity'].vertex_values)
         
         # get centroid values
         self.quantities['stage'].centroid_values_gpu = \
@@ -606,6 +611,7 @@ class GPU_domain(Domain):
                     get_device_array(Q.centroid_values)
             Q.semi_implicit_update_gpu = \
                     get_device_array( Q.semi_implicit_update)
+
 
     def asynchronous_transfer(self):
         """ Asynchronous transfer from host to device
@@ -1046,6 +1052,7 @@ class GPU_domain(Domain):
             Domain.balance_deep_and_shallow(self)
 
 
+    # Cotesting
     def distribute_to_vertices_and_edges(self):
         if  self.using_gpu:
             W1 = 32
@@ -1253,6 +1260,10 @@ class GPU_domain(Domain):
                 Domain.distribute_to_vertices_and_edges(
                         self.cotesting_domain)
                 
+                test_distribute_to_vertexs_and_edges(self)
+                 
+                    
+
         else:
             Domain.distribute_to_vertices_and_edges(self)
 
@@ -2375,3 +2386,61 @@ def asy_cpy(a, a_gpu):
 
 def cpy_back(a, a_gpu):
     drv.memcpy_dtoh(a, a_gpu)
+
+def cpy_back_and_cmp(a, b, value_type):
+    if value_type is "centroid_values":
+        cpy_back(a.centroid_values, a.centroid_values_gpu)
+        return numpy.allclose(a.centroid_values, b.centroid_values)
+    elif value_type is "vertex_values":
+        cpy_back(a.vertex_values, a.vertex_values_gpu)
+        return numpy.allclose(a.vertex_values, b.vertex_values)
+    elif value_type is "edge_values":
+        cpy_back(a.edge_values, a.edge_values_gpu)
+        return numpy.allclose(a.edge_values, b.edge_values)
+    elif value_type is "x_gradient_values":
+        cpy_back(a.x_gradient, a.x_gradient_gpu)
+        return numpy.allclose(a.x_gradient, b.x_gradient)
+    elif value_type is "y_gradient_values":
+        cpy_back(a.y_gradient, a.y_gradient_gpu)
+        return numpy.allclose(a.y_gradient, b.y_gradient)
+    else:
+        raise Exception('Unknown value_type %s' % value_type)
+        
+
+def test_distribute_to_vertexs_and_edges(domain):
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+    e1 = domain.quantities['elevation']
+
+    s2 = domain.cotesting_domain.quantities['stage']
+    xm2 = domain.cotesting_domain.quantities['xmomentum']
+    ym2 = domain.cotesting_domain.quantities['ymomentum']
+    e2 = domain.cotesting_domain.quantities['elevation']
+
+    res = []
+    res.append( domain.flux_timestep == \
+        domain.cotesting_domain.flux_timestep)
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values' ))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values' ))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values' ))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values'))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values'))
+
+    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values'))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values'))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values'))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values'))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values'))
+
+    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values'))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values'))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values'))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values'))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values'))
+
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values' ))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values' ))
+
+    if res.count(True) != res.__len__():
+        print " --> distribute_to_vertices_and_edges ",res

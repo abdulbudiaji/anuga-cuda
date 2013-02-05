@@ -727,6 +727,7 @@ if __name__ == '__main__':
 
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(True)
+    domain2.equip_kernel_functions()
 
     print "~~~~~~~ domain 1 ~~~~~~~"
     domain1.protect_against_infinitesimal_and_negative_heights()
@@ -747,7 +748,7 @@ if __name__ == '__main__':
         W1 = 32
         W2 = 1
         W3 = 1
-        for name in ['height', 'xvelocity', 'yvelocity']:
+        for name in domain2.conserved_quantities:
             Q = domain2.quantities[name]
             domain2.extrapolate_second_order_and_limit_by_vertex_func(
                 numpy.int32( N ),
@@ -772,7 +773,7 @@ if __name__ == '__main__':
 
     if testing_2:
         print "\n~~~~~~~ compare 1 2~~~~~~~"
-        for name in ['height', 'xvelocity', 'yvelocity']:
+        for name in domain2.conserved_quantities:
             Q1 = domain1.quantities[name]
             Q2 = domain2.quantities[name]
             print name
