@@ -303,8 +303,6 @@ def gravity_old( domain ):
 
 
 
-from anuga_cuda.merimbula_data.generate_domain import *
-#domain=domain_create()
 
 
 def gravity_single(domain, k=0, flag = 4):
@@ -377,13 +375,14 @@ def gravity_single(domain, k=0, flag = 4):
 
 
 if __name__ == '__main__':
-    from anuga_cuda.merimbula_data.generate_domain import *
+    from anuga_cuda import *
     from time import time
-    domain1 = domain_create()
 
-    domain2 = domain_create()
+    domain1 = generate_merimbula_domain()
 
-    domain3 = domain_create()
+    domain2 = generate_merimbula_domain()
+
+    domain3 = generate_merimbula_domain()
 
 
     if domain1.compute_fluxes_method == 'original':
