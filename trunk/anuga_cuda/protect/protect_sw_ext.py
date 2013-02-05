@@ -5,18 +5,18 @@ from anuga_cuda import generate_merimbula_domain
 domain1 = generate_merimbula_domain()
 domain2 = generate_merimbula_domain(gpu=True)
 
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
+for i in domain1.evolve(yieldstep = 50, finaltime = 50):
+    pass
 domain1.protect_against_infinitesimal_and_negative_heights()
 
+for i in domain2.evolve(yieldstep = 50, finaltime = 50):
+    pass
 N = domain2.number_of_elements
-domain2.evolve(yieldstep = 50, finaltime = 500)
-domain2.evolve(yieldstep = 50, finaltime = 500)
-domain2.evolve(yieldstep = 50, finaltime = 500)
 W1 = 32
 W2 = 1
 W3 = 1
+domain2.equip_kernel_functions()
+
 domain2.protect_sw_func(
     numpy.int32( domain2.number_of_elements),
     numpy.float64( domain2.minimum_allowed_height),
