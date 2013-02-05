@@ -291,11 +291,7 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
     """)
        
     N = Q.centroid_values.shape[0]
-    if (N % 32 == 0):
-        W1 = 32
-    else:
-        raise Exception('N can not be splited')
-
+    
         
     #extra_func = mod.get_function("extrapolate_second_order_and_limit_by_vertex")
     #extra_func( 
@@ -315,6 +311,9 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
     #        grid = ( (N + W1 -1 ) / W1, 1) )
     
     extra_func = mod.get_function("_compute_gradients")
+    W1 = 32
+    #W1 = extra_func.max_threads_per_block
+    #print W1
     extra_func( 
             cuda.In( domain.centroid_coordinates ),
             cuda.InOut( Q.centroid_values ),
@@ -327,6 +326,8 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
     
     if step > 1:
         extra_func = mod.get_function("_extrapolate_from_gradient")
+        #W1 = extra_func.max_threads_per_block
+        #print W1
         extra_func( 
                 cuda.In( domain.centroid_coordinates ),
                 cuda.InOut( Q.centroid_values ),
@@ -340,6 +341,8 @@ def extrapolate_second_order_and_limit_by_vertex(domain, Q, step=3):
 
     if step > 2:
         extra_func = mod.get_function("_limit_vertices_by_all_neighbours")
+        #W1 = extra_func.max_threads_per_block
+        #print W1
         extra_func( 
                 numpy.float64(Q.beta),
                 cuda.InOut( Q.centroid_values ),
@@ -716,15 +719,14 @@ def compute_gradients(domain, Q):
             _gradient2(x0, y0, x1, y1, q0, q1, a[k], b[k])
 
 if __name__ == '__main__':
-    from anuga_cuda.merimbula_data.generate_domain import *
-    domain1 = domain_create()
+    from anuga_cuda import *
 
-    domain2 = domain_create()
-    
+    testing_gpu_domain= True
     testing_2 = True
-    testing_3 = True
-    domain3 = domain_create()
+    testing_3 = False
 
+    domain1 = generate_merimbula_domain()
+    domain2 = generate_merimbula_domain(True)
 
     print "~~~~~~~ domain 1 ~~~~~~~"
     domain1.protect_against_infinitesimal_and_negative_heights()
@@ -740,7 +742,33 @@ if __name__ == '__main__':
     step = 3
 
     print "~~~~~~~ domain 2 ~~~~~~~"
-    distribute_using_vertex_limiter(domain2, 'cuda', step)
+    if testing_gpu_domain:
+        N = domain2.number_of_elements
+        W1 = 32
+        W2 = 1
+        W3 = 1
+        for name in ['height', 'xvelocity', 'yvelocity']:
+            Q = domain2.quantities[name]
+            domain2.extrapolate_second_order_and_limit_by_vertex_func(
+                numpy.int32( N ),
+                numpy.float64( Q.beta ),
+                cuda.In( domain2.centroid_coordinates ),
+                cuda.In( domain2.vertex_coordinates ),
+                cuda.In( domain2.number_of_boundaries ),
+                cuda.In( domain2.surrogate_neighbours ),
+                cuda.In( domain2.neighbours ),
+
+                cuda.InOut( Q.centroid_values ),
+                cuda.InOut( Q.vertex_values ),
+                cuda.InOut( Q.edge_values ),
+                cuda.InOut( Q.x_gradient ),
+                cuda.InOut( Q.y_gradient ),
+                block = (W1, W2, W3),
+                grid = (( N +W1-1)/W1, 1)
+                )
+            
+    else:
+        distribute_using_vertex_limiter(domain2, 'cuda', step)
 
     if testing_2:
         print "\n~~~~~~~ compare 1 2~~~~~~~"
@@ -794,6 +822,7 @@ if __name__ == '__main__':
 
 
     if testing_3:
+        domain3 = generate_merimbula_domain()
         print "~~~~~~~ domain 3 ~~~~~~~"
         #distribute_using_vertex_limiter(domain3, True, 0)
         distribute_using_vertex_limiter(domain3, 'python', step)
@@ -847,5 +876,3 @@ if __name__ == '__main__':
             print "~~ # of diff %d, %d, %d, %d, %d" % \
                     (cnt_cv, cnt_vv, cnt_ev, cnt_xg, cnt_yg)
 
-    else:
-        print "~~~~~~~ domain 3 ~~~~~~~"
