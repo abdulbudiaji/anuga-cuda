@@ -1199,12 +1199,10 @@ class GPU_domain(Domain):
         if self.using_gpu:
             for f in self.forcing_terms:
                 f()
-
         else:
-            for f in self.forcing_terms:
-                f(self)
-
-        if False:
+            Domain.compute_forcing_terms(self)
+        if self.cotesting:
+            Domain.compute_forcing_terms(self.cotesting_domain)
             test_compute_forcing_terms(self)
 
 
@@ -1221,7 +1219,7 @@ class GPU_domain(Domain):
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
                 self.update_func(
-                    numpy.float64(N),
+                    numpy.int32(N),
                     numpy.float64(self.timestep),
                     Q.centroid_values_gpu,
                     Q.explicit_update_gpu,
@@ -1231,10 +1229,8 @@ class GPU_domain(Domain):
                     )
 
                 drv.memset_d32(Q.semi_implicit_update_gpu, 0, N*2)
-
         else:
             Domain.update_conserved_quantities(self)
-        
         if self.cotesting:
             Domain.update_conserved_quantities(self.cotesting_domain)
             test_update_conserved_quantities(self)
@@ -1254,7 +1250,7 @@ class GPU_domain(Domain):
         else:
             Domain.backup_conserved_quantities(self)
 
-        if False:
+        if self.cotesting:
             Domain.backup_conserved_quantities(self.cotesting_domain)
 
 
@@ -1283,7 +1279,7 @@ class GPU_domain(Domain):
             Domain.saxpy_conserved_quantities(self, a, b)
 
 
-        if False:
+        if self.cotesting:
             Domain.saxpy_conserved_quantities(self.cotesting_domain, a, b)
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
@@ -1297,7 +1293,8 @@ class GPU_domain(Domain):
                 
 
                 
-    # 3rd level cotesting
+    # 3rd level 
+    # Cotesting on update_other_quantities
     def update_centroids_of_velocities_and_height(self):
         if self.using_gpu:
             N = self.number_of_elements
@@ -1340,48 +1337,6 @@ class GPU_domain(Domain):
 
         else:
             Domain.update_centroids_of_velocities_and_height(self)
-
-        if False:
-            Domain.update_centroids_of_velocities_and_height(
-                    self.cotesting_domain)
-            
-            h1 = self.quantities['height']
-            xv1 = self.quantities['xvelocity']
-            yv1 = self.quantities['yvelocity']
-            e1 = self.quantities['elevation']
-
-            h2 = self.cotesting_domain.quantities['height']
-            xv2 = self.cotesting_domain.quantities['xvelocity']
-            yv2 = self.cotesting_domain.quantities['yvelocity']
-            e2 = self.cotesting_domain.quantities['elevation']
-
-            cpy_back(h1.centroid_values, h1.centroid_values_gpu)
-            cpy_back(xv1.centroid_values, xv1.centroid_values_gpu)
-            cpy_back(yv1.centroid_values, yv1.centroid_values_gpu)
-            cpy_back(h1.boundary_values, h1.boundary_values_gpu)
-            cpy_back(xv1.boundary_values, xv1.boundary_values_gpu)
-            cpy_back(yv1.boundary_values, yv1.boundary_values_gpu)
-            cpy_back(e1.boundary_values, e1.boundary_values_gpu)
-
-            
-            res = []
-            res.append( numpy.allclose(h1.centroid_values, 
-                h2.centroid_values))
-            res.append( numpy.allclose(h1.boundary_values, 
-                h2.boundary_values))
-            res.append( numpy.allclose(xv1.centroid_values, 
-                xv2.centroid_values))
-            res.append( numpy.allclose(xv1.boundary_values, 
-                xv2.boundary_values))
-            res.append( numpy.allclose(yv1.centroid_values, 
-                yv2.centroid_values))
-            res.append( numpy.allclose(yv1.boundary_values, 
-                yv2.boundary_values))
-            res.append( numpy.allclose(e1.boundary_values, 
-                e2.boundary_values))
-
-            if res.count(True) != 7:
-                print "Error: update_centroids", res
 
 
     
@@ -2456,7 +2411,7 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
 
     if res.count(True) != res.__len__():
-        print " --> distribute_to_vertices_and_edges ",res
+        raise Exception( " --> distribute_to_vertices_and_edges ", res)
 
 
 
@@ -2534,6 +2489,7 @@ def test_update_ghosts(domain):
     # This for update_timestep check point
     res.append( cpy_back_and_cmp( e1, e2, 'edge_values' , gpu))
 
+
     if res.count(True) != res.__len__():
         print " --> update_ghosts ",res
 
@@ -2541,7 +2497,11 @@ def test_update_ghosts(domain):
 
 def test_update_extrema(domain):
     gpu = domain.using_gpu
-    pass
+    sc = domain.cotesting_domain
+
+    res = []
+    if res.count(True) != res.__len__():
+        raise Exception( " --> update_extrema ", res)
     
 
 
@@ -2567,6 +2527,7 @@ def test_update_timestep(domain):
         raise Exception( " --> update_timestep ",res)
 
 
+
 def test_update_conserved_quantities(domain):
     gpu = domain.using_gpu
     for name in domain.conserved_quantities:
@@ -2577,12 +2538,23 @@ def test_update_conserved_quantities(domain):
         res = []
         res.append( cpy_back_and_cmp( Q1, Q2, "centroid_values", gpu))
         res.append( cpy_back_and_cmp( Q1, Q2, "semi_implicit_update", gpu))
+        res.append( cpy_back_and_cmp( Q1, Q2, "explicit_update", gpu))
+        res.append( domain.timestep == domain.cotesting_domain.timestep)
         
         if res.count(True) != res.__len__():
             if not res[0]:
-                print 0, Q1.centroid_values, Q2.centroid_values
-            elif not res[1]:
+                cnt = 0
+                for i in range(Q1.centroid_values.shape[0]):
+                    if Q1.centroid_values[i] != Q2.centroid_values[i]:
+                        if cnt < 5 :
+                            print i, Q1.centroid_values[i], \
+                                Q2.centroid_values[i]
+                        cnt += 1
+                print 0, cnt, Q1.centroid_values, Q2.centroid_values
+            if not res[1]:
                 print 1, Q1.semi_implicit_update, Q2.semi_implicit_update
+            if not res[2]:
+                print 2, Q1.explicit_update, Q2.explicit_update
             raise Exception("Error: update_conserved_quantities", name, res)
 
 
@@ -2719,3 +2691,38 @@ def test_compute_fluxes(domain):
     if res.count(True) != res.__len__():
         raise Exception( " --> compute_fluxes ", res)
 
+
+def test_compute_forcing_terms(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+    e1 = domain.quantities['elevation']
+    f1 = domain.quantities['friction']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+    e2 = sc.quantities['elevation']
+    f2 = sc.quantities['friction']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu))
+
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu))
+
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( f1, f2, 'centroid_values', gpu))
+
+    if res.count(True) != res.__len__():
+        raise Exception( " --> compute_forcing_terms ", res)
+    
