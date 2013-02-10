@@ -331,6 +331,7 @@ __global__ void compute_fluxes_central_structure_CUDA(
     stage_explicit_update[k] = 0;
     xmom_explicit_update[k] = 0;
     ymom_explicit_update[k] = 0;
+
 #ifdef UNSORTED_DOMAIN
     int b[3]={0,1,2}, j;
     spe_bubble_sort( b, neighbours+k*3, k);

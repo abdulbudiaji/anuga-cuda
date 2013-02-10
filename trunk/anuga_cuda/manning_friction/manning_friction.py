@@ -6,7 +6,7 @@ from pycuda import driver as drv
 from anuga_cuda import generate_merimbula_domain
 from anuga_cuda import generate_cairns_domain
 
-using_tsunami_domain = True
+using_tsunami_domain = False
 testing_sloped = False
 
 if using_tsunami_domain:
@@ -16,6 +16,7 @@ else:
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(gpu=True)
 
+domain2.equip_kernel_functions()
 
 domain1.evolve(yieldstep = 50, finaltime = 500)
 domain1.evolve(yieldstep = 50, finaltime = 500)
@@ -27,13 +28,13 @@ domain2.evolve(yieldstep = 50, finaltime = 500)
 domain2.evolve(yieldstep = 50, finaltime = 500)
 
 N = domain2.number_of_elements
-W1 = 32
 W2 = 1
 W3 = 1
 
-
 if testing_sloped:
     domain1.use_sloped_mannings = True
+    W1 = domain2.manning_friction_sloped_func.max_threads_per_block
+    print "In sloped", W1
         
     domain2.manning_friction_sloped_func(
         numpy.int32(N),
@@ -55,6 +56,8 @@ if testing_sloped:
         )
 else:
     domain1.use_sloped_mannings = False
+    W1 = domain2.manning_friction_flat_func.max_threads_per_block
+    print "In flat", W1
     domain2.manning_friction_flat_func(
             numpy.int32(N),
             numpy.float64(domain2.g),

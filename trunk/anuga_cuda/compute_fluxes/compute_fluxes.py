@@ -1865,15 +1865,15 @@ if __name__ == '__main__':
     domain2 = generate_merimbula_domain(gpu = True)
     #domain2 = generate_channel3_domain()
     #sort_domain(domain2)
-    for t in domain2.evolve(yieldstep = 50, finaltime = 50):
-        pass
+    #for t in domain2.evolve(yieldstep = 50, finaltime = 50):
+    #    pass
 
 
     domain1 = generate_merimbula_domain()
     #domain1 = generate_channel3_domain()
     #domain2 = rearrange_domain(domain1)
-    for t in domain1.evolve(yieldstep = 50, finaltime = 50):
-        pass
+    #for t in domain1.evolve(yieldstep = 50, finaltime = 50):
+    #    pass
     
 
     print numpy.allclose( domain2.quantities['stage'].edge_values,

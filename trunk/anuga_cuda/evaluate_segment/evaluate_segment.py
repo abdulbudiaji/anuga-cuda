@@ -5,14 +5,13 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
         Dirichlet_boundary
 from anuga.shallow_water.boundaries import Reflective_boundary
 
-from anuga_cuda.merimbula_data.channel3 import generate_domain
-from anuga_cuda.merimbula_data.generate_domain import domain_create
+from anuga_cuda import generate_merimbula_domain
+from anuga_cuda import generate_cairns_domain
 
-domain1 = generate_domain( gpu=False )
-domain2 = generate_domain( gpu=True )
+domain1 = generate_merimbula_domain( gpu=False )
+domain2 = generate_merimbula_domain( gpu=True )
+domain2.equip_kernel_functions()
 
-#domain1 = domain_create(False)
-#domain2 = domain_create(True)
 
 domain1.distribute_to_vertices_and_edges()
 domain2.distribute_to_vertices_and_edges()
@@ -174,7 +173,5 @@ for tag in domain1.tag_boundary_cells:
         else:
             raise Exception("wrong type")
                     
-
-
 
 
