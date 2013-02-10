@@ -6,6 +6,11 @@ __global__ void _interpolate_from_vertices_to_edges(
     const int k = 
         threadIdx.x+threadIdx.y*blockDim.x+
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+
+    if ( k >= N )
+        return;
+
+
     int k3= k*3;
     double q0, q1, q2;
 
