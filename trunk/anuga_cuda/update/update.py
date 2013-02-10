@@ -15,6 +15,7 @@ else:
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(gpu=True)
 
+domain2.equip_kernel_functions()
 
 domain1.evolve(yieldstep = 50, finaltime = 500)
 domain1.evolve(yieldstep = 50, finaltime = 500)
