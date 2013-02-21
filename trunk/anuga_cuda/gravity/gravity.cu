@@ -1,5 +1,5 @@
 __global__ void gravity_wb(
-        long N,
+        int N,
         double g,
         double * stage_vertex_values, 
         double * stage_edge_values, 
