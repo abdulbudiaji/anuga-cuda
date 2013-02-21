@@ -177,11 +177,10 @@ def gravity_wb(domain):
     #else:
     #    raise Exception('N can not be splited')
 
-    W1 = 32
+    gravity_wb_func = mod.get_function("gravity_wb")
     W2 = 1
     W3 = 1
 
-    gravity_wb_func = mod.get_function("gravity_wb")
     gravity_wb_func( 
             cuda.In( domain.quantities['stage'].vertex_values), 
             cuda.In( domain.quantities['stage'].edge_values), 
@@ -380,7 +379,8 @@ if __name__ == '__main__':
 
     domain1 = generate_merimbula_domain()
 
-    domain2 = generate_merimbula_domain()
+    domain2 = generate_merimbula_domain(True)
+    domain2.equip_kernel_functions()
 
     domain3 = generate_merimbula_domain()
 
@@ -426,7 +426,44 @@ if __name__ == '__main__':
         gravity(domain2)
 
     elif domain2.compute_fluxes_method == 'wb_2':
-        gravity_wb(domain2)
+        #gravity_wb(domain2)
+
+        import sys
+        W1 = 0
+        W2 = 0
+        for i in range( len(sys.argv)):
+            if sys.argv[i] == "-b":
+                W1 = int(sys.argv[i+1])
+            elif sys.argv[i] == "-b1":
+                W2 = int(sys.argv[i+1])
+
+        if not W1:
+            W1 = domain2.gravity_wb_func.max_threads_per_block
+        if not W2:
+            W2 = 1 
+        print W1, W2
+        W3 = 1
+        get_kernel_function_info(domain2.gravity_wb_func, W1, W2, W3)
+        
+        N = domain2.number_of_elements
+        domain2.gravity_wb_func(
+            numpy.uint( N),
+            numpy.float64( domain2.g),
+            cuda.In( domain2.quantities['stage'].vertex_values), 
+            cuda.In( domain2.quantities['stage'].edge_values), 
+            cuda.In( domain2.quantities['stage'].centroid_values), 
+			cuda.In( domain2.quantities['elevation'].edge_values), 
+            cuda.In( domain2.quantities['elevation'].centroid_values), 
+            cuda.In( domain2.vertex_coordinates), 
+            cuda.InOut( domain2.quantities['xmomentum'].explicit_update),
+            cuda.InOut( domain2.quantities['ymomentum'].explicit_update),
+            cuda.In( domain2.normals),
+            cuda.In( domain2.areas),
+            cuda.In( domain2.edgelengths),
+            block = ( W1, W2, W3),
+            grid = ( N/(W1*W2*W3), 1) )
+
+
 
     elif domain2.compute_fluxes_method == 'wb_3':
 
