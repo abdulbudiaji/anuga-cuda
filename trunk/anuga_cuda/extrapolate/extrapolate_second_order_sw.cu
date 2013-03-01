@@ -1,13 +1,3 @@
-#define Eepsilon                0
-#define Eminimum_allowed_height 1
-#define Ebeta_w                 2
-#define Ebeta_w_dry             3
-#define Ebeta_uh                4
-#define Ebeta_uh_dry            5
-#define Ebeta_vh                6
-#define Ebeta_vh_dry            7
-#define Eoptimise_dry_cells     8
-
 
 __device__ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w) 
 {
@@ -87,25 +77,30 @@ __global__ void extrapolate_second_order_sw_true (
         double beta_uh_dry,
         double beta_vh,
         double beta_vh_dry,
-        double optimise_dry_cells,
+        int optimise_dry_cells,
+
         long* surrogate_neighbours,
         long* number_of_boundaries,
         double* centroid_coordinates,
+
         double* stage_centroid_values,
         double* bed_centroid_values,
         double* xmom_centroid_values,
         double* ymom_centroid_values,
+
         double* vertex_coordinates,
+        
         double* stage_vertex_values,
         double* bed_vertex_values,
         double* xmom_vertex_values,
         double* ymom_vertex_values,
+        
         double* stage_centroid_store,
         double* xmom_centroid_store,
         double* ymom_centroid_store)
 {
-    const long k = threadIdx.x + threadIdx.y*blockDim.x +
-                (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+    const int k = threadIdx.x + threadIdx.y*blockDim.x +
+        (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     if (k >= N )
         return;
 
@@ -132,407 +127,414 @@ __global__ void extrapolate_second_order_sw_true (
     ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
 
 
+
     // Begin extrapolation routine
-
-    if ( number_of_boundaries[k] == 3 )
-    {
-        stage_vertex_values[k3] = stage_centroid_values[k];
-        stage_vertex_values[k3 +1] = stage_centroid_values[k];
-        stage_vertex_values[k3 +2] = stage_centroid_values[k];
-
-        xmom_vertex_values[k3] = xmom_centroid_values[k];
-        xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
-        xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
-
-        ymom_vertex_values[k3] = ymom_centroid_values[k];
-        ymom_vertex_values[k3 + 1] = ymom_centroid_values[k];
-        ymom_vertex_values[k3 + 2] = ymom_centroid_values[k];
-
-        // continue;
-        return;
-    }
-    else
-    {
-        xv0 = vertex_coordinates[k6];
-        yv0 = vertex_coordinates[k6 + 1];
-        xv1 = vertex_coordinates[k6 + 2];
-        yv1 = vertex_coordinates[k6 + 3];
-        xv2 = vertex_coordinates[k6 + 4];
-        yv2 = vertex_coordinates[k6 + 5];
-
-        coord_index = 2 * k;
-        x = centroid_coordinates[coord_index];
-        y = centroid_coordinates[coord_index + 1];
-
-        dxv0 = xv0 - x;
-        dxv1 = xv1 - x;
-        dxv2 = xv2 - x;
-        dyv0 = yv0 - y;
-        dyv1 = yv1 - y;
-        dyv2 = yv2 - y;
-    }
-
-    if ( number_of_boundaries[k] <= 1 )
-    {
-        k0 = surrogate_neighbours[k3];
-        k1 = surrogate_neighbours[k3 + 1];
-        k2 = surrogate_neighbours[k3 + 2];
-
-        // Get the auxiliary triangle's vertex coordinates
-        // (really the centroids of neighbouring triangles)
-        coord_index = 2 * k0;
-        x0 = centroid_coordinates[coord_index];
-        y0 = centroid_coordinates[coord_index + 1];
-
-        coord_index = 2 * k1;
-        x1 = centroid_coordinates[coord_index];
-        y1 = centroid_coordinates[coord_index + 1];
-
-        coord_index = 2 * k2;
-        x2 = centroid_coordinates[coord_index];
-        y2 = centroid_coordinates[coord_index + 1];
-
-        // Store x- and y- differentials for the vertices
-        // of the auxiliary triangle
-        dx1 = x1 - x0;
-        dx2 = x2 - x0;
-        dy1 = y1 - y0;
-        dy2 = y2 - y0;
-
-        // Calculate 2*area of the auxiliary triangle
-        // The triangle is guaranteed to be counter-clockwise
-        area2 = dy2 * dx1 - dy1*dx2;
-
-        if (area2 <= 0) {
+    do {
+        if ( number_of_boundaries[k] == 3 )
+        {
             stage_vertex_values[k3] = stage_centroid_values[k];
-            stage_vertex_values[k3 + 1] = stage_centroid_values[k];
-            stage_vertex_values[k3 + 2] = stage_centroid_values[k];
+            stage_vertex_values[k3 +1] = stage_centroid_values[k];
+            stage_vertex_values[k3 +2] = stage_centroid_values[k];
+
             xmom_vertex_values[k3] = xmom_centroid_values[k];
             xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
             xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
+
             ymom_vertex_values[k3] = ymom_centroid_values[k];
             ymom_vertex_values[k3 + 1] = ymom_centroid_values[k];
             ymom_vertex_values[k3 + 2] = ymom_centroid_values[k];
 
-            //continue;
-            return;
+            // continue;
+            break;
+        }
+        else
+        {
+            xv0 = vertex_coordinates[k6];
+            yv0 = vertex_coordinates[k6 + 1];
+            xv1 = vertex_coordinates[k6 + 2];
+            yv1 = vertex_coordinates[k6 + 3];
+            xv2 = vertex_coordinates[k6 + 4];
+            yv2 = vertex_coordinates[k6 + 5];
+
+            coord_index = 2 * k;
+            x = centroid_coordinates[coord_index];
+            y = centroid_coordinates[coord_index + 1];
+
+            dxv0 = xv0 - x;
+            dxv1 = xv1 - x;
+            dxv2 = xv2 - x;
+            dyv0 = yv0 - y;
+            dyv1 = yv1 - y;
+            dyv2 = yv2 - y;
         }
 
-        // Calculate heights of neighbouring cells
-        hc = stage_centroid_values[k] - bed_centroid_values[k];
-        h0 = stage_centroid_values[k0] - bed_centroid_values[k0];
-        h1 = stage_centroid_values[k1] - bed_centroid_values[k1];
-        h2 = stage_centroid_values[k2] - bed_centroid_values[k2];
-        hmin = min(min(h0, min(h1, h2)), hc);
-        //hfactor = hc/(hc + 1.0);
+        if ( number_of_boundaries[k] <= 1 )
+        {
+            k0 = surrogate_neighbours[k3];
+            k1 = surrogate_neighbours[k3 + 1];
+            k2 = surrogate_neighbours[k3 + 2];
 
-        hfactor = 0.0;
-        if (hmin > 0.001) {
-            hfactor = (hmin - 0.001) / (hmin + 0.004);
-        }
+            // Get the auxiliary triangle's vertex coordinates
+            // (really the centroids of neighbouring triangles)
+            coord_index = 2 * k0;
+            x0 = centroid_coordinates[coord_index];
+            y0 = centroid_coordinates[coord_index + 1];
 
-        if (optimise_dry_cells) {
-            // Check if linear reconstruction is necessary for triangle k
-            // This check will exclude dry cells.
+            coord_index = 2 * k1;
+            x1 = centroid_coordinates[coord_index];
+            y1 = centroid_coordinates[coord_index + 1];
 
-            hmax = max(h0, max(h1, h2));
-            if (hmax < epsilon) {
-                // continue;
-                return;
-            }
-        }
+            coord_index = 2 * k2;
+            x2 = centroid_coordinates[coord_index];
+            y2 = centroid_coordinates[coord_index + 1];
 
-        //-----------------------------------
-        // stage
-        //-----------------------------------
+            // Store x- and y- differentials for the vertices
+            // of the auxiliary triangle
+            dx1 = x1 - x0;
+            dx2 = x2 - x0;
+            dy1 = y1 - y0;
+            dy2 = y2 - y0;
 
-        // Calculate the difference between vertex 0 of the auxiliary
-        // triangle and the centroid of triangle k
-        dq0 = stage_centroid_values[k0] - stage_centroid_values[k];
+            // Calculate 2*area of the auxiliary triangle
+            // The triangle is guaranteed to be counter-clockwise
+            area2 = dy2 * dx1 - dy1*dx2;
 
-        // Calculate differentials between the vertices
-        // of the auxiliary triangle (centroids of neighbouring triangles)
-        dq1 = stage_centroid_values[k1] - stage_centroid_values[k0];
-        dq2 = stage_centroid_values[k2] - stage_centroid_values[k0];
+            if (area2 <= 0) {
+                stage_vertex_values[k3] = stage_centroid_values[k];
+                stage_vertex_values[k3 + 1] = stage_centroid_values[k];
+                stage_vertex_values[k3 + 2] = stage_centroid_values[k];
 
-        inv_area2 = 1.0 / area2;
-        // Calculate the gradient of stage on the auxiliary triangle
-        a = dy2 * dq1 - dy1*dq2;
-        a *= inv_area2;
-        b = dx1 * dq2 - dx2*dq1;
-        b *= inv_area2;
+                xmom_vertex_values[k3] = xmom_centroid_values[k];
+                xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
+                xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
+                
+                ymom_vertex_values[k3] = ymom_centroid_values[k];
+                ymom_vertex_values[k3 + 1] = ymom_centroid_values[k];
+                ymom_vertex_values[k3 + 2] = ymom_centroid_values[k];
 
-        // Calculate provisional jumps in stage from the centroid
-        // of triangle k to its vertices, to be limited
-        dqv[0] = a * dxv0 + b*dyv0;
-        dqv[1] = a * dxv1 + b*dyv1;
-        dqv[2] = a * dxv2 + b*dyv2;
-
-        // Now we want to find min and max of the centroid and the
-        // vertices of the auxiliary triangle and compute jumps
-        // from the centroid to the min and max
-        find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
-
-        // Playing with dry wet interface
-        //hmin = qmin;
-        //beta_tmp = beta_tmp_dry;
-        //if (hmin>minimum_allowed_height)
-        beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
-
-
-        limit_gradient(dqv, qmin, qmax, beta_tmp);
-
-        //for (i=0;i<3;i++)
-        stage_vertex_values[k3 + 0] = stage_centroid_values[k] + dqv[0];
-        stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
-        stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
-
-
-        //-----------------------------------
-        // xmomentum
-        //-----------------------------------
-
-        // Calculate the difference between vertex 0 of the auxiliary
-        // triangle and the centroid of triangle k
-        dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
-
-        // Calculate differentials between the vertices
-        // of the auxiliary triangle
-        dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k0];
-        dq2 = xmom_centroid_values[k2] - xmom_centroid_values[k0];
-
-        // Calculate the gradient of xmom on the auxiliary triangle
-        a = dy2 * dq1 - dy1*dq2;
-        a *= inv_area2;
-        b = dx1 * dq2 - dx2*dq1;
-        b *= inv_area2;
-
-        // Calculate provisional jumps in stage from the centroid
-        // of triangle k to its vertices, to be limited
-        dqv[0] = a * dxv0 + b*dyv0;
-        dqv[1] = a * dxv1 + b*dyv1;
-        dqv[2] = a * dxv2 + b*dyv2;
-
-        // Now we want to find min and max of the centroid and the
-        // vertices of the auxiliary triangle and compute jumps
-        // from the centroid to the min and max
-        find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
-        //beta_tmp = beta_uh;
-        //if (hmin<minimum_allowed_height)
-        //beta_tmp = beta_uh_dry;
-        beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
-
-        // Limit the gradient
-        limit_gradient(dqv, qmin, qmax, beta_tmp);
-
-        for (i = 0; i < 3; i++) {
-            xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
-        }
-
-        //-----------------------------------
-        // ymomentum
-        //-----------------------------------
-
-        // Calculate the difference between vertex 0 of the auxiliary
-        // triangle and the centroid of triangle k
-        dq0 = ymom_centroid_values[k0] - ymom_centroid_values[k];
-
-        // Calculate differentials between the vertices
-        // of the auxiliary triangle
-        dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k0];
-        dq2 = ymom_centroid_values[k2] - ymom_centroid_values[k0];
-
-        // Calculate the gradient of xmom on the auxiliary triangle
-        a = dy2 * dq1 - dy1*dq2;
-        a *= inv_area2;
-        b = dx1 * dq2 - dx2*dq1;
-        b *= inv_area2;
-
-        // Calculate provisional jumps in stage from the centroid
-        // of triangle k to its vertices, to be limited
-        dqv[0] = a * dxv0 + b*dyv0;
-        dqv[1] = a * dxv1 + b*dyv1;
-        dqv[2] = a * dxv2 + b*dyv2;
-
-        // Now we want to find min and max of the centroid and the
-        // vertices of the auxiliary triangle and compute jumps
-        // from the centroid to the min and max
-        find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
-
-        //beta_tmp = beta_vh;
-        //
-        //if (hmin<minimum_allowed_height)
-        //beta_tmp = beta_vh_dry;
-        beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor;
-
-        // Limit the gradient
-        limit_gradient(dqv, qmin, qmax, beta_tmp);
-
-        for (i = 0; i < 3; i++) {
-            ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
-        }
-    }// End number_of_boundaries <=1
-    else
-    {
-        //==============================================
-        // Number of boundaries == 2
-        //==============================================
-
-        // One internal neighbour and gradient is in direction of the neighbour's centroid
-
-        // Find the only internal neighbour (k1?)
-        for (k2 = k3; k2 < k3 + 3; k2++) {
-            // Find internal neighbour of triangle k
-            // k2 indexes the edges of triangle k
-
-            if (surrogate_neighbours[k2] != k) {
+                //continue;
                 break;
             }
-        }
+
+            // Calculate heights of neighbouring cells
+            hc = stage_centroid_values[k] - bed_centroid_values[k];
+            h0 = stage_centroid_values[k0] - bed_centroid_values[k0];
+            h1 = stage_centroid_values[k1] - bed_centroid_values[k1];
+            h2 = stage_centroid_values[k2] - bed_centroid_values[k2];
+            hmin = min(min(h0, min(h1, h2)), hc);
+            //hfactor = hc/(hc + 1.0);
+
+            hfactor = 0.0;
+            if (hmin > 0.001) {
+                hfactor = (hmin - 0.001) / (hmin + 0.004);
+            }
+
+            if (optimise_dry_cells) {
+                // Check if linear reconstruction is necessary for triangle k
+                // This check will exclude dry cells.
+
+                hmax = max(h0, max(h1, h2));
+                if (hmax < epsilon) {
+                    // continue;
+                    break;
+                }
+            }
+
+            //-----------------------------------
+            // stage
+            //-----------------------------------
+
+            // Calculate the difference between vertex 0 of the auxiliary
+            // triangle and the centroid of triangle k
+            dq0 = stage_centroid_values[k0] - stage_centroid_values[k];
+
+            // Calculate differentials between the vertices
+            // of the auxiliary triangle (centroids of neighbouring triangles)
+            dq1 = stage_centroid_values[k1] - stage_centroid_values[k0];
+            dq2 = stage_centroid_values[k2] - stage_centroid_values[k0];
+
+            inv_area2 = 1.0 / area2;
+            // Calculate the gradient of stage on the auxiliary triangle
+            a = dy2 * dq1 - dy1*dq2;
+            a *= inv_area2;
+            b = dx1 * dq2 - dx2*dq1;
+            b *= inv_area2;
+
+            // Calculate provisional jumps in stage from the centroid
+            // of triangle k to its vertices, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now we want to find min and max of the centroid and the
+            // vertices of the auxiliary triangle and compute jumps
+            // from the centroid to the min and max
+            find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+
+            // Playing with dry wet interface
+            //hmin = qmin;
+            //beta_tmp = beta_tmp_dry;
+            //if (hmin>minimum_allowed_height)
+            beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
+
+
+            limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+            //for (i=0;i<3;i++)
+            stage_vertex_values[k3 + 0] = stage_centroid_values[k] + dqv[0];
+            stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
+            stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+
+
+            //-----------------------------------
+            // xmomentum
+            //-----------------------------------
+
+            // Calculate the difference between vertex 0 of the auxiliary
+            // triangle and the centroid of triangle k
+            dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
+
+            // Calculate differentials between the vertices
+            // of the auxiliary triangle
+            dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k0];
+            dq2 = xmom_centroid_values[k2] - xmom_centroid_values[k0];
+
+            // Calculate the gradient of xmom on the auxiliary triangle
+            a = dy2 * dq1 - dy1*dq2;
+            a *= inv_area2;
+            b = dx1 * dq2 - dx2*dq1;
+            b *= inv_area2;
+
+            // Calculate provisional jumps in stage from the centroid
+            // of triangle k to its vertices, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now we want to find min and max of the centroid and the
+            // vertices of the auxiliary triangle and compute jumps
+            // from the centroid to the min and max
+            find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+            //beta_tmp = beta_uh;
+            //if (hmin<minimum_allowed_height)
+            //beta_tmp = beta_uh_dry;
+            beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
+
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+            for (i = 0; i < 3; i++) {
+                xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
+            }
+
+            //-----------------------------------
+            // ymomentum
+            //-----------------------------------
+
+            // Calculate the difference between vertex 0 of the auxiliary
+            // triangle and the centroid of triangle k
+            dq0 = ymom_centroid_values[k0] - ymom_centroid_values[k];
+
+            // Calculate differentials between the vertices
+            // of the auxiliary triangle
+            dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k0];
+            dq2 = ymom_centroid_values[k2] - ymom_centroid_values[k0];
+
+            // Calculate the gradient of xmom on the auxiliary triangle
+            a = dy2 * dq1 - dy1*dq2;
+            a *= inv_area2;
+            b = dx1 * dq2 - dx2*dq1;
+            b *= inv_area2;
+
+            // Calculate provisional jumps in stage from the centroid
+            // of triangle k to its vertices, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now we want to find min and max of the centroid and the
+            // vertices of the auxiliary triangle and compute jumps
+            // from the centroid to the min and max
+            find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+
+            //beta_tmp = beta_vh;
+            //
+            //if (hmin<minimum_allowed_height)
+            //beta_tmp = beta_vh_dry;
+            beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor;
+
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+            for (i = 0; i < 3; i++) {
+                ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+            }
+        }// End number_of_boundaries <=1
+        else
+        {
+            //==============================================
+            // Number of boundaries == 2
+            //==============================================
+
+            // One internal neighbour and gradient is in direction of the neighbour's centroid
+
+            // Find the only internal neighbour (k1?)
+            for (k2 = k3; k2 < k3 + 3; k2++) {
+                // Find internal neighbour of triangle k
+                // k2 indexes the edges of triangle k
+
+                if (surrogate_neighbours[k2] != k) {
+                    break;
+                }
+            }
 
 
 
-        k1 = surrogate_neighbours[k2];
+            k1 = surrogate_neighbours[k2];
 
-        // The coordinates of the triangle are already (x,y).
-        // Get centroid of the neighbour (x1,y1)
-        coord_index = 2 * k1;
-        x1 = centroid_coordinates[coord_index];
-        y1 = centroid_coordinates[coord_index + 1];
+            // The coordinates of the triangle are already (x,y).
+            // Get centroid of the neighbour (x1,y1)
+            coord_index = 2 * k1;
+            x1 = centroid_coordinates[coord_index];
+            y1 = centroid_coordinates[coord_index + 1];
 
-        // Compute x- and y- distances between the centroid of
-        // triangle k and that of its neighbour
-        dx1 = x1 - x;
-        dy1 = y1 - y;
+            // Compute x- and y- distances between the centroid of
+            // triangle k and that of its neighbour
+            dx1 = x1 - x;
+            dy1 = y1 - y;
 
-        // Set area2 as the square of the distance
-        area2 = dx1 * dx1 + dy1*dy1;
+            // Set area2 as the square of the distance
+            area2 = dx1 * dx1 + dy1*dy1;
 
-        // Set dx2=(x1-x0)/((x1-x0)^2+(y1-y0)^2)
-        // and dy2=(y1-y0)/((x1-x0)^2+(y1-y0)^2) which
-        // respectively correspond to the x- and y- gradients
-        // of the conserved quantities
-        dx2 = 1.0 / area2;
-        dy2 = dx2*dy1;
-        dx2 *= dx1;
+            // Set dx2=(x1-x0)/((x1-x0)^2+(y1-y0)^2)
+            // and dy2=(y1-y0)/((x1-x0)^2+(y1-y0)^2) which
+            // respectively correspond to the x- and y- gradients
+            // of the conserved quantities
+            dx2 = 1.0 / area2;
+            dy2 = dx2*dy1;
+            dx2 *= dx1;
 
 
-        //-----------------------------------
-        // stage
-        //-----------------------------------
+            //-----------------------------------
+            // stage
+            //-----------------------------------
 
-        // Compute differentials
-        dq1 = stage_centroid_values[k1] - stage_centroid_values[k];
+            // Compute differentials
+            dq1 = stage_centroid_values[k1] - stage_centroid_values[k];
 
-        // Calculate the gradient between the centroid of triangle k
-        // and that of its neighbour
-        a = dq1*dx2;
-        b = dq1*dy2;
+            // Calculate the gradient between the centroid of triangle k
+            // and that of its neighbour
+            a = dq1*dx2;
+            b = dq1*dy2;
 
-        // Calculate provisional vertex jumps, to be limited
-        dqv[0] = a * dxv0 + b*dyv0;
-        dqv[1] = a * dxv1 + b*dyv1;
-        dqv[2] = a * dxv2 + b*dyv2;
+            // Calculate provisional vertex jumps, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
 
-        // Now limit the jumps
-        if (dq1 >= 0.0) {
-            qmin = 0.0;
-            qmax = dq1;
-        } else {
-            qmin = dq1;
-            qmax = 0.0;
-        }
+            // Now limit the jumps
+            if (dq1 >= 0.0) {
+                qmin = 0.0;
+                qmax = dq1;
+            } else {
+                qmin = dq1;
+                qmax = 0.0;
+            }
 
-        // Limit the gradient
-        limit_gradient(dqv, qmin, qmax, beta_w);
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_w);
 
-        //for (i=0; i < 3; i++)
-        //{
-        stage_vertex_values[k3] = stage_centroid_values[k] + dqv[0];
-        stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
-        stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
-        //}
+            //for (i=0; i < 3; i++)
+            //{
+            stage_vertex_values[k3] = stage_centroid_values[k] + dqv[0];
+            stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
+            stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+            //}
 
-        //-----------------------------------
-        // xmomentum
-        //-----------------------------------
+            //-----------------------------------
+            // xmomentum
+            //-----------------------------------
 
-        // Compute differentials
-        dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k];
+            // Compute differentials
+            dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k];
 
-        // Calculate the gradient between the centroid of triangle k
-        // and that of its neighbour
-        a = dq1*dx2;
-        b = dq1*dy2;
+            // Calculate the gradient between the centroid of triangle k
+            // and that of its neighbour
+            a = dq1*dx2;
+            b = dq1*dy2;
 
-        // Calculate provisional vertex jumps, to be limited
-        dqv[0] = a * dxv0 + b*dyv0;
-        dqv[1] = a * dxv1 + b*dyv1;
-        dqv[2] = a * dxv2 + b*dyv2;
+            // Calculate provisional vertex jumps, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
 
-        // Now limit the jumps
-        if (dq1 >= 0.0) {
-            qmin = 0.0;
-            qmax = dq1;
-        } else {
-            qmin = dq1;
-            qmax = 0.0;
-        }
+            // Now limit the jumps
+            if (dq1 >= 0.0) {
+                qmin = 0.0;
+                qmax = dq1;
+            } else {
+                qmin = dq1;
+                qmax = 0.0;
+            }
 
-        // Limit the gradient
-        limit_gradient(dqv, qmin, qmax, beta_w);
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_w);
 
-        //for (i=0;i<3;i++)
-        //xmom_vertex_values[k3] = xmom_centroid_values[k] + dqv[0];
-        //xmom_vertex_values[k3 + 1] = xmom_centroid_values[k] + dqv[1];
-        //xmom_vertex_values[k3 + 2] = xmom_centroid_values[k] + dqv[2];
+            //for (i=0;i<3;i++)
+            //xmom_vertex_values[k3] = xmom_centroid_values[k] + dqv[0];
+            //xmom_vertex_values[k3 + 1] = xmom_centroid_values[k] + dqv[1];
+            //xmom_vertex_values[k3 + 2] = xmom_centroid_values[k] + dqv[2];
 
-        for (i = 0; i < 3; i++) {
-            xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
-        }
+            for (i = 0; i < 3; i++) {
+                xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
+            }
 
-        //-----------------------------------
-        // ymomentum
-        //-----------------------------------
+            //-----------------------------------
+            // ymomentum
+            //-----------------------------------
 
-        // Compute differentials
-        dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k];
+            // Compute differentials
+            dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k];
 
-        // Calculate the gradient between the centroid of triangle k
-        // and that of its neighbour
-        a = dq1*dx2;
-        b = dq1*dy2;
+            // Calculate the gradient between the centroid of triangle k
+            // and that of its neighbour
+            a = dq1*dx2;
+            b = dq1*dy2;
 
-        // Calculate provisional vertex jumps, to be limited
-        dqv[0] = a * dxv0 + b*dyv0;
-        dqv[1] = a * dxv1 + b*dyv1;
-        dqv[2] = a * dxv2 + b*dyv2;
+            // Calculate provisional vertex jumps, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
 
-        // Now limit the jumps
-        if (dq1 >= 0.0) {
-            qmin = 0.0;
-            qmax = dq1;
-        }
-        else {
-            qmin = dq1;
-            qmax = 0.0;
-        }
+            // Now limit the jumps
+            if (dq1 >= 0.0) {
+                qmin = 0.0;
+                qmax = dq1;
+            }
+            else {
+                qmin = dq1;
+                qmax = 0.0;
+            }
 
-        // Limit the gradient
-        limit_gradient(dqv, qmin, qmax, beta_w);
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_w);
 
-        //for (i=0;i<3;i++)
-        //ymom_vertex_values[k3] = ymom_centroid_values[k] + dqv[0];
-        //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
-        //ymom_vertex_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
+            //for (i=0;i<3;i++)
+            //ymom_vertex_values[k3] = ymom_centroid_values[k] + dqv[0];
+            //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
+            //ymom_vertex_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
 
-        for (i = 0; i < 3; i++) {
-            ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
-        }
-        //ymom_vertex_values[k3] = ymom_centroid_values[k] + dqv[0];
-        //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
-        //ymom_vertex_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
-    } // else [number_of_boundaries==2]
+            for (i = 0; i < 3; i++) {
+                ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+            }
+            //ymom_vertex_values[k3] = ymom_centroid_values[k] + dqv[0];
+            //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
+            //ymom_vertex_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
+        } // else [number_of_boundaries==2]
+    } while(0);
+
+
+
 
     //if (extrapolate_velocity_second_order == 1) 
     // Convert back from velocity to momentum

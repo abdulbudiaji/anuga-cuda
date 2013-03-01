@@ -177,4 +177,4 @@ def evolve_cairns_domain(domain):
 
 if __name__ == "__main__":
     domain = generate_cairns_domain()
-    #evolve_cairns_domain(domain)
+    evolve_cairns_domain(domain)

@@ -25,10 +25,13 @@ def mem_all_cpy(a):
 """********** ********** ********** ********** **********
     Get kernel function info
 ********** ********** ********** ********** **********"""
-def get_kernel_function_info(a, W1, W2, W3):
-    from pycuda.compiler import SourceModule
+def get_kernel_function_info(a, W1=0, W2=1, W3=1):
     import pycuda.tools as tl
+    import pycuda.driver as dri
+    dev = dri.Device(0)
     td = tl.DeviceData()
+    if not W1:
+        W1 = a.max_threads_per_block
     to = tl.OccupancyRecord(td, W1*W2*W3, a.shared_size_bytes, a.num_regs)
 
     print "***************************************"

@@ -1084,35 +1084,35 @@ def extrapolate_second_order_sw_cuda_FALSE_second_order(domain=None):
 
 
 if __name__ == '__main__':
-    from anuga_cuda.merimbula_data.generate_domain import domain_create
-    from anuga_cuda.merimbula_data.utility import approx_cmp
+    from anuga_cuda import generate_merimbula_domain
+    from anuga_cuda import approx_cmp
 
-    domain2 = domain_create()
 
     import pycuda.driver as drv
-    drv.init()
-    dev = drv.Device(0)
-    ctx = dev.make_context(drv.ctx_flags.MAP_HOST)
-    #import pycuda.autoinit
+    #drv.init()
+    #dev = drv.Device(0)
+    #ctx = dev.make_context(drv.ctx_flags.MAP_HOST)
+    import pycuda.autoinit
     from pycuda.compiler import SourceModule
     import numpy
 
+
+    domain2 = generate_merimbula_domain(True)
+    domain2.equip_kernel_functions()
+
+
     if ( domain2.extrapolate_velocity_second_order == 1):
         print "-----extrapolate velocity second order == 1-------"
-        from anuga_cuda.config import extrapolate_dir
-        mod = SourceModule(
-            open(extrapolate_dir+"extrapolate_second_order_sw.cu").read(),
-            include_dirs=[extrapolate_dir]
-            )
         
         N = domain2.number_of_elements
         W1 = 32
-        extr_func = mod.get_function("extrapolate_second_order_sw_true")
+
         xmom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
         ymom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
         stage_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
 
-        extr_func(
+        domain2.extrapolate_second_order_sw_true_func(
+            numpy.int32( N ),
             numpy.float64(domain2.epsilon),
             numpy.float64(domain2.minimum_allowed_height),
             numpy.float64(domain2.beta_w),
@@ -1121,7 +1121,8 @@ if __name__ == '__main__':
             numpy.float64(domain2.beta_uh_dry),
             numpy.float64(domain2.beta_vh),
             numpy.float64(domain2.beta_vh_dry),
-            numpy.float64(domain2.optimise_dry_cells),
+            numpy.int32(domain2.optimise_dry_cells),
+
     		drv.In( domain2.surrogate_neighbours ), 
     		drv.In( domain2.number_of_boundaries ), 
     		drv.In( domain2.centroid_coordinates ), 
@@ -1145,8 +1146,8 @@ if __name__ == '__main__':
         extrapolate_second_order_sw_cuda_FALSE_second_order(domain2)
     
     
-    domain1 = domain_create()
-    domain1.distribute_to_vertices_and_edges()
+    domain1 = generate_merimbula_domain()
+    domain1.extrapolate_second_order_sw()
 
     stage_h1= domain1.quantities['stage']
     xmom_h1 = domain1.quantities['xmomentum']
