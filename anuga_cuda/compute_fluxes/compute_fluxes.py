@@ -1851,10 +1851,7 @@ if __name__ == '__main__':
     import numpy 
     from time import time
     
-    from anuga_cuda import sort_domain, rearrange_domain
-    from anuga_cuda import approx_cmp
-    from anuga_cuda import generate_merimbula_domain
-    from anuga_cuda import generate_channel3_domain
+    from anuga_cuda import *
 
 
     testing_gpu_domain = True
@@ -1876,27 +1873,6 @@ if __name__ == '__main__':
     #    pass
     
 
-    print numpy.allclose( domain2.quantities['stage'].edge_values,
-            domain1.quantities['stage'].edge_values)
-    print numpy.allclose( domain2.quantities['xmomentum'].edge_values,
-            domain1.quantities['xmomentum'].edge_values)
-    print numpy.allclose( domain2.quantities['ymomentum'].edge_values,
-            domain1.quantities['ymomentum'].edge_values)
-    print numpy.allclose( domain2.quantities['elevation'].edge_values,
-            domain1.quantities['elevation'].edge_values)
-    print numpy.allclose( domain2.quantities['stage'].boundary_values,
-            domain1.quantities['stage'].boundary_values)
-    print numpy.allclose( domain2.quantities['xmomentum'].boundary_values,
-            domain1.quantities['xmomentum'].boundary_values)
-    print numpy.allclose( domain2.quantities['ymomentum'].boundary_values,
-            domain1.quantities['ymomentum'].boundary_values)
-    print numpy.allclose( domain2.quantities['stage'].explicit_update,
-            domain1.quantities['stage'].explicit_update)
-    print numpy.allclose( domain2.quantities['xmomentum'].explicit_update,
-            domain1.quantities['xmomentum'].explicit_update)
-    print numpy.allclose( domain2.quantities['ymomentum'].explicit_update,
-            domain1.quantities['ymomentum'].explicit_update)
-    
 
     sort_domain(domain2)
     print " Number of elements is: %d" % domain1.number_of_elements
@@ -1911,14 +1887,27 @@ if __name__ == '__main__':
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
                 #"compute_fluxes_central_structure_cuda_single")
-        "compute_fluxes_central_structure_CUDA")
+                "compute_fluxes_central_structure_CUDA")
 
         domain2.allocate_device_array()
         domain2.asynchronous_transfer()
         ctx.synchronize()
-        W1 = 256
+
+
+        import sys
+        W1 = 0
+        for i in range( len(sys.argv)):
+            if sys.argv[i] == "-b":
+                W1 = int(sys.argv[i+1])
+
+        if not W1:
+            W1 = compute_fluxes_central_function.max_threads_per_block
+        print W1
         W2 = 1
         W3 = 1
+
+        get_kernel_function_info(compute_fluxes_central_function,W1,W2, W3)
+
         #domain2.compute_fluxes_func(
         compute_fluxes_central_function(
                 numpy.uint(domain2.number_of_elements),

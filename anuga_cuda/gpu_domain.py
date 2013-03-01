@@ -851,28 +851,9 @@ class GPU_domain(Domain):
 
         else:
             Domain.balance_deep_and_shallow(self)
-
-    
-        if False:
+        if self.cotesting:
             Domain.balance_deep_and_shallow(self.cotesting_domain)
-            s1 = self.quantities['stage']
-            x1 = self.quantities['xmomentum']
-            y1 = self.quantities['ymomentum']
-            cpy_back( s1.vertex_values, s1.vertex_values_gpu)
-            cpy_back( x1.vertex_values, x1.vertex_values_gpu)
-            cpy_back( y1.vertex_values, y1.vertex_values_gpu)
-           
-            s2 = self.cotesting_domain.quantities['stage']
-            x2 = self.cotesting_domain.quantities['xmomentum']
-            y2 = self.cotesting_domain.quantities['ymomentum']
-
-            res = []
-            res.append( numpy.allclose(s1.vertex_values, s2.vertex_values))
-            res.append( numpy.allclose(x1.vertex_values, x2.vertex_values))
-            res.append( numpy.allclose(y1.vertex_values, y2.vertex_values))
-            
-            if res.count(True) != 3:
-                print "Error: balance_deep_and_shallow,", res
+            test_balance_deep_and_shallow(self)
 
 
 
@@ -921,15 +902,22 @@ class GPU_domain(Domain):
         else:
             Domain.protect_against_infinitesimal_and_negative_heights(self)
 
+        if self.cotesting:
+            Domain.protect_against_infinitesimal_and_negative_heights(
+                    self.cotesting_domain)
+            test_protect_against_infinitesimal_and_negative_heights(self)
+            
 
     # 4th level cotesting
     def extrapolate_second_order_sw(self):
+        if self.cotesting:
+            test_extrapolate_second_order_sw(self)
         if  self.using_gpu:
             W1 = 8
             W2 = 1
             W3 = 1
 
-            if self.extrapolate_velocity_second_order == 1:
+            if self.extrapolate_velocity_second_order :
                 self.extrapolate_second_order_sw_true_func(
                     numpy.int32(self.number_of_elements),
                     numpy.float64(self.epsilon),
@@ -940,7 +928,7 @@ class GPU_domain(Domain):
                     numpy.float64(self.beta_uh_dry),
                     numpy.float64(self.beta_vh),
                     numpy.float64(self.beta_vh_dry),
-                    numpy.float64(self.optimise_dry_cells),
+                    numpy.int32(self.optimise_dry_cells),
 
                     self.surrogate_neighbours_gpu,
                     self.number_of_boundaries_gpu,
@@ -993,6 +981,11 @@ class GPU_domain(Domain):
 
         else:
             Domain.extrapolate_second_order_sw(self)
+
+        if self.cotesting:
+            Domain.extrapolate_second_order_sw(self.cotesting_domain)
+            test_extrapolate_second_order_sw(self)
+            
 
 
     # FIXME
@@ -1449,9 +1442,10 @@ class GPU_domain(Domain):
     # For cotesting purpose
     # 2nd level cotesting
     def apply_fractional_steps(self):
-        Domain.apply_fractional_steps(self)
-        if self.cotesting:
-            Domain.apply_fractional_steps(self.cotesting_domain)
+        pass
+        #Domain.apply_fractional_steps(self)
+        #if self.cotesting:
+        #    Domain.apply_fractional_steps(self.cotesting_domain)
             
 
 
@@ -1466,9 +1460,9 @@ class GPU_domain(Domain):
 
     # 2nd level cotesting
     def distribute_to_vertices_and_edges(self):
+        if self.cotesting:
+            test_distribute_to_vertexs_and_edges(self, 'Input')
         if  self.using_gpu:
-            if self.cotesting:
-                test_distribute_to_vertexs_and_edges(self, 'Input')
             N = self.number_of_elements
             W1 = 32
             W2 = 1
@@ -1610,6 +1604,13 @@ class GPU_domain(Domain):
                                 Q.x_gradient_gpu,0,self.number_of_elements*2)
                             drv.memset_d32(
                                 Q.y_gradient_gpu,0,self.number_of_elements*2)
+                            
+                            # cotesting point
+                            if self.cotesting:
+                                Q2 = self.cotesting_domain.quantities[name]
+                                Q.extrapolate_first_order()
+                                test_extrapolate_first_order(self)
+
                     elif self._order_ == 2:
                         self.extrapolate_second_order_sw()
                     else:
@@ -1635,6 +1636,14 @@ class GPU_domain(Domain):
                                 Q.x_gradient_gpu,0,self.number_of_elements*2)
                             drv.memset_d32(
                                 Q.y_gradient_gpu,0,self.number_of_elements*2)
+
+
+                            # cotesting point
+                            if self.cotesting:
+                                Q2 = self.cotesting_domain.quantities[name]
+                                Q2.extrapolate_first_order()
+                                test_extrapolate_first_order(self)
+
                         elif self._order_ == 2:
                             #Q.extrapolate_second_order_and_limit_by_vertex()
                             self.extrapolate_second_order_and_limit_by_vertex_func(
@@ -1652,8 +1661,13 @@ class GPU_domain(Domain):
                                 Q.y_gradient_gpu,
                                 block = (W1, W2, W3),
                                 grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2),1)
-                                    )
-
+                                )
+                                
+                            # cotesting point
+                            if self.cotesting:
+                                Q2 = self.cotesting_domain.quantities[name]
+                                Q2.extrapolate_second_order_and_limit_by_vertex()
+                                test_extrapolate_second_order_and_limit_by_vertex(self)
 
                         else:
                             raise Exception('Unknown order')
@@ -1673,13 +1687,21 @@ class GPU_domain(Domain):
                             grid =( (N+W1*W2*W3-1)/(W1*W2*W3) ,1)
                             )
 
+                    # cotesting point
+                    if self.cotesting:
+                        Q2 = self.cotesting_domain.quantities[name]
+                        Q2.interpolate_from_vertices_to_edges()
+                        test_interpolate_from_vertices_to_edges(self)
+
         else:
             Domain.distribute_to_vertices_and_edges(self)
+            if self.cotesting:
+                self.cotesting_domain.distribute_to_vertices_and_edges()
 
 
         if self.cotesting:
-            Domain.distribute_to_vertices_and_edges(
-                    self.cotesting_domain)
+            #Domain.distribute_to_vertices_and_edges(
+            #        self.cotesting_domain)
             
             test_distribute_to_vertexs_and_edges(self)
 
@@ -1995,7 +2017,8 @@ class GPU_domain(Domain):
                 elif f[i] == manning_friction_explicit:
                     f[i] == self.manning_friction_explicit
                 else:
-                    pass
+                    print "Error: in fixing forcing_terms", f[i]
+                    raise Exception()
                 #FIXME
                 # in shallow_water_domain set_gravity_methon function
                 # gravity functions can be the elements of forcing_terms
@@ -2333,6 +2356,18 @@ def cpy_back_and_cmp(a, b, value_type, gpu = True):
         elif value_type is "areas":
             cpy_back(a.areas, a.areas_gpu)
             return numpy.allclose(a.areas, b.areas)
+        elif value_type is "surrogate_neighbours":
+            cpy_back(a.surrogate_neighbours, a.surrogate_neighbours_gpu)
+            return numpy.allclose(a.surrogate_neighbours, b.surrogate_neighbours)
+        elif value_type is "number_of_boundaries":
+            cpy_back(a.number_of_boundaries, a.number_of_boundaries_gpu)
+            return numpy.allclose(a.number_of_boundaries, b.number_of_boundaries)
+        elif value_type is "centroid_coordinates":
+            cpy_back(a.centroid_coordinates, a.centroid_coordinates_gpu)
+            return numpy.allclose(a.centroid_coordinates, b.centroid_coordinates)
+        elif value_type is "vertex_coordinates":
+            cpy_back(a.vertex_coordinates, a.vertex_coordinates_gpu)
+            return numpy.allclose(a.vertex_coordinates, b.vertex_coordinates)
         else:
             raise Exception('Unknown value_type %s' % value_type)
     else:
@@ -2353,8 +2388,23 @@ def cpy_back_and_cmp(a, b, value_type, gpu = True):
         elif value_type is "semi_implicit_update":
             return numpy.allclose(
                 a.semi_implicit_update, b.semi_implicit_update)
+        elif value_type is "vertex_coordinates":
+            return numpy.allclose(
+                a.vertex_coordinates, b.vertex_coordinates)
         elif value_type is "areas":
             return numpy.allclose(a.areas, b.areas)
+        elif value_type is "surrogate_neighbours":
+            return numpy.allclose(
+                a.surrogate_neighbours, b.surrogate_neighbours)
+        elif value_type is "number_of_boundaries":
+            return numpy.allclose(
+                a.number_of_boundaries, b.number_of_boundaries)
+        elif value_type is "centroid_coordinates":
+            return numpy.allclose(
+                a.centroid_coordinates, b.centroid_coordinates)
+        elif value_type is "vertex_coordinates":
+            return numpy.allclose(
+                a.vertex_coordinates, b.vertex_coordinates)
         else:
             raise Exception('Unknown value_type %s' % value_type)
         
@@ -2379,7 +2429,7 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     if IO == 'Input':
         ipt = []
         ipt.append( cpy_back_and_cmp( 
-                    domain, domain.cotesting_domain, 'areas' , gpu))
+                    domain, domain.cotesting_domain, 'vertex_coordinates' , gpu))
         ipt.append( cpy_back_and_cmp( e1, e2, 'edge_values' , gpu))
 
         if ipt.count(True) != ipt.__len__():
@@ -2725,4 +2775,219 @@ def test_compute_forcing_terms(domain):
 
     if res.count(True) != res.__len__():
         raise Exception( " --> compute_forcing_terms ", res)
+
+
+def test_protect_against_infinitesimal_and_negative_heights(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+    e1 = domain.quantities['elevation']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+    e2 = sc.quantities['elevation']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+
+
+    if res.count(True) != res.__len__():
+        raise Exception( " --> protect_against_infinitesimal_and_negative_heights ",
+                        res)
+
+
+def test_extrapolate_second_order_sw(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+    e1 = domain.quantities['elevation']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+    e2 = sc.quantities['elevation']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
+
+    res.append( domain.epsilon == sc.epsilon)
+    res.append( domain.minimum_allowed_height == sc.minimum_allowed_height)
+    res.append( domain.beta_w == sc.beta_w)
+    res.append( domain.beta_w_dry == sc.beta_w_dry)
+    res.append( domain.beta_uh == sc.beta_uh)
+    res.append( domain.beta_uh_dry == sc.beta_uh_dry)
+    res.append( domain.beta_vh == sc.beta_vh)
+    res.append( domain.beta_vh_dry == sc.beta_vh_dry)
+    res.append( domain.optimise_dry_cells == sc.optimise_dry_cells)
+
+    res.append( cpy_back_and_cmp( domain, sc, "surrogate_neighbours", gpu))
+    res.append( cpy_back_and_cmp( domain, sc, "number_of_boundaries", gpu))
+    res.append( cpy_back_and_cmp( domain, sc, "centroid_coordinates", gpu))
+    res.append( cpy_back_and_cmp( domain, sc, "vertex_coordinates", gpu))
+
+    if res.count(True) != res.__len__():
+        cnt = 0
+        for i in range(domain.number_of_elements):
+            if (xm1.vertex_values[i] != xm2.vertex_values[i]).all():
+                if cnt <= 5:
+                    print i, xm1.vertex_values[i], xm2.vertex_values[i]
+                cnt += 1
+        print cnt
+        raise Exception( " --> extrapolate_second_order_sw ", res)
+
+
+def test_balance_deep_and_shallow(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+    e1 = domain.quantities['elevation']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+    e2 = sc.quantities['elevation']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+
+
+    if res.count(True) != res.__len__():
+        raise Exception( " --> balance_deep_and_shallow ", res)
+        
+
+def test_interpolate_from_vertices_to_edges(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
+
+
+    if res.count(True) != res.__len__():
+        raise Exception( " --> interpolate_from_vertices_to_edges ", res)
+
+
+def test_extrapolate_second_order_and_limit_by_vertex(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient', gpu))
+
+
+    res.append( cpy_back_and_cmp( x1, x2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'x_gradient', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'y_gradient', gpu))
+
+
+    res.append( cpy_back_and_cmp( y1, y2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'x_gradient', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'y_gradient', gpu))
+
+
+    if res.count(True) != res.__len__():
+        raise Exception( " --> extrapolate_second_order_and_limit_by_vertex ", res)
+
     
+def test_extrapolate_first_order(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
+
+
+    res.append( cpy_back_and_cmp( x1, x2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'edge_values', gpu))
+
+    res.append( cpy_back_and_cmp( y1, y2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'edge_values', gpu))
+
+
+    if res.count(True) != res.__len__():
+        raise Exception( " --> extrapolate_first_order ", res)

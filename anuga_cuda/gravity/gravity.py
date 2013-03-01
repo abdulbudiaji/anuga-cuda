@@ -382,7 +382,7 @@ if __name__ == '__main__':
     domain2 = generate_merimbula_domain(True)
     domain2.equip_kernel_functions()
 
-    domain3 = generate_merimbula_domain()
+    testing_domain3 = False
 
 
     if domain1.compute_fluxes_method == 'original':
@@ -505,32 +505,34 @@ if __name__ == '__main__':
     
     
     
-    print "~~~~~~~~~~~~~ domain3  mom_explicit_update ~~~~~~~"
-    flag = 4
+    if testing_domain3:
+        domain3 = generate_merimbula_domain()
+        print "~~~~~~~~~~~~~ domain3  mom_explicit_update ~~~~~~~"
+        flag = 4
 
-    counter=0 
-    for i in range(domain2.number_of_elements):
-        gravity_single(domain3,i,flag)
-        #if temp_array[i][flag][0]!= domain3.quantities['xmomentum'].explicit_update[i]:
-        if abs(domain2.quantities['xmomentum'].explicit_update[i] -\
-                domain3.quantities['xmomentum'].explicit_update[i]) >\
-                abs(domain1.quantities['xmomentum'].explicit_update[i])*pow(10,-6):
-            counter +=1
-            if counter < 10:
-                print i , domain2.quantities['xmomentum'].explicit_update[i] ,\
-                        domain3.quantities['xmomentum'].explicit_update[i]
-    print  "---------> # of differences: %d" % counter
+        counter=0 
+        for i in range(domain2.number_of_elements):
+            gravity_single(domain3,i,flag)
+            #if temp_array[i][flag][0]!= domain3.quantities['xmomentum'].explicit_update[i]:
+            if abs(domain2.quantities['xmomentum'].explicit_update[i] -\
+                    domain3.quantities['xmomentum'].explicit_update[i]) >\
+                    abs(domain1.quantities['xmomentum'].explicit_update[i])*pow(10,-6):
+                counter +=1
+                if counter < 10:
+                    print i , domain2.quantities['xmomentum'].explicit_update[i] ,\
+                            domain3.quantities['xmomentum'].explicit_update[i]
+        print  "---------> # of differences: %d" % counter
 
 
-    counter = 0
-    for i in range(domain2.number_of_elements):
-        #gravity_single(domain3,i,flag)
-        #if temp_array[i][flag][1] != domain3.quantities['ymomentum'].explicit_update[i]:
-        if abs(domain2.quantities['ymomentum'].explicit_update[i] -\
-                domain3.quantities['ymomentum'].explicit_update[i]) >\
-                abs(domain1.quantities['ymomentum'].explicit_update[i])*pow(10,-6):
-            counter +=1
-            if counter < 10:
-                print i , domain2.quantities['ymomentum'].explicit_update[i] ,\
-                        domain3.quantities['ymomentum'].explicit_update[i]
-    print  "---------> # of differences: %d" % counter
+        counter = 0
+        for i in range(domain2.number_of_elements):
+            #gravity_single(domain3,i,flag)
+            #if temp_array[i][flag][1] != domain3.quantities['ymomentum'].explicit_update[i]:
+            if abs(domain2.quantities['ymomentum'].explicit_update[i] -\
+                    domain3.quantities['ymomentum'].explicit_update[i]) >\
+                    abs(domain1.quantities['ymomentum'].explicit_update[i])*pow(10,-6):
+                counter +=1
+                if counter < 10:
+                    print i , domain2.quantities['ymomentum'].explicit_update[i] ,\
+                            domain3.quantities['ymomentum'].explicit_update[i]
+        print  "---------> # of differences: %d" % counter

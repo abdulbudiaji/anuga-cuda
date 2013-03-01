@@ -8,10 +8,13 @@ __global__ void _protect_sw(
         double* xmomc,
         double* ymomc) 
 {
-    const long k = threadIdx.x+threadIdx.y*blockDim.x+
+    const int k = threadIdx.x+threadIdx.y*blockDim.x+
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     double hc;
     double u, v, reduced_speed;
+
+    if (k >= N)
+        return;
 
     // Protect against initesimal and negative heights
     if (maximum_allowed_speed < epsilon) {
@@ -83,14 +86,17 @@ __global__ void  _protect_swb2(
 {
     const long k = threadIdx.x+threadIdx.y*blockDim.x+
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+    
     double hc, bmin, bmax;
-    double u, v, reduced_speed;
     double mass_error=0.; 
     // This acts like minimum_allowed height, but scales with the vertical
     // distance between the bed_centroid_value and the max bed_edge_value of
     // every triangle.
     double minimum_relative_height=0.1; 
     int mass_added=0;
+    
+    if (k >= N)
+        return;
 
     // Protect against inifintesimal and negative heights  
     //if (maximum_allowed_speed < epsilon) {
