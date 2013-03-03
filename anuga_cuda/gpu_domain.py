@@ -948,6 +948,14 @@ class GPU_domain(Domain):
                     block = (W1, W2, W3),
                     grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
+
+
+                drv.memset_d32( self.stage_centroid_store_gpu, 
+                            0, self.number_of_elements*2)
+                drv.memset_d32( self.xmomentum_centroid_store_gpu, 
+                            0, self.number_of_elements*2)
+                drv.memset_d32( self.ymomentum_centroid_store_gpu, 
+                            0, self.number_of_elements*2)
             else:
                 self.extrapolate_second_order_sw_false_func(
                     numpy.int32(self.number_of_elements),
@@ -2851,13 +2859,53 @@ def test_extrapolate_second_order_sw(domain):
     res.append( cpy_back_and_cmp( domain, sc, "vertex_coordinates", gpu))
 
     if res.count(True) != res.__len__():
+        print res
         cnt = 0
         for i in range(domain.number_of_elements):
             if (xm1.vertex_values[i] != xm2.vertex_values[i]).all():
-                if cnt <= 5:
+                if domain.number_of_boundaries[i] == 1:
                     print i, xm1.vertex_values[i], xm2.vertex_values[i]
                 cnt += 1
         print cnt
+
+        from anuga_cuda.extrapolate.extrapolate_second_order_sw import \
+            extrapolate_second_order_sw_python as extra 
+        
+        extra(sc)
+
+
+        gpu = False
+        res = []
+        res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+        res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+
+        res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+        res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+
+        res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+        res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
+
+        res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+        res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
+
+        res.append( cpy_back_and_cmp( domain, sc, 
+                "surrogate_neighbours", gpu))
+        res.append( cpy_back_and_cmp( domain, sc, 
+                "number_of_boundaries", gpu))
+        res.append( cpy_back_and_cmp( domain, sc, 
+                "centroid_coordinates", gpu))
+        res.append( cpy_back_and_cmp( domain, sc, 
+                "vertex_coordinates", gpu))
+        print res
+        cnt = 0
+        if not res[5]:
+            for i in range(domain.number_of_elements):
+                if (xm1.vertex_values[i] != xm2.vertex_values[i]).all():
+                    if domain.number_of_boundaries[i] == 1:
+                        print i, xm1.vertex_values[i], xm2.vertex_values[i]
+                    cnt += 1
+            print cnt
+
         raise Exception( " --> extrapolate_second_order_sw ", res)
 
 

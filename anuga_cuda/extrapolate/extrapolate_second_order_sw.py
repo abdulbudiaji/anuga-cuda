@@ -1080,7 +1080,397 @@ def extrapolate_second_order_sw_cuda_FALSE_second_order(domain=None):
     		)
 
 
+def find_qmin_and_qmax( dq0, dq1, dq2):
+    if dq0 >= 0.0:
+        if dq1 >= dq2:
+            if dq1 >= 0:
+                qmax = dq0 + dq1
+            else: 
+                qmax = dq0
 
+            qmin = dq0+dq2
+            if qmin >= 0.0:
+                qmin = 0.0
+        else:
+            if dq2 > 0:
+                qmax = dq0 + dq2
+            else:
+                qmax = dq0
+            qmin = dq0 + dq1
+            if qmin >= 0.0:
+                qmin = 0.0
+    else:
+        if dq1 <= dq2:
+            if dq1 < 0:
+                qmin = dq0+dq1
+            else:
+                qmin = dq0
+            qmax = dq0 + dq2
+            if qmax <= 0:
+                qmax = 0
+        else:
+            if dq2 < 0:
+                qmin = dq0 + dq2
+            else:
+                qmin = dq0
+            qmax = dq0 + dq1
+            if qmax <= 0:
+              qmax = 0
+    return qmin, qmax
+
+def limit_gradient(dqv, qmin, qmax, beta_w):
+    r = 1000.0
+    r0 = 1.0
+    phi = 1.0
+    TINY = 1.0e-1000
+
+    for i in range(3):
+        if dqv[i] < -TINY:
+            r0 = qmin /dqv[i]
+
+        if dqv[i] > TINY:
+            r0 = qmax /dqv[i]
+
+        r = min(r0, r)
+
+    phi = min(r*beta_w, 1.0)
+
+    dqv[0] = dqv[0] * phi
+    dqv[1] = dqv[1] * phi
+    dqv[2] = dqv[2] * phi
+
+
+
+def extrapolate_second_order_sw_python(domain):
+    import numpy
+    stage = domain.quantities['stage']
+    bed = domain.quantities['elevation']
+    xmom = domain.quantities['xmomentum']
+    ymom = domain.quantities['ymomentum']
+
+    number_of_boundaries = domain.number_of_boundaries
+    vertex_coordinates = domain.vertex_coordinates
+    centroid_coordinates = domain.centroid_coordinates
+    surrogate_neighbours = domain.surrogate_neighbours
+
+    dqv = numpy.zeros(3, dtype=numpy.float64)
+    beta_w = domain.beta_w
+    beta_w_dry = domain.beta_w_dry
+    beta_uh = domain.beta_uh
+    beta_uh_dry = domain.beta_uh_dry
+    beta_vh = domain.beta_vh
+    beta_vh_dry = domain.beta_vh_dry
+
+    if domain.extrapolate_velocity_second_order == 1 :
+        stage_centroid_store = numpy.zeros_like(stage.centroid_values)
+        xmom_centroid_store = numpy.zeros_like(xmom.centroid_values)
+        ymom_centroid_store = numpy.zeros_like(ymom.centroid_values)
+
+        for k in range(domain.number_of_elements):
+            dk = max( stage.centroid_values[k] - bed.centroid_values[k],
+                domain.minimum_allowed_height)
+
+            xmom_centroid_store[k] = xmom.centroid_values[k];
+            xmom.centroid_values[k] = xmom.centroid_values[k] / dk;
+
+            ymom_centroid_store[k] = ymom.centroid_values[k];
+            ymom.centroid_values[k] = ymom.centroid_values[k] / dk;
+
+
+    for k in range(domain.number_of_elements):
+        if number_of_boundaries[k] == 3:
+            stage.vertex_values[k][:] = stage.centroid_values[k]
+            xmom.vertex_values[k][:] = xmom.centroid_values[k]
+            ymom.vertey_values[k][:] = ymom.centroid_values[k]
+            
+            continue
+        else:
+            xv0 = vertex_coordinates[k*3][0]
+            yv0 = vertex_coordinates[k*3][1]
+            xv1 = vertex_coordinates[k*3+1][0]
+            yv1 = vertex_coordinates[k*3+1][1]
+            xv2 = vertex_coordinates[k*3+2][0]
+            yv2 = vertex_coordinates[k*3+2][1]
+
+            coord_index = k
+            x = centroid_coordinates[coord_index][0]
+            y = centroid_coordinates[coord_index][1]
+            
+
+            dxv0 = xv0 - x
+            dxv1 = xv1 - x
+            dxv2 = xv2 - x
+            dyv0 = yv0 - y
+            dyv1 = yv1 - y
+            dyv2 = yv2 - y
+
+
+        if number_of_boundaries[k] <= 1:
+            k0 = surrogate_neighbours[k][0]
+            k1 = surrogate_neighbours[k][1]
+            k2 = surrogate_neighbours[k][2]
+
+            coord_index = k0
+            x0 = centroid_coordinates[coord_index][0]
+            y0 = centroid_coordinates[coord_index][1]
+
+            coord_index = k1
+            x1 = centroid_coordinates[coord_index][0]
+            y1 = centroid_coordinates[coord_index][1]
+
+            coord_index = k2
+            x2 = centroid_coordinates[coord_index][0]
+            y2 = centroid_coordinates[coord_index][1]
+
+            dx1 = x1 - x0
+            dx2 = x2 - x0
+            dy1 = y1 - y0
+            dy2 = y2 - y0
+
+
+            area2 = dy2 * dx1 - dy1*dx2
+
+            if area2 <= 0:
+                stage.vertex_values[k][0] = stage.centroid_values[k]
+                stage.vertex_values[k][1] = stage.centroid_values[k]
+                stage.vertex_values[k][2] = stage.centroid_values[k]
+                xmom.vertex_values[k][0] = xmom.centroid_values[k]
+                xmom.vertex_values[k][1] = xmom.centroid_values[k]
+                xmom.vertex_values[k][2] = xmom.centroid_values[k]
+                ymom.vertex_values[k][0] = ymom.centroid_values[k]
+                ymom.vertex_values[k][1] = ymom.centroid_values[k]
+                ymom.vertex_values[k][2] = ymom.centroid_values[k]
+
+                continue
+
+            hc = stage.centroid_values[k] - bed.centroid_values[k]
+            h0 = stage.centroid_values[k0] - bed.centroid_values[k0]
+            h1 = stage.centroid_values[k1] - bed.centroid_values[k1]
+            h2 = stage.centroid_values[k2] - bed.centroid_values[k2]
+            hmin = min(min(h0, min(h1, h2)), hc)
+            
+            hfactor = 0.0
+
+            if hmin > 0.001:
+                hfactor = (hmin - 0.001) / (hmin + 0.004)
+
+            if domain.optimise_dry_cells:
+                hmax = max( h0, max(h1, h2))
+                if hmax < domain.epsilon:
+                    continue
+
+            #------------------
+            # stage
+            #------------------
+
+            dq0 = stage.centroid_values[k0] - stage.centroid_values[k]
+
+            dq1 = stage.centroid_values[k1] - stage.centroid_values[k0]
+            dq2 = stage.centroid_values[k2] - stage.centroid_values[k0]
+
+            inv_area2 = 1.0 / area2
+
+            a = dy2 * dq1 - dy1*dq2
+            a *= inv_area2
+            b = dx1 * dq2 - dx2*dq1
+            b *= inv_area2
+
+            dqv[0] = a * dxv0 + b*dyv0
+            dqv[1] = a * dxv1 + b*dyv1
+            dqv[2] = a * dxv2 + b*dyv2
+
+
+            qmin, qmax = find_qmin_and_qmax(dq0, dq1, dq2)
+
+
+            beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor
+
+
+            limit_gradient(dqv, qmin, qmax, beta_tmp)
+
+            stage.vertex_values[k][0] = stage.centroid_values[k] + dqv[0]
+            stage.vertex_values[k][1] = stage.centroid_values[k] + dqv[1]
+            stage.vertex_values[k][2] = stage.centroid_values[k] + dqv[2]
+
+
+            #-----------------------
+            # xmomentum
+            #----------------------
+
+            dq0 = xmom.centroid_values[k0] - xmom.centroid_values[k]
+            dq1 = xmom.centroid_values[k1] - xmom.centroid_values[k0]
+            dq2 = xmom.centroid_values[k2] - xmom.centroid_values[k0]
+
+            a = dy2 * dq1 - dy1*dq2
+            a *= inv_area2
+            b = dx1 * dq2 - dx2*dq1
+            b *= inv_area2
+
+            
+            dqv[0] = a * dxv0 + b*dyv0
+            dqv[1] = a * dxv1 + b*dyv1
+            dqv[2] = a * dxv2 + b*dyv2
+
+            qmin, qmax = find_qmin_and_qmax(dq0, dq1, dq2)
+
+
+            beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor
+
+
+            limit_gradient(dqv, qmin, qmax, beta_tmp)
+
+
+            xmom.vertex_values[k][0] = xmom.centroid_values[k] + dqv[0]
+            xmom.vertex_values[k][1] = xmom.centroid_values[k] + dqv[1]
+            xmom.vertex_values[k][2] = xmom.centroid_values[k] + dqv[2]
+
+            #-----------------------
+            # ymomentum
+            #----------------------
+
+            dq0 = ymom.centroid_values[k0] - ymom.centroid_values[k]
+
+            dq1 = ymom.centroid_values[k1] - ymom.centroid_values[k0]
+            dq2 = ymom.centroid_values[k2] - ymom.centroid_values[k0]
+
+            a = dy2 * dq1 - dy1*dq2
+            a *= inv_area2
+            b = dx1 * dq2 - dx2*dq1
+            b *= inv_area2
+
+            dqv[0] = a * dxv0 + b*dyv0
+            dqv[1] = a * dxv1 + b*dyv1
+            dqv[2] = a * dxv2 + b*dyv2
+
+            qmin, qmax = find_qmin_and_qmax(dq0, dq1, dq2)
+
+            beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor
+
+            limit_gradient(dqv, qmin, qmax, beta_tmp)
+
+            ymom.vertex_values[k][0] = ymom.centroid_values[k] + dqv[0]
+            ymom.vertex_values[k][1] = ymom.centroid_values[k] + dqv[1]
+            ymom.vertex_values[k][2] = ymom.centroid_values[k] + dqv[2]
+
+        else:
+            #==============================================
+            # Number of boundaries == 2
+            #==============================================
+
+            for i in range(3) :
+                if surrogate_neighbours[k][i] != k:
+                    break
+            if i ==  3:
+                raise Exception()
+            
+            k1 = surrogate_neighbours[k][i]
+
+            coord_index = k1
+            x1 = centroid_coordinates[coord_index][0]
+            y1 = centroid_coordinates[coord_index][1]
+
+            dx1 = x1 - x
+            dy1 = y1 - y
+
+            area2 = dx1 * dx1 + dy1*dy1
+
+            dx2 = 1.0 / area2
+            dy2 = dx2*dy1
+            dx2 *= dx1
+
+            #-----------------------------------
+            # stage
+            #-----------------------------------
+
+            dq1 = stage.centroid_values[k1] - stage.centroid_values[k]
+
+            a = dq1*dx2
+            b = dq1*dy2
+
+            dqv[0] = a * dxv0 + b*dyv0
+            dqv[1] = a * dxv1 + b*dyv1
+            dqv[2] = a * dxv2 + b*dyv2
+
+
+            if dq1 >= 0.0 :
+                qmin = 0.0
+                qmax = dq1
+            else:
+                qmin = dq1
+                qmax = 0.0
+            
+            limit_gradient(dqv, qmin, qmax, beta_w)
+
+            stage.vertex_values[k][0] = stage.centroid_values[k] + dqv[0]
+            stage.vertex_values[k][1] = stage.centroid_values[k] + dqv[1]
+            stage.vertex_values[k][2] = stage.centroid_values[k] + dqv[2]
+
+
+            #-----------------------------------
+            # xmomentum
+            #-----------------------------------
+            
+            dq1 = xmom.centroid_values[k1] - xmom.centroid_values[k]
+
+            a = dq1*dx2
+            b = dq1*dy2
+
+
+            dqv[0] = a * dxv0 + b*dyv0
+            dqv[1] = a * dxv1 + b*dyv1
+            dqv[2] = a * dxv2 + b*dyv2
+
+            if dq1 >= 0.0:
+                qmin = 0.0
+                qmax = dq1
+            else:
+                qmin = dq1
+                qmax = 0.0
+            
+            limit_gradient(dqv, qmin, qmax, beta_w)
+
+            xmom.vertex_values[k][0] = xmom.centroid_values[k] + dqv[0]
+            xmom.vertex_values[k][1] = xmom.centroid_values[k] + dqv[1]
+            xmom.vertex_values[k][2] = xmom.centroid_values[k] + dqv[2]
+
+            dq1 = ymom.centroid_values[k1] - ymom.centroid_values[k]
+
+            a = dq1*dx2
+            b = dq1*dy2
+
+            dqv[0] = a * dxv0 + b*dyv0
+            dqv[1] = a * dxv1 + b*dyv1
+            dqv[2] = a * dxv2 + b*dyv2
+
+            if dq1 >= 0.0:
+                qmin = 0.0
+                qmax = dq1
+            else :
+                qmin = dq1
+                qmax = 0.0
+
+            limit_gradient(dqv, qmin, qmax, beta_w)
+
+
+            ymom.vertex_values[k][0] = ymom.centroid_values[k] + dqv[0]
+            ymom.vertex_values[k][1] = ymom.centroid_values[k] + dqv[1]
+            ymom.vertex_values[k][2] = ymom.centroid_values[k] + dqv[2]
+
+    if domain.extrapolate_velocity_second_order == 1:
+        for k in range(domain.number_of_elements):
+            dv0 = max(stage.vertex_values[k][0]- bed.vertex_values[k][0], 0.)
+            dv1 = max(stage.vertex_values[k][1]- bed.vertex_values[k][1], 0.)
+            dv2 = max(stage.vertex_values[k][2]- bed.vertex_values[k][2], 0.)
+
+            xmom.centroid_values[k] = xmom_centroid_store[k]
+            xmom.vertex_values[k][0] = xmom.vertex_values[k][0] * dv0
+            xmom.vertex_values[k][1] = xmom.vertex_values[k][ + 1] * dv1
+            xmom.vertex_values[k][2] = xmom.vertex_values[k][ + 2] * dv2
+
+            ymom.centroid_values[k] = ymom_centroid_store[k]
+            ymom.vertex_values[k][0] = ymom.vertex_values[k][0] * dv0
+            ymom.vertex_values[k][1] = ymom.vertex_values[k][1] * dv1
+            ymom.vertex_values[k][2] = ymom.vertex_values[k][2] * dv2
 
 
 if __name__ == '__main__':
@@ -1162,46 +1552,89 @@ if __name__ == '__main__':
     counter_y_cv = 0
     counter_x_vv = 0
     counter_y_vv = 0
-    print "------------- stage_vertex_values ---------"
-    print stage_h1.vertex_values
-    print stage_h2.vertex_values
-    print "------------- xmom_centroid_values ---------"
-    print xmom_h1.centroid_values
-    print xmom_h2.centroid_values
-    print "------------- xmom_vertex_values ---------"
-    print xmom_h1.vertex_values
-    print xmom_h2.vertex_values
-    print "------------- ymom_centroid_values ---------"
-    print ymom_h1.centroid_values
-    print ymom_h2.centroid_values
-    print "------------- ymom_vertex_values ---------"
-    print ymom_h1.vertex_values
-    print ymom_h2.vertex_values
+    #print "------------- stage_vertex_values ---------"
+    #print stage_h1.vertex_values
+    #print stage_h2.vertex_values
+    #print "------------- xmom_centroid_values ---------"
+    #print xmom_h1.centroid_values
+    #print xmom_h2.centroid_values
+    #print "------------- xmom_vertex_values ---------"
+    #print xmom_h1.vertex_values
+    #print xmom_h2.vertex_values
+    #print "------------- ymom_centroid_values ---------"
+    #print ymom_h1.centroid_values
+    #print ymom_h2.centroid_values
+    #print "------------- ymom_vertex_values ---------"
+    #print ymom_h1.vertex_values
+    #print ymom_h2.vertex_values
     svv1 = stage_h1.vertex_values
     svv2 = stage_h2.vertex_values
-    for i in range(domain1.number_of_elements):
-        if approx_cmp(svv1[i][0], svv2[i][0]) or \
-                approx_cmp(svv1[i][1], svv2[i][1]) or \
-                approx_cmp(svv1[i][2], svv2[i][2]):
-            counter_s_vv += 1
-            if counter_s_vv < 10:
-                print i, stage_h1.vertex_values[i], stage_h2.vertex_values[i],\
-                        (stage_h1.vertex_values[i] == stage_h2.vertex_values[i])
 
-        if xmom_h1.centroid_values[i] != xmom_h2.centroid_values[i]:
-            counter_x_cv += 1
+    res = []
+    res.append( numpy.allclose(svv1, svv2))
+    res.append(numpy.allclose(xmom_h1.centroid_values,xmom_h2.centroid_values))
+    res.append(numpy.allclose(xmom_h1.vertex_values, xmom_h2.vertex_values))
+    res.append(numpy.allclose(ymom_h1.centroid_values, ymom_h2.centroid_values))
+    res.append(numpy.allclose(ymom_h1.vertex_values, ymom_h2.vertex_values))
+    print res
+    if not res.count(True) == res.__len__():
+        for i in range(domain1.number_of_elements):
+            if not approx_cmp(svv1[i][0], svv2[i][0]) and \
+                    approx_cmp(svv1[i][1], svv2[i][1]) and \
+                    approx_cmp(svv1[i][2], svv2[i][2]):
+                counter_s_vv += 1
+                if counter_s_vv < 10:
+                    print i, stage_h1.vertex_values[i], stage_h2.vertex_values[i],\
+                            (stage_h1.vertex_values[i] == stage_h2.vertex_values[i])
 
-        if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
-            counter_x_vv += 1
+            if xmom_h1.centroid_values[i] != xmom_h2.centroid_values[i]:
+                counter_x_cv += 1
 
-        if ymom_h1.centroid_values[i] != ymom_h2.centroid_values[i]:
-            counter_y_cv += 1
+            if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
+                counter_x_vv += 1
 
-        if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
-            counter_y_vv += 1
+            if ymom_h1.centroid_values[i] != ymom_h2.centroid_values[i]:
+                counter_y_cv += 1
 
-    print "*** # diff %d %d %d %d %d" % \
+            if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
+                counter_y_vv += 1
+
+        print "*** # diff %d %d %d %d %d" % \
             (counter_s_vv, counter_x_cv, counter_x_vv, counter_y_cv, counter_y_vv)
     
     
+    extrapolate_second_order_sw_python(domain2) 
+    res = []
+    res.append( numpy.allclose(svv1, svv2))
+    res.append(numpy.allclose(xmom_h1.centroid_values,xmom_h2.centroid_values))
+    res.append(numpy.allclose(xmom_h1.vertex_values, xmom_h2.vertex_values))
+    res.append(numpy.allclose(ymom_h1.centroid_values, ymom_h2.centroid_values))
+    res.append(numpy.allclose(ymom_h1.vertex_values, ymom_h2.vertex_values))
+    print res
+    if not res.count(True) == res.__len__():
+        for i in range(domain1.number_of_elements):
+            if approx_cmp(svv1[i][0], svv2[i][0]) or \
+                    approx_cmp(svv1[i][1], svv2[i][1]) or \
+                    approx_cmp(svv1[i][2], svv2[i][2]):
+                counter_s_vv += 1
+                if counter_s_vv < 10:
+                    print i, stage_h1.vertex_values[i], \
+                        stage_h2.vertex_values[i],\
+                        (stage_h1.vertex_values[i] == stage_h2.vertex_values[i])
+
+            if xmom_h1.centroid_values[i] != xmom_h2.centroid_values[i]:
+                counter_x_cv += 1
+
+            if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
+                counter_x_vv += 1
+
+            if ymom_h1.centroid_values[i] != ymom_h2.centroid_values[i]:
+                counter_y_cv += 1
+
+            if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
+                counter_y_vv += 1
+
+        print "*** # diff %d %d %d %d %d" % \
+            ( counter_s_vv, counter_x_cv, 
+                counter_x_vv, counter_y_cv, counter_y_vv)
     
