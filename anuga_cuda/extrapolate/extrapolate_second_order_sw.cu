@@ -150,11 +150,8 @@ __global__ void extrapolate_second_order_sw_true (
         double* stage_vertex_values,
         double* bed_vertex_values,
         double* xmom_vertex_values,
-        double* ymom_vertex_values,
+        double* ymom_vertex_values)
         
-        double* stage_centroid_store,
-        double* xmom_centroid_store,
-        double* ymom_centroid_store)
 {
     const int k = threadIdx.x + threadIdx.y*blockDim.x +
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
@@ -176,11 +173,11 @@ __global__ void extrapolate_second_order_sw_true (
 
 
     // extrapolate_velocity_second_order == 1 
+    // This procedure is done in function extrapolate_velocity_second_order_true
 
     //dk = max(stage_centroid_values[k]-bed_centroid_values[k],minimum_allowed_height);
     //xmom_centroid_store[k] = xmom_centroid_values[k];
     //xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
-
     //ymom_centroid_store[k] = ymom_centroid_values[k];
     //ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
 
@@ -351,7 +348,6 @@ __global__ void extrapolate_second_order_sw_true (
             // Calculate the difference between vertex 0 of the auxiliary
             // triangle and the centroid of triangle k
             dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
-            stage_centroid_store[k] = xmom_centroid_values[k0];
 
             // Calculate differentials between the vertices
             // of the auxiliary triangle
