@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
-def approx_cmp(a,b, approx=True):
+def approx_equal(a,b, approx=True):
     if approx:
         if abs(a-b) > abs(a)*pow(10,-6):
-            return True
-        else: 
             return False
+        else: 
+            return True
     else:
         if a != b:
-            return True
-        else:
             return False
+        else:
+            return True
 
 
 def mem_all_cpy(a):

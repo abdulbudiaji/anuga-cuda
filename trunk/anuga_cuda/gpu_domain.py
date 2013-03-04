@@ -967,54 +967,10 @@ class GPU_domain(Domain):
                     self.quantities['elevation'].vertex_values_gpu,
                     self.quantities['xmomentum'].vertex_values_gpu,
                     self.quantities['ymomentum'].vertex_values_gpu,
-                    self.stage_centroid_store_gpu,
-                    self.xmomentum_centroid_store_gpu,
-                    self.ymomentum_centroid_store_gpu,
                     block = (W1, W2, W3),
                     grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
 
-                #self.extrapolate_velocity_second_order_true_after_func(
-                #    numpy.int32(N),
-
-                #    self.quantities['xmomentum'].centroid_values_gpu,
-                #    self.xmomentum_centroid_store_gpu,
-                #    self.quantities['ymomentum'].centroid_values_gpu,
-                #    self.ymomentum_centroid_store_gpu,
-                #    block = (W1, W2, W3),
-                #    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
-                #    )
-
-                #strm = drv.Stream()
-                #drv.memcpy_dtod_async(
-                #    self.quantities['xmomentum'].centroid_values_gpu,
-                #    self.xmomentum_centroid_store_gpu,
-                #    self.quantities['xmomentum'].centroid_values.size,
-                #    strm)
-                #
-                #drv.memcpy_dtod(
-                #    self.quantities['xmomentum'].centroid_values_gpu,
-                #    self.xmomentum_centroid_store_gpu,
-                #    self.quantities['xmomentum'].centroid_values.nbytes)
-
-                #strm = drv.Stream()
-                #drv.memcpy_dtod_async(
-                #    self.quantities['ymomentum'].centroid_values_gpu,
-                #    self.ymomentum_centroid_store_gpu,
-                #    self.quantities['xmomentum'].centroid_values.size,
-                #    strm)
-                #drv.memcpy_dtod(
-                #    self.quantities['ymomentum'].centroid_values_gpu,
-                #    self.ymomentum_centroid_store_gpu,
-                #    self.quantities['ymomentum'].centroid_values.nbytes)
-
-
-                #drv.memset_d32( self.stage_centroid_store_gpu, 
-                #            0, self.number_of_elements*2)
-                #drv.memset_d32( self.xmomentum_centroid_store_gpu, 
-                #            0, self.number_of_elements*2)
-                #drv.memset_d32( self.ymomentum_centroid_store_gpu, 
-                #            0, self.number_of_elements*2)
             else:
                 self.extrapolate_second_order_sw_false_func(
                     numpy.int32(self.number_of_elements),
@@ -2230,8 +2186,8 @@ class GPU_domain(Domain):
             # Cotesting point
             if self.cotesting:
                 initial_time_sc = sc.get_time()
-                if initial_time != initial_time_sc:
-                    raise Exception()
+                if not numpy.allclose(initial_time, initial_time_sc):
+                    raise Exception(" Error: unequal initial_time")
 
                 
             # Cotesting point
@@ -2252,7 +2208,7 @@ class GPU_domain(Domain):
             self.set_time(initial_time + self.timestep)
             # Cotesting point
             if self.cotesting:
-                if self.timestep != sc.timestep:
+                if not numpy.allclose(self.timestep, sc.timestep):
                     raise Exception("Error: unequal timestep %lf,  %lf" % \
                             (self.timestep, sc.timestep))
                 sc.set_time(initial_time_sc + sc.timestep)
@@ -2504,8 +2460,8 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
         
 
 
-    res.append( domain.flux_timestep == \
-        domain.cotesting_domain.flux_timestep)
+    res.append( numpy.allclose( domain.flux_timestep,
+        domain.cotesting_domain.flux_timestep))
     res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
     res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
     res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
@@ -2555,14 +2511,16 @@ def test_evolve_one_euler_step(domain):
 
 
     res = []
-    res.append( domain.flux_timestep == \
-        domain.cotesting_domain.flux_timestep)
-    res.append( domain.recorded_max_timestep == \
-        domain.cotesting_domain.recorded_max_timestep)
-    res.append( domain.recorded_min_timestep == \
-        domain.cotesting_domain.recorded_min_timestep)
+    res.append( numpy.allclose( domain.flux_timestep,
+        domain.cotesting_domain.flux_timestep))
+    res.append( numpy.allclose( domain.recorded_max_timestep,
+        domain.cotesting_domain.recorded_max_timestep))
+    res.append( numpy.allclose( domain.recorded_min_timestep,
+        domain.cotesting_domain.recorded_min_timestep))
     
-    res.append( domain.smallsteps == domain.cotesting_domain.smallsteps )
+    res.append( numpy.allclose( domain.smallsteps, 
+        domain.cotesting_domain.smallsteps ))
+
     res.append( cpy_back_and_cmp( s1, s2, 'explicit_update' , gpu))
     res.append( cpy_back_and_cmp( s1, s2, 'semi_implicit_update' , gpu))
     res.append( cpy_back_and_cmp( s1, s2, 'centroid_values' , gpu))
@@ -2627,17 +2585,17 @@ def test_update_timestep(domain):
     sc = domain.cotesting_domain
 
     res = []
-    res.append( domain._order_ == sc._order_ )
-    res.append( domain.default_order == sc.default_order )
-    res.append( domain.get_time() == sc.get_time() )
-    res.append( domain.CFL == sc.CFL )
-    res.append( domain.smallsteps == sc.smallsteps )
-    res.append( domain.max_smallsteps == sc.max_smallsteps )
-    res.append( domain.recorded_max_timestep == sc.recorded_max_timestep )
-    res.append( domain.recorded_min_timestep == sc.recorded_min_timestep )
-    res.append( domain.evolve_max_timestep == sc.evolve_max_timestep )
-    res.append( domain.evolve_min_timestep == sc.evolve_min_timestep )
-    res.append( domain.flux_timestep == sc.flux_timestep )
+    res.append( numpy.allclose(domain._order_ , sc._order_ ))
+    res.append( numpy.allclose(domain.default_order , sc.default_order ))
+    res.append( numpy.allclose(domain.get_time() , sc.get_time() ))
+    res.append( numpy.allclose(domain.CFL , sc.CFL ))
+    res.append( numpy.allclose(domain.smallsteps , sc.smallsteps ))
+    res.append( numpy.allclose(domain.max_smallsteps , sc.max_smallsteps ))
+    res.append( numpy.allclose(domain.recorded_max_timestep , sc.recorded_max_timestep ))
+    res.append( numpy.allclose(domain.recorded_min_timestep , sc.recorded_min_timestep ))
+    res.append( numpy.allclose(domain.evolve_max_timestep , sc.evolve_max_timestep ))
+    res.append( numpy.allclose(domain.evolve_min_timestep , sc.evolve_min_timestep ))
+    res.append( numpy.allclose(domain.flux_timestep , sc.flux_timestep ))
 
 
     if res.count(True) != res.__len__():
@@ -2656,7 +2614,7 @@ def test_update_conserved_quantities(domain):
         res.append( cpy_back_and_cmp( Q1, Q2, "centroid_values", gpu))
         res.append( cpy_back_and_cmp( Q1, Q2, "semi_implicit_update", gpu))
         res.append( cpy_back_and_cmp( Q1, Q2, "explicit_update", gpu))
-        res.append( domain.timestep == domain.cotesting_domain.timestep)
+        res.append( numpy.allclose(domain.timestep, domain.cotesting_domain.timestep))
         
         if res.count(True) != res.__len__():
             if not res[0]:
@@ -2788,7 +2746,8 @@ def test_compute_fluxes(domain):
 
 
     res = []
-    res.append( domain.flux_timestep == sc.flux_timestep)
+    res.append( numpy.allclose(domain.flux_timestep,
+                sc.flux_timestep))
 
     res.append( cpy_back_and_cmp( s1, s2, 'explicit_update' , gpu))
     res.append( cpy_back_and_cmp( s1, s2, 'edge_values' , gpu))
@@ -2806,6 +2765,9 @@ def test_compute_fluxes(domain):
     
 
     if res.count(True) != res.__len__():
+        if not res[0]:
+            print "   flux_timestep %.9lf %.9lf" % (
+                    domain.flux_timestep, sc.flux_timestep)
         raise Exception( " --> compute_fluxes ", res)
 
 
