@@ -94,9 +94,11 @@ __global__ void extrapolate_velocity_second_order_true(
     dk = max(stage_centroid_values[k] -bed_centroid_values[k], minimum_allowed_height);
     xmom_centroid_store[k] = xmom_centroid_values[k];
     xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
+    //xmom_centroid_store[k] = xmom_centroid_values[k] / dk;
 
     ymom_centroid_store[k] = ymom_centroid_values[k];
     ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
+    //ymom_centroid_store[k] = xmom_centroid_values[k] / dk;
 }
 
 
@@ -172,7 +174,6 @@ __global__ void extrapolate_second_order_sw_true (
 
     double dk, dv0, dv1, dv2;
 
-    __shared__ double sh_xmom_vertex_values[ BLOCK_SIZE * 3];
 
     // extrapolate_velocity_second_order == 1 
 
@@ -193,12 +194,9 @@ __global__ void extrapolate_second_order_sw_true (
             stage_vertex_values[k3 +1] = stage_centroid_values[k];
             stage_vertex_values[k3 +2] = stage_centroid_values[k];
 
-            //xmom_vertex_values[k3] = xmom_centroid_values[k];
-            //xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
-            //xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
-            sh_xmom_vertex_values[threadIdx.x] = xmom_centroid_values[k];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x] = sh_xmom_vertex_values[threadIdx.x];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x*2]=sh_xmom_vertex_values[threadIdx.x];
+            xmom_vertex_values[k3] = xmom_centroid_values[k];
+            xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
+            xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
 
             ymom_vertex_values[k3] = ymom_centroid_values[k];
             ymom_vertex_values[k3 + 1] = ymom_centroid_values[k];
@@ -264,12 +262,9 @@ __global__ void extrapolate_second_order_sw_true (
                 stage_vertex_values[k3 + 1] = stage_centroid_values[k];
                 stage_vertex_values[k3 + 2] = stage_centroid_values[k];
 
-                //xmom_vertex_values[k3] = xmom_centroid_values[k];
-                //xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
-                //xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
-                sh_xmom_vertex_values[threadIdx.x] = xmom_centroid_values[k];
-                sh_xmom_vertex_values[threadIdx.x + blockDim.x] = sh_xmom_vertex_values[threadIdx.x];
-                sh_xmom_vertex_values[threadIdx.x + blockDim.x*2]=sh_xmom_vertex_values[threadIdx.x];
+                xmom_vertex_values[k3] = xmom_centroid_values[k];
+                xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
+                xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
                 
                 ymom_vertex_values[k3] = ymom_centroid_values[k];
                 ymom_vertex_values[k3 + 1] = ymom_centroid_values[k];
@@ -387,18 +382,9 @@ __global__ void extrapolate_second_order_sw_true (
             // Limit the gradient
             limit_gradient(dqv, qmin, qmax, beta_tmp);
 
-            //for (i = 0; i < 3; i++) {
-            //    xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
-            //}
-
-            sh_xmom_vertex_values[threadIdx.x] = xmom_centroid_values[k];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x] = sh_xmom_vertex_values[threadIdx.x];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x*2]=sh_xmom_vertex_values[threadIdx.x];
-            
-            sh_xmom_vertex_values[threadIdx.x]  += dqv[0];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x]  += dqv[1];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x*2] += dqv[2];
-
+            for (i = 0; i < 3; i++) {
+                xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
+            }
 
             //-----------------------------------
             // ymomentum
@@ -554,9 +540,9 @@ __global__ void extrapolate_second_order_sw_true (
             limit_gradient(dqv, qmin, qmax, beta_w);
 
             //for (i=0;i<3;i++)
-            //xmom_vertex_values[k3] = xmom_centroid_values[k] + dqv[0];
-            //xmom_vertex_values[k3 + 1] = xmom_centroid_values[k] + dqv[1];
-            //xmom_vertex_values[k3 + 2] = xmom_centroid_values[k] + dqv[2];
+            xmom_vertex_values[k3] = xmom_centroid_values[k] + dqv[0];
+            xmom_vertex_values[k3 + 1] = xmom_centroid_values[k] + dqv[1];
+            xmom_vertex_values[k3 + 2] = xmom_centroid_values[k] + dqv[2];
 
 
             //for (i = 0; i < 3; i++) {
@@ -564,13 +550,7 @@ __global__ void extrapolate_second_order_sw_true (
             //}
 
 
-            sh_xmom_vertex_values[threadIdx.x] = xmom_centroid_values[k];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x] = sh_xmom_vertex_values[threadIdx.x];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x*2]=sh_xmom_vertex_values[threadIdx.x];
             
-            sh_xmom_vertex_values[threadIdx.x]  += dqv[0];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x]  += dqv[1];
-            sh_xmom_vertex_values[threadIdx.x + blockDim.x*2] += dqv[2];
 
 
 
@@ -634,12 +614,9 @@ __global__ void extrapolate_second_order_sw_true (
 
     //Correct centroid and vertex values
     //xmom_centroid_values[k] = xmom_centroid_store[k];
-    //xmom_vertex_values[k3] = xmom_vertex_values[k3] * dv0;
-    //xmom_vertex_values[k3 + 1] = xmom_vertex_values[k3 + 1] * dv1;
-    //xmom_vertex_values[k3 + 2] = xmom_vertex_values[k3 + 2] * dv2;
-    xmom_vertex_values[k3] = sh_xmom_vertex_values[threadIdx.x] * dv0;
-    xmom_vertex_values[k3+1]=sh_xmom_vertex_values[threadIdx.x + BLOCK_SIZE]*dv1;
-    xmom_vertex_values[k3+2]=sh_xmom_vertex_values[threadIdx.x + BLOCK_SIZE*2]*dv1;
+    xmom_vertex_values[k3] = xmom_vertex_values[k3] * dv0;
+    xmom_vertex_values[k3 + 1] = xmom_vertex_values[k3 + 1] * dv1;
+    xmom_vertex_values[k3 + 2] = xmom_vertex_values[k3 + 2] * dv2;
 
     //ymom_centroid_values[k] = ymom_centroid_store[k];
     ymom_vertex_values[k3] = ymom_vertex_values[k3] * dv0;

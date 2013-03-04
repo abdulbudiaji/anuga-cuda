@@ -2920,51 +2920,51 @@ def test_extrapolate_second_order_sw(domain):
         cnt = 0
         for i in range(domain.number_of_elements):
             if (xm1.vertex_values[i] != xm2.vertex_values[i]).all():
-                #if domain.number_of_boundaries[i] == 1:
-                #    print i, xm1.vertex_values[i], xm2.vertex_values[i]
+                if i< 10:
+                    print i, xm1.vertex_values[i], xm2.vertex_values[i]
                 cnt += 1
         print cnt
 
-        from anuga_cuda.extrapolate.extrapolate_second_order_sw import \
-            extrapolate_second_order_sw_python as extra 
-        
+        #from anuga_cuda.extrapolate.extrapolate_second_order_sw import \
+        #    extrapolate_second_order_sw_python as extra 
+        #
 
-        ss = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
-        xs = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
-        ys = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
+        #ss = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
+        #xs = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
+        #ys = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
 
-        drv.memcpy_dtoh(ss, domain.stage_centroid_store_gpu)
-        drv.memcpy_dtoh(xs, domain.xmomentum_centroid_store_gpu)
-        drv.memcpy_dtoh(ys, domain.ymomentum_centroid_store_gpu)
+        #drv.memcpy_dtoh(ss, domain.stage_centroid_store_gpu)
+        #drv.memcpy_dtoh(xs, domain.xmomentum_centroid_store_gpu)
+        #drv.memcpy_dtoh(ys, domain.ymomentum_centroid_store_gpu)
 
-        extra(sc, ss, xs, ys)
+        #extra(sc, ss, xs, ys)
 
 
-        gpu = False
-        res = []
-        res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
-        res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+        #gpu = False
+        #res = []
+        #res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+        #res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
 
-        res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
-        res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+        #res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+        #res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
 
-        res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
-        res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
+        #res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+        #res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
 
-        res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
-        res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
+        #res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+        #res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
 
-        res.append( cpy_back_and_cmp( domain, sc, 
-                "surrogate_neighbours", gpu))
-        res.append( cpy_back_and_cmp( domain, sc, 
-                "number_of_boundaries", gpu))
-        res.append( cpy_back_and_cmp( domain, sc, 
-                "centroid_coordinates", gpu))
-        res.append( cpy_back_and_cmp( domain, sc, 
-                "vertex_coordinates", gpu))
+        #res.append( cpy_back_and_cmp( domain, sc, 
+        #        "surrogate_neighbours", gpu))
+        #res.append( cpy_back_and_cmp( domain, sc, 
+        #        "number_of_boundaries", gpu))
+        #res.append( cpy_back_and_cmp( domain, sc, 
+        #        "centroid_coordinates", gpu))
+        #res.append( cpy_back_and_cmp( domain, sc, 
+        #        "vertex_coordinates", gpu))
 
-        print res
-        cnt = 0
+        #print res
+        #cnt = 0
         #if not res[5]:
         if False:
             for i in range(domain.number_of_elements):
