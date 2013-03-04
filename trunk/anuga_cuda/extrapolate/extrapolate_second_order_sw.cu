@@ -92,13 +92,13 @@ __global__ void extrapolate_velocity_second_order_true(
         return;
 
     dk = max(stage_centroid_values[k] -bed_centroid_values[k], minimum_allowed_height);
-    xmom_centroid_store[k] = xmom_centroid_values[k];
-    xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
-    //xmom_centroid_store[k] = xmom_centroid_values[k] / dk;
+    //xmom_centroid_store[k] = xmom_centroid_values[k];
+    //xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
+    xmom_centroid_store[k] = xmom_centroid_values[k] / dk;
 
-    ymom_centroid_store[k] = ymom_centroid_values[k];
-    ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
-    //ymom_centroid_store[k] = xmom_centroid_values[k] / dk;
+    //ymom_centroid_store[k] = ymom_centroid_values[k];
+    //ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
+    ymom_centroid_store[k] = ymom_centroid_values[k] / dk;
 }
 
 

@@ -958,8 +958,10 @@ class GPU_domain(Domain):
                     self.centroid_coordinates_gpu,
                     self.quantities['stage'].centroid_values_gpu,
                     self.quantities['elevation'].centroid_values_gpu,
-                    self.quantities['xmomentum'].centroid_values_gpu,
-                    self.quantities['ymomentum'].centroid_values_gpu,
+                    #self.quantities['xmomentum'].centroid_values_gpu,
+                    #self.quantities['ymomentum'].centroid_values_gpu,
+                    self.xmomentum_centroid_store_gpu,
+                    self.ymomentum_centroid_store_gpu,
                     self.vertex_coordinates_gpu,
                     self.quantities['stage'].vertex_values_gpu,
                     self.quantities['elevation'].vertex_values_gpu,
@@ -972,16 +974,16 @@ class GPU_domain(Domain):
                     grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
 
-                self.extrapolate_velocity_second_order_true_after_func(
-                    numpy.int32(N),
+                #self.extrapolate_velocity_second_order_true_after_func(
+                #    numpy.int32(N),
 
-                    self.quantities['xmomentum'].centroid_values_gpu,
-                    self.xmomentum_centroid_store_gpu,
-                    self.quantities['ymomentum'].centroid_values_gpu,
-                    self.ymomentum_centroid_store_gpu,
-                    block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
-                    )
+                #    self.quantities['xmomentum'].centroid_values_gpu,
+                #    self.xmomentum_centroid_store_gpu,
+                #    self.quantities['ymomentum'].centroid_values_gpu,
+                #    self.ymomentum_centroid_store_gpu,
+                #    block = (W1, W2, W3),
+                #    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                #    )
 
                 #strm = drv.Stream()
                 #drv.memcpy_dtod_async(
