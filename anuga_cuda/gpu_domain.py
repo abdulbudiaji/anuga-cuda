@@ -164,6 +164,14 @@ class GPU_domain(Domain):
             self.extrapolate_second_order_sw_mod.get_function(
                 "extrapolate_second_order_sw_false")
 
+        self.extrapolate_velocity_second_order_true_func = \
+            self.extrapolate_second_order_sw_mod.get_function(
+                "extrapolate_velocity_second_order_true")
+
+        self.extrapolate_velocity_second_order_true_after_func = \
+            self.extrapolate_second_order_sw_mod.get_function(
+                "extrapolate_velocity_second_order_true_after")
+
         self.extrapolate_second_order_sw_true_block = \
             self.extrapolate_second_order_sw_true_func.max_threads_per_block
         self.extrapolate_second_order_sw_false_block= \
@@ -913,13 +921,28 @@ class GPU_domain(Domain):
         if self.cotesting:
             test_extrapolate_second_order_sw(self)
         if  self.using_gpu:
+            N = self.number_of_elements
             W1 = 8
             W2 = 1
             W3 = 1
 
             if self.extrapolate_velocity_second_order :
+                self.extrapolate_velocity_second_order_true_func(
+                    numpy.int32(N),
+                    numpy.float64(self.minimum_allowed_height),
+
+                    self.quantities['stage'].centroid_values_gpu,
+                    self.quantities['elevation'].centroid_values_gpu,
+                    self.quantities['xmomentum'].centroid_values_gpu,
+                    self.xmomentum_centroid_store_gpu,
+                    self.quantities['ymomentum'].centroid_values_gpu,
+                    self.ymomentum_centroid_store_gpu,
+                    block = (W1, W2, W3),
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    )
+
                 self.extrapolate_second_order_sw_true_func(
-                    numpy.int32(self.number_of_elements),
+                    numpy.int32(N),
                     numpy.float64(self.epsilon),
                     numpy.float64(self.minimum_allowed_height),
                     numpy.float64(self.beta_w),
@@ -946,16 +969,50 @@ class GPU_domain(Domain):
                     self.xmomentum_centroid_store_gpu,
                     self.ymomentum_centroid_store_gpu,
                     block = (W1, W2, W3),
-                    grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
 
+                self.extrapolate_velocity_second_order_true_after_func(
+                    numpy.int32(N),
 
-                drv.memset_d32( self.stage_centroid_store_gpu, 
-                            0, self.number_of_elements*2)
-                drv.memset_d32( self.xmomentum_centroid_store_gpu, 
-                            0, self.number_of_elements*2)
-                drv.memset_d32( self.ymomentum_centroid_store_gpu, 
-                            0, self.number_of_elements*2)
+                    self.quantities['xmomentum'].centroid_values_gpu,
+                    self.xmomentum_centroid_store_gpu,
+                    self.quantities['ymomentum'].centroid_values_gpu,
+                    self.ymomentum_centroid_store_gpu,
+                    block = (W1, W2, W3),
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    )
+
+                #strm = drv.Stream()
+                #drv.memcpy_dtod_async(
+                #    self.quantities['xmomentum'].centroid_values_gpu,
+                #    self.xmomentum_centroid_store_gpu,
+                #    self.quantities['xmomentum'].centroid_values.size,
+                #    strm)
+                #
+                #drv.memcpy_dtod(
+                #    self.quantities['xmomentum'].centroid_values_gpu,
+                #    self.xmomentum_centroid_store_gpu,
+                #    self.quantities['xmomentum'].centroid_values.nbytes)
+
+                #strm = drv.Stream()
+                #drv.memcpy_dtod_async(
+                #    self.quantities['ymomentum'].centroid_values_gpu,
+                #    self.ymomentum_centroid_store_gpu,
+                #    self.quantities['xmomentum'].centroid_values.size,
+                #    strm)
+                #drv.memcpy_dtod(
+                #    self.quantities['ymomentum'].centroid_values_gpu,
+                #    self.ymomentum_centroid_store_gpu,
+                #    self.quantities['ymomentum'].centroid_values.nbytes)
+
+
+                #drv.memset_d32( self.stage_centroid_store_gpu, 
+                #            0, self.number_of_elements*2)
+                #drv.memset_d32( self.xmomentum_centroid_store_gpu, 
+                #            0, self.number_of_elements*2)
+                #drv.memset_d32( self.ymomentum_centroid_store_gpu, 
+                #            0, self.number_of_elements*2)
             else:
                 self.extrapolate_second_order_sw_false_func(
                     numpy.int32(self.number_of_elements),
@@ -2863,15 +2920,24 @@ def test_extrapolate_second_order_sw(domain):
         cnt = 0
         for i in range(domain.number_of_elements):
             if (xm1.vertex_values[i] != xm2.vertex_values[i]).all():
-                if domain.number_of_boundaries[i] == 1:
-                    print i, xm1.vertex_values[i], xm2.vertex_values[i]
+                #if domain.number_of_boundaries[i] == 1:
+                #    print i, xm1.vertex_values[i], xm2.vertex_values[i]
                 cnt += 1
         print cnt
 
         from anuga_cuda.extrapolate.extrapolate_second_order_sw import \
             extrapolate_second_order_sw_python as extra 
         
-        extra(sc)
+
+        ss = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
+        xs = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
+        ys = numpy.zeros_like(s1.centroid_values, dtype=numpy.float64)
+
+        drv.memcpy_dtoh(ss, domain.stage_centroid_store_gpu)
+        drv.memcpy_dtoh(xs, domain.xmomentum_centroid_store_gpu)
+        drv.memcpy_dtoh(ys, domain.ymomentum_centroid_store_gpu)
+
+        extra(sc, ss, xs, ys)
 
 
         gpu = False
@@ -2896,9 +2962,11 @@ def test_extrapolate_second_order_sw(domain):
                 "centroid_coordinates", gpu))
         res.append( cpy_back_and_cmp( domain, sc, 
                 "vertex_coordinates", gpu))
+
         print res
         cnt = 0
-        if not res[5]:
+        #if not res[5]:
+        if False:
             for i in range(domain.number_of_elements):
                 if (xm1.vertex_values[i] != xm2.vertex_values[i]).all():
                     if domain.number_of_boundaries[i] == 1:

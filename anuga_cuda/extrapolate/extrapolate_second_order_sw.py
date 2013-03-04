@@ -1141,7 +1141,7 @@ def limit_gradient(dqv, qmin, qmax, beta_w):
 
 
 
-def extrapolate_second_order_sw_python(domain):
+def extrapolate_second_order_sw_python(domain, ss=None, xs=None, ys=None):
     import numpy
     stage = domain.quantities['stage']
     bed = domain.quantities['elevation']
@@ -1162,7 +1162,7 @@ def extrapolate_second_order_sw_python(domain):
     beta_vh_dry = domain.beta_vh_dry
 
     if domain.extrapolate_velocity_second_order == 1 :
-        stage_centroid_store = numpy.zeros_like(stage.centroid_values)
+        stage_centroid_store = numpy.zeros_like(stage.centroid_values, dtype=numpy.float64)
         xmom_centroid_store = numpy.zeros_like(xmom.centroid_values)
         ymom_centroid_store = numpy.zeros_like(ymom.centroid_values)
 
@@ -1298,6 +1298,7 @@ def extrapolate_second_order_sw_python(domain):
             #----------------------
 
             dq0 = xmom.centroid_values[k0] - xmom.centroid_values[k]
+            stage_centroid_store[k] = xmom.centroid_values[k0]
             dq1 = xmom.centroid_values[k1] - xmom.centroid_values[k0]
             dq2 = xmom.centroid_values[k2] - xmom.centroid_values[k0]
 
@@ -1318,6 +1319,7 @@ def extrapolate_second_order_sw_python(domain):
 
 
             limit_gradient(dqv, qmin, qmax, beta_tmp)
+
 
 
             xmom.vertex_values[k][0] = xmom.centroid_values[k] + dqv[0]
@@ -1458,9 +1460,9 @@ def extrapolate_second_order_sw_python(domain):
 
     if domain.extrapolate_velocity_second_order == 1:
         for k in range(domain.number_of_elements):
-            dv0 = max(stage.vertex_values[k][0]- bed.vertex_values[k][0], 0.)
-            dv1 = max(stage.vertex_values[k][1]- bed.vertex_values[k][1], 0.)
-            dv2 = max(stage.vertex_values[k][2]- bed.vertex_values[k][2], 0.)
+            dv0 =max(stage.vertex_values[k][0]-bed.vertex_values[k][0], 0.)
+            dv1 =max(stage.vertex_values[k][1]-bed.vertex_values[k][1], 0.)
+            dv2 =max(stage.vertex_values[k][2]-bed.vertex_values[k][2], 0.)
 
             xmom.centroid_values[k] = xmom_centroid_store[k]
             xmom.vertex_values[k][0] = xmom.vertex_values[k][0] * dv0
@@ -1471,6 +1473,16 @@ def extrapolate_second_order_sw_python(domain):
             ymom.vertex_values[k][0] = ymom.vertex_values[k][0] * dv0
             ymom.vertex_values[k][1] = ymom.vertex_values[k][1] * dv1
             ymom.vertex_values[k][2] = ymom.vertex_values[k][2] * dv2
+
+
+    if ss is not None:
+        if not numpy.allclose(ss, stage_centroid_store):
+            print ss, stage_centroid_store
+        #if not numpy.allclose(xs, xmom_centroid_store):
+        #    print xs, xmom_centroid_store
+        #if not numpy.allclose(ys, ymom_centroid_store):
+        #    print ys, ymom_centroid_store
+
 
 
 if __name__ == '__main__':
