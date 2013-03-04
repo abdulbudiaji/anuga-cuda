@@ -71,6 +71,57 @@ __device__ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
     return 0;
 }
 
+
+__global__ void extrapolate_velocity_second_order_true(
+            int N,
+            double minimum_allowed_height,
+            double * stage_centroid_values,
+            double * bed_centroid_values,
+            double * xmom_centroid_values,
+            double * xmom_centroid_store,
+            double * ymom_centroid_values,
+            double * ymom_centroid_store
+            )
+{
+    const int k = threadIdx.x + threadIdx.y*blockDim.x +
+        (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+    
+    double dk;
+
+    if (k >= N )
+        return;
+
+    dk = max(stage_centroid_values[k] -bed_centroid_values[k], minimum_allowed_height);
+    xmom_centroid_store[k] = xmom_centroid_values[k];
+    xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
+
+    ymom_centroid_store[k] = ymom_centroid_values[k];
+    ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
+}
+
+
+__global__ void extrapolate_velocity_second_order_true_after(
+            int N,
+            double * xmom_centroid_values,
+            double * xmom_centroid_store,
+            double * ymom_centroid_values,
+            double * ymom_centroid_store
+            )
+{
+    const int k = threadIdx.x + threadIdx.y*blockDim.x +
+        (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
+    
+
+    if (k >= N )
+        return;
+
+    xmom_centroid_values[k] = xmom_centroid_store[k];
+
+    ymom_centroid_values[k] = ymom_centroid_store[k];
+}
+
+    
+
 __global__ void extrapolate_second_order_sw_true (
         int N,
         double epsilon,
@@ -125,12 +176,12 @@ __global__ void extrapolate_second_order_sw_true (
 
     // extrapolate_velocity_second_order == 1 
 
-    dk = max(stage_centroid_values[k] - bed_centroid_values[k], minimum_allowed_height);
-    xmom_centroid_store[k] = xmom_centroid_values[k];
-    xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
+    //dk = max(stage_centroid_values[k]-bed_centroid_values[k],minimum_allowed_height);
+    //xmom_centroid_store[k] = xmom_centroid_values[k];
+    //xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
 
-    ymom_centroid_store[k] = ymom_centroid_values[k];
-    ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
+    //ymom_centroid_store[k] = ymom_centroid_values[k];
+    //ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
 
 
 
@@ -305,6 +356,7 @@ __global__ void extrapolate_second_order_sw_true (
             // Calculate the difference between vertex 0 of the auxiliary
             // triangle and the centroid of triangle k
             dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
+            stage_centroid_store[k] = xmom_centroid_values[k0];
 
             // Calculate differentials between the vertices
             // of the auxiliary triangle
@@ -334,7 +386,6 @@ __global__ void extrapolate_second_order_sw_true (
 
             // Limit the gradient
             limit_gradient(dqv, qmin, qmax, beta_tmp);
-
 
             //for (i = 0; i < 3; i++) {
             //    xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
@@ -582,7 +633,7 @@ __global__ void extrapolate_second_order_sw_true (
     dv2 = max(stage_vertex_values[k3 + 2] - bed_vertex_values[k3 + 2], 0.);
 
     //Correct centroid and vertex values
-    xmom_centroid_values[k] = xmom_centroid_store[k];
+    //xmom_centroid_values[k] = xmom_centroid_store[k];
     //xmom_vertex_values[k3] = xmom_vertex_values[k3] * dv0;
     //xmom_vertex_values[k3 + 1] = xmom_vertex_values[k3 + 1] * dv1;
     //xmom_vertex_values[k3 + 2] = xmom_vertex_values[k3 + 2] * dv2;
@@ -590,10 +641,11 @@ __global__ void extrapolate_second_order_sw_true (
     xmom_vertex_values[k3+1]=sh_xmom_vertex_values[threadIdx.x + BLOCK_SIZE]*dv1;
     xmom_vertex_values[k3+2]=sh_xmom_vertex_values[threadIdx.x + BLOCK_SIZE*2]*dv1;
 
-    ymom_centroid_values[k] = ymom_centroid_store[k];
+    //ymom_centroid_values[k] = ymom_centroid_store[k];
     ymom_vertex_values[k3] = ymom_vertex_values[k3] * dv0;
     ymom_vertex_values[k3 + 1] = ymom_vertex_values[k3 + 1] * dv1;
     ymom_vertex_values[k3 + 2] = ymom_vertex_values[k3 + 2] * dv2;
+
 }
 
 
