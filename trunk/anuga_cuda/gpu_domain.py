@@ -35,8 +35,11 @@ else:
 
 
 # Config 
-from anuga_cuda import kernel_path as kp
-from anuga_cuda import kernel_block_configuration as kbc
+#from anuga_cuda import kernel_path as kp
+#from anuga_cuda import kernel_block_configuration as kbc
+from anuga_cuda import *
+kp = kernel_path
+kbc = kernel_block_configuration 
 
 
 
@@ -66,6 +69,7 @@ class GPU_domain(Domain):
             ghost_layer_width=2,
             using_gpu=False,
             cotesting=False,
+            stream=True,
             domain=None): 
 
         if domain == None:
@@ -98,6 +102,7 @@ class GPU_domain(Domain):
 
         self.using_gpu = using_gpu
         self.cotesting = cotesting
+        self.using_stream = stream
 
         #self.end_event = drv.Event()
 
@@ -836,6 +841,7 @@ class GPU_domain(Domain):
 
 
     # 4th level cotesting
+    # Using Stream
     def balance_deep_and_shallow(self):
         if  self.using_gpu:
             N = self.number_of_elements
@@ -862,6 +868,7 @@ class GPU_domain(Domain):
 
                 block = (W1, W2, W3),
                 grid = ((N+W1*W2*W3-1)/(W1*W2*W3), 1),
+                stream = self.stream[ balance_stream ]
                 )
 
         else:
@@ -875,6 +882,7 @@ class GPU_domain(Domain):
 
 
     # 4th level cotesting
+    # Using Stream
     def protect_against_infinitesimal_and_negative_heights(self):
         if  self.using_gpu:
             N = self.number_of_elements
@@ -896,7 +904,8 @@ class GPU_domain(Domain):
                         self.quantities['ymomentum'].centroid_values_gpu,
                         self.areas_gpu,
                         block = (W1, W2, W3),
-                        grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                        grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                        stream = self.stream[ protect_swb2_stream ]
                         )
                     
             else:
@@ -911,7 +920,8 @@ class GPU_domain(Domain):
                         self.quantities['xmomentum'].centroid_values_gpu, 
                         self.quantities['ymomentum'].centroid_values_gpu,
                         block = (W1, W2, W3),
-                        grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                        grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                        stream = self.stream[ protect_sw_stream]
                         )
 
 
@@ -925,6 +935,7 @@ class GPU_domain(Domain):
             
 
     # 4th level cotesting
+    # Using Stream
     def extrapolate_second_order_sw(self):
         if  self.using_gpu:
             N = self.number_of_elements
@@ -944,7 +955,8 @@ class GPU_domain(Domain):
                     self.quantities['ymomentum'].centroid_values_gpu,
                     self.ymomentum_centroid_store_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = self.stream[ extra_2_sw_stream]
                     )
                 
                 W1 = self.extrapolate_second_order_sw_true_block
@@ -975,7 +987,8 @@ class GPU_domain(Domain):
                     self.quantities['xmomentum'].vertex_values_gpu,
                     self.quantities['ymomentum'].vertex_values_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = self.stream[ extra_2_sw_stream]
                     )
 
             else:
@@ -1007,7 +1020,8 @@ class GPU_domain(Domain):
                     self.xmomentum_centroid_store_gpu,
                     self.ymomentum_centroid_store_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = self.stream[ extra_2_sw_stream]
                     )
 
         else:
@@ -1106,6 +1120,7 @@ class GPU_domain(Domain):
 
 
     # 4th level cotesting
+    # Using Stream
     def manning_friction_implicit(self):
         """From shallow_water_domain"""  
         if self.using_gpu:
@@ -1137,7 +1152,8 @@ class GPU_domain(Domain):
                    self.quantities['xmomentum'].semi_implicit_update_gpu,
                    self.quantities['ymomentum'].semi_implicit_update_gpu,
                    block = (W1, W2, W3),
-                   grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                   grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                   stream = self.stream[ manning_sloped_stream ]
                    )
             else:
                 W1 = self.manning_friction_flat_block
@@ -1156,7 +1172,8 @@ class GPU_domain(Domain):
                    self.quantities['ymomentum'].semi_implicit_update_gpu,
                    
                    block = (W1, W2, W3),
-                   grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                   grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                   stream = self.stream[ manning_flat_stream ]
                    )
             
         else:
@@ -1197,7 +1214,8 @@ class GPU_domain(Domain):
                     self.quantities['xmomentum'].explicit_update_gpu,
                     self.quantities['ymomentum'].explicit_update_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = self.stream[ manning_sloped_stream ]
                     )
             else:
                 W1 = self.manning_friction_flat_block
@@ -1216,7 +1234,8 @@ class GPU_domain(Domain):
                     self.quantities['ymomentum'].explicit_update_gpu,
 
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = self.stream[ manning_flat_stream ]
                     )
    
         else:
@@ -1242,6 +1261,7 @@ class GPU_domain(Domain):
 
 
     # 3rd level cotesting
+    # Using Stream
     def update_conserved_quantities(self):
         if self.using_gpu :
             N = self.number_of_elements
@@ -1257,7 +1277,8 @@ class GPU_domain(Domain):
                     Q.explicit_update_gpu,
                     Q.semi_implicit_update_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = self.stream[ update_stream ]
                     )
 
                 drv.memset_d32(Q.semi_implicit_update_gpu, 0, N*2)
@@ -1271,14 +1292,22 @@ class GPU_domain(Domain):
 
 
     # 3rd level cotesting
+    # Using asynchronous_transfer
     def backup_conserved_quantities(self):
         if self.using_gpu:
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
                 #FIXME: may use asynchronous_transfer
-                drv.memcpy_dtod(
+                #drv.memcpy_dtod(
+                #        Q.centroid_backup_values_gpu, 
+                #        Q.centroid_values_gpu)
+                drv.memcpy_dtod_async(
                         Q.centroid_backup_values_gpu, 
-                        Q.centroid_values_gpu)
+                        Q.centroid_values_gpu,
+                        size = Q.centroid_values.nbytes,
+                        stream = drv.Stream()
+                        )
+                        
         else:
             Domain.backup_conserved_quantities(self)
 
@@ -1289,6 +1318,7 @@ class GPU_domain(Domain):
 
 
     # 3rd level cotesting
+    # Using Stream
     def saxpy_conserved_quantities(self, a, b):
         if self.using_gpu:
             N = self.number_of_elements
@@ -1304,7 +1334,8 @@ class GPU_domain(Domain):
                     Q.centroid_values_gpu,
                     Q.centroid_backup_values_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = drv.Stream()
                     )
                     
         else:
@@ -1327,6 +1358,7 @@ class GPU_domain(Domain):
                 
     # 3rd level 
     # Cotesting on update_other_quantities
+    # Using Stream
     def update_centroids_of_velocities_and_height(self):
         if self.using_gpu:
             N = self.number_of_elements
@@ -1335,6 +1367,7 @@ class GPU_domain(Domain):
             W2 = 1
             W3 = 1
 
+            strm = drv.Stream()
             self.set_boundary_values_from_edges_func(
                 numpy.int32(Nb),
                 self.boundary_cells_gpu,
@@ -1342,7 +1375,8 @@ class GPU_domain(Domain):
                 self.quantities['elevation'].boundary_values_gpu,
                 self.quantities['elevation'].edge_values_gpu,
                 block = (W1, W2, W3),
-                grid=((Nb+W1*W2*W3-1)/(W1*W2*W3),1)
+                grid=((Nb+W1*W2*W3-1)/(W1*W2*W3),1),
+                stream = strm
                 )
 
             W1 = self.update_centroids_of_velocities_and_height_block
@@ -1365,7 +1399,8 @@ class GPU_domain(Domain):
                 self.quantities['xvelocity'].boundary_values_gpu,
                 self.quantities['yvelocity'].boundary_values_gpu,
                 block = (W1, W2, W3),
-                grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                stream = strm
                 )
 
         else:
@@ -1388,6 +1423,7 @@ class GPU_domain(Domain):
                 print "wb_1"
             elif self.compute_fluxes_method == 'wb_2':
                 W1 = self.compute_fluxes_central_structure_block
+                
                 self.compute_fluxes_func(
                     numpy.int32(N),
                     numpy.float64(self.evolve_max_timestep),
@@ -1417,7 +1453,8 @@ class GPU_domain(Domain):
                     self.quantities['ymomentum'].explicit_update_gpu,
                     self.max_speed_gpu,
                     block = (W1, W2, W3),
-                    grid =((N+W1*W2*W3-1)/(W1*W2*W3), 1)
+                    grid =((N+W1*W2*W3-1)/(W1*W2*W3), 1),
+                    stream = self.stream[ cf_central_stream ]
                     )
                     
                 drv.memcpy_dtoh( self.timestep_array, 
@@ -1439,7 +1476,8 @@ class GPU_domain(Domain):
                     self.areas_gpu,
                     self.edgelengths_gpu,
                     block = (W1, W2, W3),
-                    grid =((N + W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid =((N + W1*W2*W3-1)/(W1*W2*W3),1),
+                    stream = self.stream[ cf_central_stream ]
                     )
 
             elif self.compute_fluxes_method == 'wb_3':
@@ -1848,6 +1886,7 @@ class GPU_domain(Domain):
 
 
     # 2nd level cotesting
+    # Using Stream
     def update_other_quantities(self):
         if self.using_gpu:
             if self.flow_algorithm == 'yusuke':
@@ -1868,7 +1907,8 @@ class GPU_domain(Domain):
                         Q.edge_values_gpu,
                         Q.vertex_values_gpu,
                         block = (W1, W2, W3),
-                        grid =((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                        grid =((N+W1*W2*W3-1)/(W1*W2*W3),1),
+                        stream = self.stream[ extra_1_stream ]
                         )
 
             drv.memset_d32(Q.x_gradient_gpu,0,N*2)
@@ -2041,6 +2081,15 @@ class GPU_domain(Domain):
                 self.cotesting_domain.using_gpu = False
                 self.cotesting_domain.cotesting = False
 
+
+            self.stream = []
+            if self.using_stream:
+                print " *** Enable Strem ***"
+                for i in range(kbc.__len__()):
+                    self.stream.append(drv.Stream())
+            else:
+                for i in range(kbc.__len__()):
+                    self.stream.append(None)
 
 
             """ Fix forcing_terms 

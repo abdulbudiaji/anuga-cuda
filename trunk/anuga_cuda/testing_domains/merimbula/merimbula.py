@@ -48,7 +48,7 @@ mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
 mesh_filename = merimbula_dir + mesh_filename
 yieldstep = 50
-finaltime = 500
+finaltime = 50
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -99,7 +99,6 @@ for i in range(len(sys.argv)):
         domain.store = True
         print " --> Disable storing"
 
-domain.using_gpu = True
 
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
 domain.set_datadir('Data')

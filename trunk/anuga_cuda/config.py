@@ -36,9 +36,9 @@ kernel_path = {
 
 
 kernel_block_configuration = {
-    "compute_fluxes_fun" : 64,
+    "balance_fun" : 32,
 
-    "gravity_fun" : 32,
+    "compute_fluxes_fun" : 64,
 
     "extrapolate_first_order_fun" : 32,
 
@@ -48,21 +48,21 @@ kernel_block_configuration = {
     "extrapolate_second_order_and_limit_by_vertex_fun" : 64,
     "extrapolate_second_order_and_limit_by_edge_fun" : 64, # FIXME
 
-    "protect_sw_ext_fun" : 64,
-    "protect_swb2_fun" : 64, # FIXME
-
-    "balance_fun" : 32,
-
-    "interpolate_fun" : 32,
-
     "evaluate_segment_reflective_fun" : 64,
     "evaluate_segment_dirichlet_1_fun" : 64, # FIXME
     "evaluate_segment_dirichlet_2_fun" : 64, # FIXME
 
+    "gravity_fun" : 32,
+
     "get_absolute_fun" : 64,
+
+    "interpolate_fun" : 32,
 
     "manning_friction_flat_fun" : 192,
     "manning_friction_sloped_fun" : 128,
+
+    "protect_sw_ext_fun" : 64,
+    "protect_swb2_fun" : 64, # FIXME
 
     "saxpy_fun" : 64,
 
@@ -72,3 +72,25 @@ kernel_block_configuration = {
     "update_fun" : 64,
     }
 
+
+balance_stream =                0
+cf_central_stream =             1
+extra_1_stream =                2
+extra_2_sw_stream =             3
+extra_velocity_2_stream =       4
+extra_2_edge_swb2_stream =      5
+extra_2_limit_vertex_stream =   6 
+extra_2_limit_edge_stream =     7
+evaluate_seg_ref_stream =       8
+evaluate_seg_dir_1_stream =     9
+evaluate_seg_dir_2_stream =     10
+gravity_wb_stream =             11
+interpolate_stream =            12
+manning_flat_stream =           13
+manning_sloped_stream =         14
+protect_sw_stream =            15
+protect_swb2_stream =           16
+saxpy_stream =                  17
+set_boundary_from_edge_stream = 18
+update_centroid_stream =        19
+update_stream =                 20
