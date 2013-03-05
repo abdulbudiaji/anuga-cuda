@@ -21,7 +21,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
 # PyCUDA module
 import pycuda.driver as drv
 from pycuda.compiler import SourceModule
-auto_init_context = True
+auto_init_context = False
 using_page_locked = False
 if auto_init_context:
     import pycuda.autoinit
@@ -102,7 +102,21 @@ class GPU_domain(Domain):
 
         self.using_gpu = using_gpu
         self.cotesting = cotesting
-        self.using_stream = stream
+        if stream:
+            if bool(dev.get_attribute(
+                drv.device_attribute.CONCURRENT_KERNELS)):
+                self.using_stream = stream
+            else:
+                print '\n=== Device attributes'
+                print 'Name:', dev.name()
+                print 'Compute capability:', dev.compute_capability()
+                print 'Concurrent Kernels:', \
+                    bool(dev.get_attribute(
+                        drv.device_attribute.CONCURRENT_KERNELS))
+                print 'Disable stream'
+                self.using_stream = False
+        else:
+            self.using_stream = False
 
         #self.end_event = drv.Event()
 
