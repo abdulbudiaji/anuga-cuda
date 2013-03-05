@@ -5,7 +5,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
         Dirichlet_boundary
 from anuga.shallow_water.boundaries import Reflective_boundary
 
-from anuga_cuda import generate_merimbula_domain
+from anuga_cuda import generate_merimbula_domain, get_kernel_function_info
 from anuga_cuda import generate_cairns_domain
 
 domain1 = generate_merimbula_domain( gpu=False )
@@ -34,6 +34,22 @@ for tag in domain1.tag_boundary_cells:
         W3 = 1
         
         if isinstance( B2, Reflective_boundary):
+            import sys
+            W1 = 0
+            for i in range( len(sys.argv)):
+                if sys.argv[i] == "-b":
+                    W1 = int(sys.argv[i+1])
+
+            if not W1:
+                W1 = domain2.evaluate_segment_reflective_func.max_threads_per_block
+            print W1
+            W2 = 1
+            W3 = 1
+
+            get_kernel_function_info(
+                domain2.evaluate_segment_reflective_func, W1,W2, W3)
+
+
             domain2.evaluate_segment_reflective_func(
                 numpy.int32( N ),
                 drv.In( numpy.asarray(ids) ),
@@ -109,6 +125,21 @@ for tag in domain1.tag_boundary_cells:
         elif isinstance( B2, Dirichlet_boundary):
             
             print "%s  %d -- Dirichlet_boundary" % (tag, N)
+
+            import sys
+            W1 = 0
+            for i in range( len(sys.argv)):
+                if sys.argv[i] == "-b":
+                    W1 = int(sys.argv[i+1])
+
+            if not W1:
+                W1 = domain2.evaluate_segment_dirichlet_1_func.max_threads_per_block
+            print W1
+            W2 = 1
+            W3 = 1
+
+            get_kernel_function_info(
+                domain2.evaluate_segment_dirichlet_1_func, W1,W2, W3)
             
             q_bdry = B2.dirichlet_values
             conserved_quantities = True
@@ -117,7 +148,7 @@ for tag in domain1.tag_boundary_cells:
             if conserved_quantities:
                 for j, name in enumerate( domain2.evolved_quantities):
                     Q2 = domain2.quantities[name]
-                    self.evaluate_segment_dirichlet_1_func(
+                    domain2.evaluate_segment_dirichlet_1_func(
                         numpy.int32(N),
                         drv.In( numpy.asarray(ids) ),
                         drv.In( 
@@ -146,6 +177,8 @@ for tag in domain1.tag_boundary_cells:
             else:
                 quantities = domain2.evolved_quantities
 
+            get_kernel_function_info(
+                domain2.evaluate_segment_dirichlet_2_func, W1,W2, W3)
 
 
             for j, name in enumerate(quantities):

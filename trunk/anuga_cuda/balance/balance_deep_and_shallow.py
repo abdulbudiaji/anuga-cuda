@@ -3,9 +3,9 @@ import numpy
 from pycuda import driver as drv
 from anuga_cuda import generate_merimbula_domain
 from anuga_cuda import generate_channel3_domain
-from anuga_cuda import generate_cairns_domain
+from anuga_cuda import generate_cairns_domain, get_kernel_function_info
 
-using_tsunami_domain = True
+using_tsunami_domain = False
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
@@ -14,7 +14,7 @@ else:
     domain1 = generate_merimbula_domain(False)
     domain2 = generate_merimbula_domain(True)
 
-
+domain2.equip_kernel_functions()
 
 
 domain1.evolve(yieldstep = 50, finaltime = 500)
@@ -56,9 +56,20 @@ else:
             Q2.extrapolate_second_order_and_limit_by_vertex()
         
 N = domain1.number_of_elements
-W1 = 32
+import sys
+W1 = 0
+for i in range( len(sys.argv)):
+    if sys.argv[i] == "-b":
+        W1 = int(sys.argv[i+1])
+
+if not W1:
+    W1 = domain2.balance_deep_and_shallow_func.max_threads_per_block
+print W1
 W2 = 1
 W3 = 1
+
+get_kernel_function_info(domain2.balance_deep_and_shallow_func, W1,W2, W3)
+
 
 domain1.balance_deep_and_shallow()
 domain2.balance_deep_and_shallow_func(

@@ -744,10 +744,24 @@ if __name__ == '__main__':
 
     print "~~~~~~~ domain 2 ~~~~~~~"
     if testing_gpu_domain:
-        N = domain2.number_of_elements
-        W1 = 32
+        import sys
+        W1 = 0
+        for i in range( len(sys.argv)):
+            if sys.argv[i] == "-b":
+                W1 = int(sys.argv[i+1])
+
+        if not W1:
+            W1 = domain2.extrapolate_second_order_and_limit_by_vertex_func.max_threads_per_block
+        print W1
         W2 = 1
         W3 = 1
+
+        get_kernel_function_info(
+            domain2.extrapolate_second_order_and_limit_by_vertex_func,
+            W1,W2, W3)
+
+        N = domain2.number_of_elements
+
         for name in domain2.conserved_quantities:
             Q = domain2.quantities[name]
             domain2.extrapolate_second_order_and_limit_by_vertex_func(

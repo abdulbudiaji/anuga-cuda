@@ -5,7 +5,7 @@ import numpy
 from pycuda import driver as drv
 from anuga_cuda import generate_merimbula_domain
 from anuga_cuda import generate_cairns_domain
-from anuga_cuda import generate_channel3_domain
+from anuga_cuda import generate_channel3_domain, get_kernel_function_info
 
 using_tsunami_domain = False
 
@@ -20,19 +20,24 @@ else:
     #domain2 = generate_channel3_domain(gpu=True)
 
 
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
-    
-
-domain2.evolve(yieldstep = 50, finaltime = 500)
-domain2.evolve(yieldstep = 50, finaltime = 500)
-domain2.evolve(yieldstep = 50, finaltime = 500)
+domain2.equip_kernel_functions()
 
 N = domain2.boundary_cells.shape[0]
-W1 = 32
+print " Number of elements: %d" % N
+import sys
+W1 = 0
+for i in range( len(sys.argv)):
+    if sys.argv[i] == "-b":
+        W1 = int(sys.argv[i+1])
+
+if not W1:
+    W1 = domain2.set_boundary_values_from_edges_func.max_threads_per_block
 W2 = 1
 W3 = 1
+
+get_kernel_function_info(domain2.set_boundary_values_from_edges_func, 
+        W1,W2, W3)
+
 
 
 Z1 = domain1.quantities['elevation']

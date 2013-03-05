@@ -4,9 +4,9 @@
 import numpy
 from pycuda import driver as drv
 from anuga_cuda import generate_merimbula_domain
-from anuga_cuda import generate_cairns_domain
+from anuga_cuda import generate_cairns_domain, get_kernel_function_info
 
-using_tsunami_domain = True
+using_tsunami_domain = False
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
@@ -14,6 +14,8 @@ if using_tsunami_domain:
 else:
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(gpu=True)
+
+domain2.equip_kernel_functions()
 
 yieldstep = 50
 finaltime = 500
@@ -28,9 +30,6 @@ domain2.evolve(yieldstep = yieldstep, finaltime = finaltime)
 domain2.evolve(yieldstep = yieldstep, finaltime = finaltime)
 
 N = domain2.number_of_elements
-W1 = 32
-W2 = 1
-W3 = 1
 
 #domain1.yieldstep = domain1.get_time() + yieldstep
 #domain1.evolve_one_rk2_step(yieldstep = yieldstep, finaltime=finaltime)
@@ -50,6 +49,20 @@ domain2.backup_conserved_quantities()
 
 a = 0.5
 b = 0.5
+
+import sys
+W1 = 0
+for i in range( len(sys.argv)):
+    if sys.argv[i] == "-b":
+        W1 = int(sys.argv[i+1])
+
+if not W1:
+    W1 = domain2.saxpy_centroid_values_func.max_threads_per_block
+W2 = 1
+W3 = 1
+
+get_kernel_function_info(domain2.saxpy_centroid_values_func, 
+        W1,W2, W3)
 
 for name in domain2.conserved_quantities:
     Q1 = domain1.quantities[name]

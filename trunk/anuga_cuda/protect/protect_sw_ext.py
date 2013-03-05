@@ -1,21 +1,29 @@
 import numpy
 from pycuda import driver as drv
-from anuga_cuda import generate_merimbula_domain
+from anuga_cuda import generate_merimbula_domain, get_kernel_function_info
 
 domain1 = generate_merimbula_domain()
 domain2 = generate_merimbula_domain(gpu=True)
 
-for i in domain1.evolve(yieldstep = 50, finaltime = 50):
-    pass
 domain1.protect_against_infinitesimal_and_negative_heights()
 
-for i in domain2.evolve(yieldstep = 50, finaltime = 50):
-    pass
+
+domain2.equip_kernel_functions()
 N = domain2.number_of_elements
-W1 = 32
+import sys
+W1 = 0
+for i in range( len(sys.argv)):
+    if sys.argv[i] == "-b":
+        W1 = int(sys.argv[i+1])
+
+if not W1:
+    W1 = domain2.protect_sw_func.max_threads_per_block
 W2 = 1
 W3 = 1
-domain2.equip_kernel_functions()
+
+get_kernel_function_info(domain2.protect_sw_func, 
+        W1,W2, W3)
+
 
 domain2.protect_sw_func(
     numpy.int32( domain2.number_of_elements),

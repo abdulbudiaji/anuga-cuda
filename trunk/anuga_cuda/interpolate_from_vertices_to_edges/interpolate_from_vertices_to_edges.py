@@ -1,13 +1,14 @@
 
 import numpy
 from pycuda import driver as drv
-from anuga_cuda.merimbula_data.channel1 import generate_domain
-from anuga_cuda.merimbula_data.generate_domain import domain_create
+from anuga_cuda import generate_merimbula_domain, get_kernel_function_info
 
 #domain1 = generate_domain( gpu=False )
 #domain2 = generate_domain( gpu=True )
-domain1 = domain_create( gpu=False )
-domain2 = domain_create( gpu=True )
+domain1 = generate_merimbula_domain( gpu=False )
+domain2 = generate_merimbula_domain( gpu=True )
+
+domain2.equip_kernel_functions()
 
 domain1.protect_against_infinitesimal_and_negative_heights()
 domain2.protect_against_infinitesimal_and_negative_heights()
@@ -37,9 +38,22 @@ else:
             Q2.extrapolate_second_order_and_limit_by_vertex()
         
 N = domain1.quantities['stage'].vertex_values.shape[0]
-W1 = 32
+print N
+import sys
+W1 = 0
+for i in range( len(sys.argv)):
+    if sys.argv[i] == "-b":
+        W1 = int(sys.argv[i+1])
+
+if not W1:
+    W1 = domain2.interpolate_from_vertices_to_edges_func.max_threads_per_block
+print W1
 W2 = 1
 W3 = 1
+
+get_kernel_function_info(domain2.interpolate_from_vertices_to_edges_func,
+    W1,W2, W3)
+
 
 domain1.balance_deep_and_shallow()
 domain2.balance_deep_and_shallow()
@@ -57,6 +71,6 @@ for name in domain1.conserved_quantities:
         grid = ( (N + W1*W2*W3 -1) / (W1*W2*W3), 1)
         )
 
-    print name
-    print Q1.edge_values, Q2.edge_values
+    #print name
+    #print Q1.edge_values, Q2.edge_values
     print numpy.allclose(Q1.edge_values, Q2.edge_values)

@@ -4,10 +4,10 @@
 import numpy
 from pycuda import driver as drv
 from anuga_cuda import generate_merimbula_domain
-from anuga_cuda import generate_cairns_domain
+from anuga_cuda import generate_cairns_domain, get_kernel_function_info
 
 using_tsunami_domain = False
-testing_sloped = False
+testing_sloped = True
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
@@ -17,6 +17,7 @@ else:
     domain2 = generate_merimbula_domain(gpu=True)
 
 domain2.equip_kernel_functions()
+
 
 domain1.evolve(yieldstep = 50, finaltime = 500)
 domain1.evolve(yieldstep = 50, finaltime = 500)
@@ -33,7 +34,20 @@ W3 = 1
 
 if testing_sloped:
     domain1.use_sloped_mannings = True
-    W1 = domain2.manning_friction_sloped_func.max_threads_per_block
+    import sys
+    W1 = 0
+    for i in range( len(sys.argv)):
+        if sys.argv[i] == "-b":
+            W1 = int(sys.argv[i+1])
+
+    if not W1:
+        W1 = domain2.manning_friction_sloped_func.max_threads_per_block
+    W2 = 1
+    W3 = 1
+
+    get_kernel_function_info(domain2.manning_friction_sloped_func, 
+            W1,W2, W3)
+
     print "In sloped", W1
         
     domain2.manning_friction_sloped_func(
@@ -56,7 +70,20 @@ if testing_sloped:
         )
 else:
     domain1.use_sloped_mannings = False
-    W1 = domain2.manning_friction_flat_func.max_threads_per_block
+    import sys
+    W1 = 0
+    for i in range( len(sys.argv)):
+        if sys.argv[i] == "-b":
+            W1 = int(sys.argv[i+1])
+
+    if not W1:
+        W1 = domain2.manning_friction_flat_func.max_threads_per_block
+    W2 = 1
+    W3 = 1
+
+    get_kernel_function_info(domain2.manning_friction_flat_func, 
+            W1,W2, W3)
+
     print "In flat", W1
     domain2.manning_friction_flat_func(
             numpy.int32(N),

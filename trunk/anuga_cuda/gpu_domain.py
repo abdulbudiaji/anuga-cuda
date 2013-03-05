@@ -4,15 +4,18 @@
 import numpy 
 
 
+
 # ANUGA module
 from anuga import Domain
-from anuga.abstract_2d_finite_volumes.generic_domain \
-                    import Generic_Domain
-
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
-        Transmissive_boundary, Dirichlet_boundary, Compute_fluxes_boundary, \
-        Time_boundary, Time_boundary, Time_boundary
+from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
 from anuga.shallow_water.boundaries import Reflective_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
+        Transmissive_boundary, \
+        Dirichlet_boundary, \
+        Compute_fluxes_boundary, \
+        Time_boundary, Time_boundary, \
+        Time_boundary
+
 
 
 # PyCUDA module
@@ -30,8 +33,11 @@ else:
     ctx = dev.make_context( drv.ctx_flags.MAP_HOST)
 
 
+
 # Config 
 from anuga_cuda import kernel_path as kp
+from anuga_cuda import kernel_block_configuration as kbc
+
 
 
 class GPU_domain(Domain):
@@ -130,7 +136,7 @@ class GPU_domain(Domain):
                 "compute_fluxes_central_structure_CUDA")
 
         self.compute_fluxes_central_structure_block = \
-                self.compute_fluxes_func.max_threads_per_block
+                kbc["compute_fluxes_fun"]
         
 
 
@@ -143,8 +149,7 @@ class GPU_domain(Domain):
         self.gravity_wb_func = self.gravity_wb_mod.get_function(
                 "gravity_wb")
 
-        self.gravity_wb_block = \
-                self.gravity_wb_func.max_threads_per_block
+        self.gravity_wb_block = kbc["gravity_fun"]
 
 
 
@@ -168,14 +173,14 @@ class GPU_domain(Domain):
             self.extrapolate_second_order_sw_mod.get_function(
                 "extrapolate_velocity_second_order_true")
 
-        self.extrapolate_velocity_second_order_true_after_func = \
-            self.extrapolate_second_order_sw_mod.get_function(
-                "extrapolate_velocity_second_order_true_after")
 
         self.extrapolate_second_order_sw_true_block = \
-            self.extrapolate_second_order_sw_true_func.max_threads_per_block
+            kbc["extrapolate_second_order_sw_fun"]
         self.extrapolate_second_order_sw_false_block= \
-            self.extrapolate_second_order_sw_false_func.max_threads_per_block
+            kbc["extrapolate_second_order_sw_fun"]
+        self.extrapolate_velocity_second_order_true_block = \
+            kbc["extrapolate_velocity_second_order_true_fun"]
+
 
 
         # extrapolate_second_order_and_limit_by_vertex_or_edge function
@@ -198,11 +203,9 @@ class GPU_domain(Domain):
                     "extrapolate_second_order_and_limit_by_edge")
 
         self.extrapolate_second_order_and_limit_by_vertex_block = \
-            self.extrapolate_second_order_and_limit_by_vertex_func.\
-                max_threads_per_block
+            kbc["extrapolate_second_order_and_limit_by_vertex_fun"]
         self.extrapolate_second_order_and_limit_by_edge_block = \
-            self.extrapolate_second_order_and_limit_by_edge_func.\
-                max_threads_per_block
+            kbc["extrapolate_second_order_and_limit_by_edge_fun"]
 
 
 
@@ -219,7 +222,7 @@ class GPU_domain(Domain):
                     "extrapolate_first_order")
 
         self.extrapolate_first_order_block = \
-            self.extrapolate_first_order_func.max_threads_per_block
+            kbc["extrapolate_first_order_fun"]
 
 
 
@@ -236,8 +239,7 @@ class GPU_domain(Domain):
                     "_extrapolate_second_order_edge_sw")
 
         self.extrapolate_second_order_edge_swb2_block =\
-            self.extrapolate_second_order_edge_swb2_func.\
-                max_threads_per_block
+            kbc["extrapolate_second_order_edge_swb2_fun"]
 
 
 
@@ -252,8 +254,8 @@ class GPU_domain(Domain):
         self.protect_swb2_func=self.protect_mod.get_function(
                     "_protect_swb2")
 
-        self.protect_sw_block = self.protect_sw_func.max_threads_per_block
-        self.protect_swb2_block=self.protect_swb2_func.max_threads_per_block
+        self.protect_sw_block = kbc["protect_sw_ext_fun"]
+        self.protect_swb2_block= kbc["protect_swb2_fun"]
 
 
 
@@ -267,9 +269,7 @@ class GPU_domain(Domain):
             self.balance_deep_and_shallow_mod.get_function(
                 "_balance_deep_and_shallow")
 
-        self.balance_deep_and_shallow_block = \
-            self.balance_deep_and_shallow_func.\
-                max_threads_per_block
+        self.balance_deep_and_shallow_block = kbc["balance_fun"]
             
 
 
@@ -285,8 +285,7 @@ class GPU_domain(Domain):
                 "_interpolate_from_vertices_to_edges")
 
         self.interpolate_from_vertices_to_edges_block = \
-            self.interpolate_from_vertices_to_edges_func.\
-                max_threads_per_block
+            kbc["interpolate_fun"]
 
 
 
@@ -307,11 +306,11 @@ class GPU_domain(Domain):
                 "evaluate_segment_dirichlet_2")
 
         self.evaluate_segment_reflective_block = \
-            self.evaluate_segment_reflective_func.max_threads_per_block
+            kbc["evaluate_segment_reflective_fun"]
         self.evaluate_segment_dirichlet_1_block = \
-            self.evaluate_segment_dirichlet_1_func.max_threads_per_block
+            kbc["evaluate_segment_dirichlet_1_fun"]
         self.evaluate_segment_dirichlet_2_block = \
-            self.evaluate_segment_dirichlet_2_func.max_threads_per_block
+            kbc["evaluate_segment_dirichlet_2_fun"]
             
 
 
@@ -324,8 +323,7 @@ class GPU_domain(Domain):
         self.get_absolute_func = \
             self.get_absolute_mod.get_function("get_absolute")
 
-        self.get_absolute_block = \
-            self.get_absolute_func.max_threads_per_block
+        self.get_absolute_block = kbc["get_absolute_fun"]
 
 
 
@@ -345,9 +343,9 @@ class GPU_domain(Domain):
                 "_manning_friction_flat")
 
         self.manning_friction_sloped_blcok = \
-            self.manning_friction_sloped_func.max_threads_per_block
+            kbc["manning_friction_sloped_fun"]
         self.manning_friction_flat_block = \
-            self.manning_friction_flat_func.max_threads_per_block
+            kbc["manning_friction_flat_fun"]
 
 
 
@@ -361,8 +359,7 @@ class GPU_domain(Domain):
             self.saxpy_centroid_values_mod.get_function(
                 "_saxpy_centroid_values")
 
-        self.saxpy_centroid_values_block = \
-            self.saxpy_centroid_values_func.max_threads_per_block
+        self.saxpy_centroid_values_block = kbc["saxpy_fun"]
 
 
 
@@ -377,7 +374,7 @@ class GPU_domain(Domain):
                 "set_boundary_values_from_edges")
 
         self.set_boundary_block = \
-            self.set_boundary_values_from_edges_func.max_threads_per_block
+            kbc["set_boundary_values_from_edges_fun"]
 
 
 
@@ -393,8 +390,7 @@ class GPU_domain(Domain):
             get_function("update_centroids_of_velocities_and_height")
         
         self.update_centroids_of_velocities_and_height_block = \
-            self.update_centroids_of_velocities_and_height_func.\
-                max_threads_per_block
+            kbc["update_centroids_fun"]
             
 
         
@@ -404,7 +400,9 @@ class GPU_domain(Domain):
                 include_dirs=[ kp["update_dir"] ])
         self.update_func = self.update_mod.get_function("update")
 
-        self.update_block = self.update_func.max_threads_per_block
+        self.update_block = kbc["update_fun"]
+
+
 
     def lock_host_page(self):
         """ Use page-locked memory
@@ -473,7 +471,9 @@ class GPU_domain(Domain):
         self.quantities['elevation'].centroid_values = \
             get_page_locked_array(
                     self.quantities['elevation'].centroid_values)
-    
+
+
+
     def allocate_device_array(self):
         """ Allocate device memory and copy data to device
         """
@@ -624,6 +624,8 @@ class GPU_domain(Domain):
             Q = self.quantities[name]
             Q.x_gradient_gpu = get_device_array(Q.x_gradient)
             Q.y_gradient_gpu = get_device_array(Q.y_gradient)
+
+
 
     def copy_back_necessary_data(self):
         pass       
@@ -789,8 +791,12 @@ class GPU_domain(Domain):
             asy_cpy( Q.y_gradient, Q.y_gradient_gpu)
 
 
+
+
+
     """ Reloading functions from ANUGA
     """
+
 
 
     # 5th level cotesting
@@ -832,11 +838,12 @@ class GPU_domain(Domain):
     # 4th level cotesting
     def balance_deep_and_shallow(self):
         if  self.using_gpu:
-            W1 = 32
+            N = self.number_of_elements
+            W1 = self.balance_deep_and_shallow_block
             W2 = 1
             W3 = 1
             self.balance_deep_and_shallow_func(
-                numpy.int32(self.number_of_elements),
+                numpy.int32(N),
                 numpy.float64(self.H0),
                 numpy.float64(self.alpha_balance),
 
@@ -854,7 +861,7 @@ class GPU_domain(Domain):
                 self.quantities['ymomentum'].vertex_values_gpu,
 
                 block = (W1, W2, W3),
-                grid = ((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3), 1),
+                grid = ((N+W1*W2*W3-1)/(W1*W2*W3), 1),
                 )
 
         else:
@@ -871,11 +878,11 @@ class GPU_domain(Domain):
     def protect_against_infinitesimal_and_negative_heights(self):
         if  self.using_gpu:
             N = self.number_of_elements
-            W1 = 32
             W2 = 1
             W3 = 1
 
             if self.flow_algorithm == 'tsunami':
+                W1 = self.protect_swb2_fun
                 self.protect_swb2_func(
                         numpy.int32(N),
                         numpy.float64(self.minimum_allowed_height),
@@ -893,6 +900,7 @@ class GPU_domain(Domain):
                         )
                     
             else:
+                W1 = self.protect_sw_block
                 self.protect_sw_func(
                         numpy.int32(N),
                         numpy.float64( self.minimum_allowed_height), 
@@ -918,15 +926,13 @@ class GPU_domain(Domain):
 
     # 4th level cotesting
     def extrapolate_second_order_sw(self):
-        if self.cotesting:
-            test_extrapolate_second_order_sw(self)
         if  self.using_gpu:
             N = self.number_of_elements
-            W1 = 8
             W2 = 1
             W3 = 1
 
             if self.extrapolate_velocity_second_order :
+                W1 = self.extrapolate_velocity_second_order_true_block
                 self.extrapolate_velocity_second_order_true_func(
                     numpy.int32(N),
                     numpy.float64(self.minimum_allowed_height),
@@ -940,7 +946,8 @@ class GPU_domain(Domain):
                     block = (W1, W2, W3),
                     grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
-
+                
+                W1 = self.extrapolate_second_order_sw_true_block
                 self.extrapolate_second_order_sw_true_func(
                     numpy.int32(N),
                     numpy.float64(self.epsilon),
@@ -972,8 +979,9 @@ class GPU_domain(Domain):
                     )
 
             else:
+                W1 = self.extrapolate_second_order_sw_false_block
                 self.extrapolate_second_order_sw_false_func(
-                    numpy.int32(self.number_of_elements),
+                    numpy.int32(N),
                     numpy.float64(self.epsilon),
                     numpy.float64(self.minimum_allowed_height),
                     numpy.float64(self.beta_w),
@@ -999,7 +1007,7 @@ class GPU_domain(Domain):
                     self.xmomentum_centroid_store_gpu,
                     self.ymomentum_centroid_store_gpu,
                     block = (W1, W2, W3),
-                    grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
 
         else:
@@ -1102,7 +1110,6 @@ class GPU_domain(Domain):
         """From shallow_water_domain"""  
         if self.using_gpu:
             N = self.number_of_elements
-            W1 = 32
             W2 = 1
             W3 = 1
             #FIXME
@@ -1111,7 +1118,10 @@ class GPU_domain(Domain):
             if (x != self.vertex_coordinates).all():
                 print "Error: vertex_coordinates not correct"
                 raise Exception()
+                
+
             if self.use_sloped_mannings:
+                W1 = self.manning_friction_sloped_blcok
                 self.manning_friction_sloped_func(
                    numpy.int32(N),
                    numpy.float64(self.g),
@@ -1130,6 +1140,7 @@ class GPU_domain(Domain):
                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                    )
             else:
+                W1 = self.manning_friction_flat_block
                 self.manning_friction_flat_func(
                    numpy.int32(N),
                    numpy.float64(self.g),
@@ -1163,45 +1174,50 @@ class GPU_domain(Domain):
     def manning_friction_explicit(self):
         """From shallow_water_domain"""  
         if self.using_gpu:
-           #FIXME
-           x = self.get_vertex_coordinates()
+            N = self.number_of_elements
+            W2 = 1
+            W3 = 1
+            #FIXME
+            x = self.get_vertex_coordinates()
    
-           if self.use_sloped_mannings:
-               self.manning_friction_sloped_func(
-                   numpy.int32(self.number_of_elements),
-                   numpy.float64(self.g),
-                   numpy.float64(self.minimum_allowed_height),
-   
-                   self.vertex_coordinates_gpu,
-                   self.quantities['stage'].centroid_values_gpu,
-                   self.quantities['xmomentum'].centroid_values_gpu,
-                   self.quantities['ymomentum'].centroid_values_gpu,
-                   self.quantities['elevation'].vertex_values_gpu,
-   
-                   self.quantities['friction'].centroid_values_gpu,
-                   self.quantities['xmomentum'].explicit_update_gpu,
-                   self.quantities['ymomentum'].explicit_update_gpu,
-                   block = (W1, W2, W3),
-                   grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
-                   )
-           else:
-               self.manning_friction_flat_func(
-                   numpy.int32(self.number_of_elements),
-                   numpy.float64(self.g),
-                   numpy.float64(self.minimum_allowed_height),
-   
-                   self.quantities['stage'].centroid_values_gpu,
-                   self.quantities['xmomentum'].centroid_values_gpu,
-                   self.quantities['ymomentum'].centroid_values_gpu,
-                   self.quantities['elevation'].vertex_values_gpu,
-   
-                   self.quantities['friction'].centroid_values_gpu,
-                   self.quantities['xmomentum'].explicit_update_gpu,
-                   self.quantities['ymomentum'].explicit_update_gpu,
-                   
-                   block = (W1, W2, W3),
-                   grid=((len(points.shape[0])+W1*W2*W3-1)/(W1*W2*W3),1)
-                   )
+            if self.use_sloped_mannings:
+                W1 = self.manning_friction_sloped_blcok
+                self.manning_friction_sloped_func(
+                    numpy.int32(N),
+                    numpy.float64(self.g),
+                    numpy.float64(self.minimum_allowed_height),
+
+                    self.vertex_coordinates_gpu,
+                    self.quantities['stage'].centroid_values_gpu,
+                    self.quantities['xmomentum'].centroid_values_gpu,
+                    self.quantities['ymomentum'].centroid_values_gpu,
+                    self.quantities['elevation'].vertex_values_gpu,
+
+                    self.quantities['friction'].centroid_values_gpu,
+                    self.quantities['xmomentum'].explicit_update_gpu,
+                    self.quantities['ymomentum'].explicit_update_gpu,
+                    block = (W1, W2, W3),
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    )
+            else:
+                W1 = self.manning_friction_flat_block
+                self.manning_friction_flat_func(
+                    numpy.int32(N),
+                    numpy.float64(self.g),
+                    numpy.float64(self.minimum_allowed_height),
+
+                    self.quantities['stage'].centroid_values_gpu,
+                    self.quantities['xmomentum'].centroid_values_gpu,
+                    self.quantities['ymomentum'].centroid_values_gpu,
+                    self.quantities['elevation'].vertex_values_gpu,
+
+                    self.quantities['friction'].centroid_values_gpu,
+                    self.quantities['xmomentum'].explicit_update_gpu,
+                    self.quantities['ymomentum'].explicit_update_gpu,
+
+                    block = (W1, W2, W3),
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                    )
    
         else:
             from anuga.shallow_water.shallow_water_domain import \
@@ -1229,7 +1245,7 @@ class GPU_domain(Domain):
     def update_conserved_quantities(self):
         if self.using_gpu :
             N = self.number_of_elements
-            W1 = 32 
+            W1 = self.update_block 
             W2 = 1
             W3 = 1
             for name in self.conserved_quantities:
@@ -1276,7 +1292,7 @@ class GPU_domain(Domain):
     def saxpy_conserved_quantities(self, a, b):
         if self.using_gpu:
             N = self.number_of_elements
-            W1 = 32
+            W1 = self.saxpy_centroid_values_block
             W2 = 1
             W3 = 1
             for name in self.conserved_quantities:
@@ -1315,7 +1331,7 @@ class GPU_domain(Domain):
         if self.using_gpu:
             N = self.number_of_elements
             Nb = self.quantities['stage'].boundary_values.shape[0]
-            W1 = 32
+            W1 = self.set_boundary_block
             W2 = 1
             W3 = 1
 
@@ -1329,6 +1345,7 @@ class GPU_domain(Domain):
                 grid=((Nb+W1*W2*W3-1)/(W1*W2*W3),1)
                 )
 
+            W1 = self.update_centroids_of_velocities_and_height_block
             self.update_centroids_of_velocities_and_height_func(
                 numpy.int32(N),
                 numpy.int32(Nb),
@@ -1361,7 +1378,6 @@ class GPU_domain(Domain):
     def compute_fluxes(self):
         if self.using_gpu :
             N = self.number_of_elements
-            W1 = 32
             W2 = 1
             W3 = 1
             
@@ -1371,8 +1387,9 @@ class GPU_domain(Domain):
             elif self.compute_fluxes_method == 'wb_1':
                 print "wb_1"
             elif self.compute_fluxes_method == 'wb_2':
+                W1 = self.compute_fluxes_central_structure_block
                 self.compute_fluxes_func(
-                    numpy.int32(self.number_of_elements),
+                    numpy.int32(N),
                     numpy.float64(self.evolve_max_timestep),
                     numpy.float64(self.g),
                     numpy.float64(self.epsilon),
@@ -1406,8 +1423,9 @@ class GPU_domain(Domain):
                 drv.memcpy_dtoh( self.timestep_array, 
                         self.timestep_array_gpu)
 
+                W1 = self.gravity_wb_block
                 self.gravity_wb_func(
-                    numpy.uint64(N),
+                    numpy.uint32(N),
                     numpy.float64(self.g),
                     self.quantities['stage'].vertex_values_gpu,
                     self.quantities['stage'].edge_values_gpu,
@@ -1434,12 +1452,12 @@ class GPU_domain(Domain):
             
             
             self.flux_timestep = numpy.min(self.timestep_array)
-            print self.flux_timestep
+            #print self.flux_timestep
             
 
         else:
             Domain.compute_fluxes(self)
-            print self.flux_timestep
+            #print self.flux_timestep
 
 
         if self.cotesting:
@@ -1483,17 +1501,15 @@ class GPU_domain(Domain):
 
     # 2nd level cotesting
     def distribute_to_vertices_and_edges(self):
-        if self.cotesting:
-            test_distribute_to_vertexs_and_edges(self, 'Input')
         if  self.using_gpu:
             N = self.number_of_elements
-            W1 = 32
             W2 = 1
             W3 = 1
 
             if self.compute_fluxes_method == 'tsunami':
+                W1 = self.protect_swb2_block
                 self.protect_swb2_func(
-                        numpy.int32(self.number_of_elements),
+                        numpy.int32(N),
                         numpy.float64(self.minimum_allowed_height),
                         numpy.float64(self.maximum_allowed_speed),
                         number_of_elements.float64(self.epsilon),
@@ -1505,11 +1521,12 @@ class GPU_domain(Domain):
                         self.quantities['ymomentum'].centroid_values_gpu,
                         self.areas_gpu,
                         block = (W1, W2, W3),
-                        grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
+                        grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                         )
 
+                W1 = self.extrapolate_second_order_edge_swb2_block
                 self.extrapolate_second_order_edge_swb2_func(
-                        numpy.int32(self.number_of_elements),
+                        numpy.int32(N),
                         numpy.int32(self.optimise_dry_cells),
                         numpy.int32(self.extrapolate_velocity_second_order),
                         numpy.float64(self.minimum_allowed_height),
@@ -1546,7 +1563,7 @@ class GPU_domain(Domain):
                         self.max_elevation_edgevalue_gpu,
                         self.count_wet_neighbours_gpu,
                         block = (W1, W2, W3),
-                        grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
+                        grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                         )
                 
             elif self.use_edge_limiter:
@@ -1555,6 +1572,7 @@ class GPU_domain(Domain):
                 for name in self.conserved_quantities:
                     Q = self.quantities[name]
                     if self._order_ == 1:
+                        W1 = self.extrapolate_first_order_block
                         #Q.extrapolate_first_order()
                         self.extrapolate_first_order_func(
                             numpy.int32(N),
@@ -1571,7 +1589,9 @@ class GPU_domain(Domain):
 
                     elif self._order_ == 2:
                         #Q.extrapolate_second_order_and_limit_by_edge()
+                        W1 = self.extrapolate_second_order_and_limit_by_edge_block
                         self.extrapolate_second_order_and_limit_by_edge_func(
+                                numpy.int32(N),
                                 numpy.float64( Q.beta),
                                 self.centroid_coordinates_gpu,
                                 self.vertex_coordinates_gpu,
@@ -1585,7 +1605,7 @@ class GPU_domain(Domain):
                                 Q.x_gradient_gpu,
                                 Q.y_gradient_gpu,
                                 block = (W1, W2, W3),
-                                grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2),1)
+                                grid=((N+W1*W2*W3-1)/(W1*W2),1)
                                 )
                     else:
                         raise Exception('Unknown order')
@@ -1596,12 +1616,13 @@ class GPU_domain(Domain):
                 for name in self.conserved_quantities:
                     Q = self.quantities[name]
                     #Q.interpolate_from_vertices_to_edges()
+                    W1 = self.interpolate_from_vertices_to_edges_block
                     self.interpolate_from_vertices_to_edges_func(
-                            numpy.int32(Q.vertex_values.shape[0]),
+                            numpy.int32(N),
                             Q.vertex_values_gpu,
                             Q.edge_values_gpu,
                             block = (W1, W2, W3),
-                            grid =((self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
+                            grid =((N+W1*W2*W3-1)/(W1*W2*W3),1)
                             )
 
             # using vertex limiter
@@ -1613,20 +1634,18 @@ class GPU_domain(Domain):
                         for name in self.conserved_quantities:
                             Q = self.quantities[name]
                             #Q.extrapolate_first_order()
+                            W1 = self.extrapolate_first_order_block
                             self.extrapolate_first_order_func(
-                                numpy.int32(self.number_of_elements),
+                                numpy.int32(N),
                                 Q.centroid_values_gpu,
                                 Q.edge_values_gpu,
                                 Q.vertex_values_gpu,
                                 block = (W1, W2, W3),
-                                grid =(
-                                    (self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
-                                  )
+                                grid =((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                                )
 
-                            drv.memset_d32(
-                                Q.x_gradient_gpu,0,self.number_of_elements*2)
-                            drv.memset_d32(
-                                Q.y_gradient_gpu,0,self.number_of_elements*2)
+                            drv.memset_d32( Q.x_gradient_gpu, 0, N*2)
+                            drv.memset_d32( Q.y_gradient_gpu, 0, N*2)
                             
                             # cotesting point
                             if self.cotesting:
@@ -1645,20 +1664,18 @@ class GPU_domain(Domain):
 
                         if self._order_ == 1:
                             #Q.extrapolate_first_order()
+                            W1 = self.extrapolate_first_order_block
                             self.extrapolate_first_order_func(
-                                numpy.int32(self.number_of_elements),
+                                numpy.int32(N),
                                 Q.centroid_values_gpu,
                                 Q.edge_values_gpu,
                                 Q.vertex_values_gpu,
                                 block = (W1, W2, W3),
-                                grid =(
-                                    (self.number_of_elements+W1*W2*W3-1)/(W1*W2*W3),1)
-                                  )
+                                grid =((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                                )
 
-                            drv.memset_d32(
-                                Q.x_gradient_gpu,0,self.number_of_elements*2)
-                            drv.memset_d32(
-                                Q.y_gradient_gpu,0,self.number_of_elements*2)
+                            drv.memset_d32( Q.x_gradient_gpu, 0, N*2)
+                            drv.memset_d32( Q.y_gradient_gpu, 0, N*2)
 
 
                             # cotesting point
@@ -1668,8 +1685,10 @@ class GPU_domain(Domain):
                                 test_extrapolate_first_order(self)
 
                         elif self._order_ == 2:
-                            #Q.extrapolate_second_order_and_limit_by_vertex()
+                            #Q.extrapolate_second_order_and_limit_by_vertex
+                            W1 = self.extrapolate_second_order_and_limit_by_vertex_block
                             self.extrapolate_second_order_and_limit_by_vertex_func(
+                                numpy.int32(N),
                                 numpy.float64( Q.beta),
                                 self.centroid_coordinates_gpu,
                                 self.vertex_coordinates_gpu,
@@ -1683,7 +1702,7 @@ class GPU_domain(Domain):
                                 Q.x_gradient_gpu,
                                 Q.y_gradient_gpu,
                                 block = (W1, W2, W3),
-                                grid=((self.number_of_elements+W1*W2*W3-1)/(W1*W2),1)
+                                grid=((N+W1*W2*W3-1)/(W1*W2),1)
                                 )
                                 
                             # cotesting point
@@ -1700,7 +1719,7 @@ class GPU_domain(Domain):
                 for name in self.conserved_quantities:
                     Q = self.quantities[name]
                     #Q.interpolate_from_vertices_to_edges()
-                    N = Q.vertex_values.shape[0]
+                    W1 = self.interpolate_from_vertices_to_edges_block
 
                     self.interpolate_from_vertices_to_edges_func(
                             numpy.int32( N ),
@@ -1723,9 +1742,6 @@ class GPU_domain(Domain):
 
 
         if self.cotesting:
-            #Domain.distribute_to_vertices_and_edges(
-            #        self.cotesting_domain)
-            
             test_distribute_to_vertexs_and_edges(self)
 
 
@@ -1733,7 +1749,6 @@ class GPU_domain(Domain):
     # 2nd level cotesting
     def update_boundary(self):
         if self.using_gpu:
-            W1 = 32
             W2 = 1
             W3 = 1
 
@@ -1744,14 +1759,16 @@ class GPU_domain(Domain):
                 
                 #segment_edges = self.tag_boundary_cells[tag]
                 ids = self.tag_boundary_cells[tag]
+                N = len(ids)
 
                 # def evaluate_segment(self, domain, segment_edges):
                 if ids is None:
                     continue
 
                 if isinstance(B, Reflective_boundary):
+                    W1 = self.evaluate_segment_reflective_block
                     self.evaluate_segment_reflective_func(
-                        numpy.int32(len(ids)),
+                        numpy.int32( N ),
                         self.boundary_index[tag][0],
                         self.boundary_index[tag][1],
                         self.boundary_index[tag][2],
@@ -1774,7 +1791,7 @@ class GPU_domain(Domain):
                         self.quantities['yvelocity'].boundary_values_gpu,
                         
                         block = (W1, W2, W3),
-                        grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
+                        grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                         )
 
                 elif isinstance(B, Dirichlet_boundary):
@@ -1786,8 +1803,9 @@ class GPU_domain(Domain):
                         for j, name in enumerate(self.evolved_quantities):
                             Q = self.quantities[name]
                             #Q.boundary_values[ids] = Q.edge_values[vol_ids,edge_ids]
+                            W1 = self.evaluate_segment_dirichlet_1_block
                             self.evaluate_segment_dirichlet_1_func(
-                                    numpy.int32(len(ids)),
+                                    numpy.int32(N),
                                     self.boundary_index[tag][0],
                                     self.boundary_index[tag][1],
                                     self.boundary_index[tag][2],
@@ -1795,7 +1813,7 @@ class GPU_domain(Domain):
                                     Q.boundary_values_gpu,
                                     Q.edge_values_gpu,
                                     block = (W1, W2, W3),
-                                    grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
+                                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                                     )
 
 
@@ -1807,13 +1825,14 @@ class GPU_domain(Domain):
                     for j, name in enumerate(quantities):
                         Q = self.quantities[name]
                         #Q.boundary_values[ids] = q_bdry[j]
+                        W1 = self.evaluate_segment_dirichlet_2_block
                         self.evaluate_segment_dirichlet_2_func(
-                                numpy.int32(len(ids)),
+                                numpy.int32( N ),
                                 numpy.float64(q_bdry[j]),
                                 self.boundary_index[tag][0],
                                 Q.boundary_values_gpu,
                                 block = (W1, W2, W3),
-                                grid=((len(ids)+W1*W2*W3-1)/(W1*W2*W3),1)
+                                grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                                 )
 
                 else:
@@ -1828,7 +1847,6 @@ class GPU_domain(Domain):
 
 
 
-    # For cotesting purpose
     # 2nd level cotesting
     def update_other_quantities(self):
         if self.using_gpu:
@@ -1839,7 +1857,7 @@ class GPU_domain(Domain):
             self.update_centroids_of_velocities_and_height()
             
             N = self.number_of_elements
-            W1 = 32
+            W1 = self.extrapolate_first_order_block
             W2 = 1
             W3 = 1
             for name in ['height', 'xvelocity', 'yvelocity']:

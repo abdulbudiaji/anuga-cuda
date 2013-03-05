@@ -3,10 +3,9 @@
 
 import numpy
 from pycuda import driver as drv
-from anuga_cuda import generate_merimbula_domain
-from anuga_cuda import generate_cairns_domain
+from anuga_cuda import generate_merimbula_domain, generate_cairns_domain, get_kernel_function_info
 
-using_tsunami_domain = True
+using_tsunami_domain = False
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
@@ -15,6 +14,7 @@ else:
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(gpu=True)
 
+domain2.equip_kernel_functions()
 
 domain1.evolve(yieldstep = 50, finaltime = 500)
 domain1.evolve(yieldstep = 50, finaltime = 500)
@@ -59,9 +59,21 @@ domain2.evolve(yieldstep = 50, finaltime = 500)
 if using_tsunami_domain:
     domain2.protect_against_infinitesimal_and_negative_heights()
 
-W1 = 4
+import sys
+W1 = 0
+for i in range( len(sys.argv)):
+    if sys.argv[i] == "-b":
+        W1 = int(sys.argv[i+1])
+
+if not W1:
+    W1 = domain2.extrapolate_second_order_edge_swb2_func.max_threads_per_block
+print W1
 W2 = 1
 W3 = 1
+
+get_kernel_function_info(
+    domain2.extrapolate_second_order_edge_swb2_func, W1,W2, W3)
+
 domain2.stage_centroid_store = numpy.zeros(N, dtype=numpy.float64)
 domain2.xmomentum_centroid_store = numpy.zeros(N, dtype=numpy.float64)
 domain2.ymomentum_centroid_store = numpy.zeros(N, dtype=numpy.float64)

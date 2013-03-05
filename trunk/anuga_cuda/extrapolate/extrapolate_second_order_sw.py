@@ -1486,8 +1486,8 @@ def extrapolate_second_order_sw_python(domain, ss=None, xs=None, ys=None):
 
 
 if __name__ == '__main__':
-    from anuga_cuda import generate_merimbula_domain
-    from anuga_cuda import approx_cmp
+    from anuga_cuda import generate_merimbula_domain, get_kernel_function_info
+
 
 
     import pycuda.driver as drv
@@ -1507,11 +1507,25 @@ if __name__ == '__main__':
         print "-----extrapolate velocity second order == 1-------"
         
         N = domain2.number_of_elements
-        W1 = 32
 
         xmom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
         ymom_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
         stage_centroid_store = numpy.zeros(N, dtype=numpy.float64) 
+
+        import sys
+        W1 = 0
+        for i in range( len(sys.argv)):
+            if sys.argv[i] == "-b":
+                W1 = int(sys.argv[i+1])
+
+        if not W1:
+            W1 = domain2.extrapolate_second_order_sw_true_func.max_threads_per_block
+        print W1
+        W2 = 1
+        W3 = 1
+
+        get_kernel_function_info(
+            domain2.extrapolate_second_order_sw_true_func, W1,W2, W3)
 
         domain2.extrapolate_second_order_sw_true_func(
             numpy.int32( N ),
@@ -1537,9 +1551,9 @@ if __name__ == '__main__':
     		drv.InOut( domain2.quantities['xmomentum'].vertex_values ),
     		drv.InOut( domain2.quantities['ymomentum'].vertex_values ), 
     		drv.InOut( domain2.quantities['elevation'].vertex_values ), 
-            drv.In( stage_centroid_store ),
-            drv.In( xmom_centroid_store ),
-            drv.In( ymom_centroid_store ),
+            #drv.In( stage_centroid_store ),
+            #drv.In( xmom_centroid_store ),
+            #drv.In( ymom_centroid_store ),
             block = ( W1, 1, 1),
             grid = ( (N + W1 -1 ) / W1, 1) )
         #extrapolate_second_order_sw_cuda_TRUE_second_order(domain2)
@@ -1625,9 +1639,7 @@ if __name__ == '__main__':
     print res
     if not res.count(True) == res.__len__():
         for i in range(domain1.number_of_elements):
-            if approx_cmp(svv1[i][0], svv2[i][0]) or \
-                    approx_cmp(svv1[i][1], svv2[i][1]) or \
-                    approx_cmp(svv1[i][2], svv2[i][2]):
+            if not numpy.allclose(svv1[i], svv2[i]) :
                 counter_s_vv += 1
                 if counter_s_vv < 10:
                     print i, stage_h1.vertex_values[i], \
