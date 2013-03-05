@@ -33,3 +33,42 @@ kernel_path = {
     "update_dir" : \
         "/home/u5044856/anuga-cuda/anuga_cuda/update/"
     }
+
+
+kernel_block_configuration = {
+    "compute_fluxes_fun" : 64,
+
+    "gravity_fun" : 32,
+
+    "extrapolate_first_order_fun" : 32,
+
+    "extrapolate_second_order_sw_fun" : 64,
+    "extrapolate_velocity_second_order_true_fun" : 128,
+    "extrapolate_second_order_edge_swb2_fun" : 64,
+    "extrapolate_second_order_and_limit_by_vertex_fun" : 64,
+    "extrapolate_second_order_and_limit_by_edge_fun" : 64, # FIXME
+
+    "protect_sw_ext_fun" : 64,
+    "protect_swb2_fun" : 64, # FIXME
+
+    "balance_fun" : 32,
+
+    "interpolate_fun" : 32,
+
+    "evaluate_segment_reflective_fun" : 64,
+    "evaluate_segment_dirichlet_1_fun" : 64, # FIXME
+    "evaluate_segment_dirichlet_2_fun" : 64, # FIXME
+
+    "get_absolute_fun" : 64,
+
+    "manning_friction_flat_fun" : 192,
+    "manning_friction_sloped_fun" : 128,
+
+    "saxpy_fun" : 64,
+
+    "set_boundary_values_from_edges_fun" : 32,
+
+    "update_centroids_fun" : 64,
+    "update_fun" : 64,
+    }
+

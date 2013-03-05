@@ -1,17 +1,30 @@
 import numpy
 from pycuda import driver as drv
-from anuga_cuda.merimbula_data.channel1 import generate_domain
+from anuga_cuda import generate_merimbula_domain
+from anuga_cuda import get_kernel_function_info
 
-domain1 = generate_domain( gpu=False )
-domain2 = generate_domain( gpu=True )
+domain1 = generate_merimbula_domain( gpu=False )
+domain2 = generate_merimbula_domain( gpu=True )
+domain2.equip_kernel_functions()
 
 domain1.protect_against_infinitesimal_and_negative_heights()
 domain2.protect_against_infinitesimal_and_negative_heights()
 
 N = domain1.number_of_elements
-W1 = 32
+import sys
+W1 = 0
+for i in range( len(sys.argv)):
+    if sys.argv[i] == "-b":
+        W1 = int(sys.argv[i+1])
+
+if not W1:
+    W1 = domain2.extrapolate_first_order_func.max_threads_per_block
+print W1
 W2 = 1
 W3 = 1
+
+get_kernel_function_info(domain2.extrapolate_first_order_func,W1,W2, W3)
+
 
 for name in domain1.conserved_quantities:
     Q1 = domain1.quantities[name]
