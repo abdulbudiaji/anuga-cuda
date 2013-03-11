@@ -5,12 +5,14 @@
 #include <assert.h>
 
 
-#define TOLERANCE 0.0000001
+
+#define TOLERANCE 0.000000000000001
+#define DATA_TYPE double 
 
 int errs_x=0, errs_y=0;
 
 
-int check_tolerance(float a, float b)
+int check_tolerance( DATA_TYPE a, DATA_TYPE b)
 {
     if (fabs(a) <= 0 && fabs(a-b) > TOLERANCE)
         return 1;
@@ -25,26 +27,27 @@ int check_tolerance(float a, float b)
     else return 0;
 }
         
-void vecaddgpu( float *xmom_explicit_update, 
-                float *ymom_explicit_update, 
-                
-                float * stage_vertex_values,
-                float * stage_edge_values,
-                float * stage_centroid_values,
+void vecaddgpu( 
+        DATA_TYPE *xmom_explicit_update, 
+        DATA_TYPE *ymom_explicit_update, 
 
-                float * bed_edge_values,
-                float * bed_centroid_values,
+        DATA_TYPE * stage_vertex_values,
+        DATA_TYPE * stage_edge_values,
+        DATA_TYPE * stage_centroid_values,
 
-                float * vertex_coordinates,
+        DATA_TYPE * bed_edge_values,
+        DATA_TYPE * bed_centroid_values,
 
-                float * normals,
-                float * areas,
-                float * edgelengths,
-                
-                int n,
-                int n3,
-                int n6,
-                float g )
+        DATA_TYPE * vertex_coordinates,
+
+        DATA_TYPE * normals,
+        DATA_TYPE * areas,
+        DATA_TYPE * edgelengths,
+
+        int n,
+        int n3,
+        int n6,
+        DATA_TYPE g )
 {
     int k;
 
@@ -61,14 +64,14 @@ void vecaddgpu( float *xmom_explicit_update,
     #pragma acc & ymom_explicit_update[0:n])
     for( int k = 0; k < n; ++k ){
         int i, k3, k6;
-        float w0, w1, w2,
+        DATA_TYPE w0, w1, w2,
               x0, y0, x1, y1, x2, y2,
               avg_h;
 
-        float wx, wy, det, hh[3];//hh0, hh1,hh2;
-        float sidex_0, sidex_1, sidex_2;
-        float sidey_0, sidey_1, sidey_2;
-        float area, n0, n1, fact;
+        DATA_TYPE wx, wy, det, hh[3];//hh0, hh1,hh2;
+        DATA_TYPE sidex_0, sidex_1, sidex_2;
+        DATA_TYPE sidey_0, sidey_1, sidey_2;
+        DATA_TYPE area, n0, n1, fact;
 
         k3 = k*3;
         w0 = stage_vertex_values[k3];
@@ -122,32 +125,32 @@ void vecaddgpu( float *xmom_explicit_update,
 
 
 void gravity_wb_orig(
-        float * xmom_explicit_update, 
-        float * ymom_explicit_update, 
-        float * stage_vertex_values, 
-        float * stage_edge_values, 
-        float * stage_centroid_values, 
-        float * bed_edge_values, 
-        float * bed_centroid_values, 
-        float * vertex_coordinates, 
-        float * normals, 
-        float * areas, 
-        float * edgelengths,
-        float * test_xe,
-        float * test_ye,
+        DATA_TYPE * xmom_explicit_update, 
+        DATA_TYPE * ymom_explicit_update, 
+        DATA_TYPE * stage_vertex_values, 
+        DATA_TYPE * stage_edge_values, 
+        DATA_TYPE * stage_centroid_values, 
+        DATA_TYPE * bed_edge_values, 
+        DATA_TYPE * bed_centroid_values, 
+        DATA_TYPE * vertex_coordinates, 
+        DATA_TYPE * normals, 
+        DATA_TYPE * areas, 
+        DATA_TYPE * edgelengths,
+        DATA_TYPE * test_xe,
+        DATA_TYPE * test_ye,
         int N,
-        float g
+        DATA_TYPE g
         )
 {
     int i, k, k3, k6;
 
-    float w0, w1, w2, 
+    DATA_TYPE w0, w1, w2, 
            x0, y0, x1, y1, x2, y2,
            avg_h;
 
-    float wx, wy, det,
+    DATA_TYPE wx, wy, det,
            hh[3];
-    float sidex, sidey, area, n0, n1, fact;
+    DATA_TYPE sidex, sidey, area, n0, n1, fact;
 
     for (k = 0; k < N; k++)
     {
@@ -227,23 +230,23 @@ void gravity_wb_orig(
 
 int main( int argc, char* argv[] ){
     int n;   /* vector length */
-    float g = 9.8;
+    DATA_TYPE g = 9.8;
     int i;
     
-    float * xe, //xmom_explicit_update, 
+    DATA_TYPE * xe, //xmom_explicit_update, 
           * ye; //ymom_explicit_update;
-    float * test_xe, //xmom_explicit_update, 
+    DATA_TYPE * test_xe, //xmom_explicit_update, 
           * test_ye; //ymom_explicit_update;
 
 
-    float * sv, //stage_vertex_values, 
+    DATA_TYPE * sv, //stage_vertex_values, 
           * se, //stage_edge_values, 
           * sc; //stage_centroid_values;
 
-    float * be, //bed_edge_values, 
+    DATA_TYPE * be, //bed_edge_values, 
           * bc; //bed_centroid_values;
 
-    float * vc, //vertex_coordinates,
+    DATA_TYPE * vc, //vertex_coordinates,
           * normals, 
           * a, //areas, 
           * el; //edgelengths;
@@ -253,70 +256,70 @@ int main( int argc, char* argv[] ){
     freopen(file_name, "r", stdin);
 
 
-    scanf("%d\n %f\n", &n, &g);
+    scanf("%d\n %lf\n", &n, &g);
     printf("\n\nThe number of elements is %d\n", n);
     //if( argc > 1 ) n = atoi( argv[1] );
     //else  n = 100000;  /* default vector length */
     //if( n <= 0 ) n = 100000;
     
     
-    xe =    (float*)malloc( n*sizeof(float));
+    xe =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
     assert( xe != NULL);
-    ye =    (float*)malloc( n*sizeof(float));
+    ye =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
     assert( ye != NULL);
-    test_xe =    (float*)malloc( n*sizeof(float));
+    test_xe =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
     assert( test_xe != NULL);
-    test_ye =    (float*)malloc( n*sizeof(float));
+    test_ye =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
     assert( test_ye != NULL);
 
 
-    sv =    (float*)malloc( n*sizeof(float) *3);
+    sv =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
     assert( sv != NULL);
-    se =    (float*)malloc( n*sizeof(float) *3);
+    se =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
     assert( se != NULL);
-    sc =    (float*)malloc( n*sizeof(float) );
+    sc =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) );
     assert( sc != NULL);
     
-    be =    (float*)malloc( n*sizeof(float) *3);
+    be =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
     assert( be != NULL);
-    bc =    (float*)malloc( n*sizeof(float) );
+    bc =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) );
     assert( bc != NULL);
 
-    vc =    (float*)malloc( n*sizeof(float) *6);
+    vc =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *6);
     assert( vc != NULL);
-    normals=(float*)malloc( n*sizeof(float) *6);
+    normals=(DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *6);
     assert( normals != NULL);
-    a =     (float*)malloc( n*sizeof(float) );
+    a =     (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) );
     assert( a != NULL);
-    el =    (float*)malloc( n*sizeof(float) *3);
+    el =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
     assert( el != NULL);
 
 
 
     for( i = 0; i < n; ++i ){
-        scanf("%f %f %f\n", sv+i*3, sv+i*3 +1, sv+i*3 +2);
-        scanf("%f %f %f\n", se+i*3, se+i*3 +1, se+i*3 +2);
-        scanf("%f\n", sc+i);
+        scanf("%lf %lf %lf\n", sv+i*3, sv+i*3 +1, sv+i*3 +2);
+        scanf("%lf %lf %lf\n", se+i*3, se+i*3 +1, se+i*3 +2);
+        scanf("%lf\n", sc+i);
 
-        scanf("%f %f %f\n",be+i*3, be+i*3 +1, be+i*3 +2);
-        scanf("%f\n", bc+i);
+        scanf("%lf %lf %lf\n",be+i*3, be+i*3 +1, be+i*3 +2);
+        scanf("%lf\n", bc+i);
 
-        scanf("%f %f\n", vc+i*6, vc+i*6 +1);
-        scanf("%f %f\n", vc+i*6+2, vc+i*6 +3);
-        scanf("%f %f\n", vc+i*6+4, vc+i*6 +5);
+        scanf("%lf %lf\n", vc+i*6, vc+i*6 +1);
+        scanf("%lf %lf\n", vc+i*6+2, vc+i*6 +3);
+        scanf("%lf %lf\n", vc+i*6+4, vc+i*6 +5);
 
-        scanf("%f\n", xe+i);
-        scanf("%f\n", ye+i);
+        scanf("%lf\n", xe+i);
+        scanf("%lf\n", ye+i);
 
-        scanf("%f %f %f %f %f %f\n", normals+i*6, normals+i*6+1, normals+i*6+2,normals+i*6+3, normals+i*6+4, normals+i*6+5);
+        scanf("%lf %lf %lf %lf %lf %lf\n", normals+i*6, normals+i*6+1, normals+i*6+2,normals+i*6+3, normals+i*6+4, normals+i*6+5);
 
-        scanf("%f\n", a+i);
+        scanf("%lf\n", a+i);
 
-        scanf("%f %f %f\n", el+i*3, el+i*3 +1, el+i*3 +2);
+        scanf("%lf %lf %lf\n", el+i*3, el+i*3 +1, el+i*3 +2);
     }
 
-    memcpy(test_xe, xe, n*sizeof(float));
-    memcpy(test_ye, ye, n*sizeof(float));
+    memcpy(test_xe, xe, n*sizeof(DATA_TYPE));
+    memcpy(test_ye, ye, n*sizeof(DATA_TYPE));
     errs_x = 0;
     errs_y = 0;
     for( i = 0; i < n; ++i ){
