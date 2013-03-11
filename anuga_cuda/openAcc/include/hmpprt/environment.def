@@ -1,0 +1,49 @@
+/*
+ * Copyright (C) 2008-2013 CAPS entreprise.  All Rights Reserved.
+ * 
+ * The source code contained or described herein and all documents  related
+ * to the source code ("Material") are owned  by  CAPS  entreprise  or  its
+ * suppliers or licensors.
+ * 
+ * Title to the Material remains with CAPS entreprise or its suppliers  and
+ * licensors.  The Material contains trade secrets and proprietary and con-
+ * fidential information of CAPS entreprise or its suppliers and licensors.
+ * 
+ * The Material is protected by the French intellectual property code,  in-
+ * tellectual property laws and international treaties.  No part of the Ma-
+ * terial may be used, copied, reproduced, modified,  published,  uploaded,
+ * posted, transmitted, distributed or disclosed in any  way  without  CAPS
+ * entreprise's prior express written permission.
+ * 
+ * No license under any patent, copyright, trade secret or other  intellec-
+ * tual property right is granted to or conferred upon you by disclosure or
+ * delivery of the Material, either expressly, by implication,  inducement,
+ * estoppel or otherwise.
+ * 
+ * Any license under such intellectual property rights  must  be  expressed
+ * and approved by CAPS entreprise in writing.
+ */
+#ifndef HMPPRT_ENVIRONMENT_DEF
+#error "HMPPRT_ENVIRONMENT_DEF not defined"
+#endif
+
+HMPPRT_ENVIRONMENT_DEF(PATH,                  std::vector<std::string>, )
+HMPPRT_ENVIRONMENT_DEF(CHECK_TRANSFERS,       std::string,              "")
+HMPPRT_ENVIRONMENT_DEF(DUMP_DATA_PATH,        std::string,              "")
+HMPPRT_ENVIRONMENT_DEF(DISABLE_LOCKER,        bool,                     false)
+HMPPRT_ENVIRONMENT_DEF(MAX_THREADS,           int,                      8)
+HMPPRT_ENVIRONMENT_DEF(HOST_DEVICES,          int,                      4)
+HMPPRT_ENVIRONMENT_DEF(DISABLE_CUDA,          bool,                     false)
+HMPPRT_ENVIRONMENT_DEF(DEFAULT_CUDA_DEVICE,   int,                      0)
+#ifdef _WIN32
+HMPPRT_ENVIRONMENT_DEF(CUDA_DRIVER,           std::string,              "NVCUDA.DLL")
+HMPPRT_ENVIRONMENT_DEF(OPENCL_DRIVER,         std::string,              "OPENCL.DLL")
+#else
+HMPPRT_ENVIRONMENT_DEF(CUDA_DRIVER,           std::string,              "libcuda.so")
+HMPPRT_ENVIRONMENT_DEF(OPENCL_DRIVER,         std::string,              "libOpenCL.so")
+#endif
+HMPPRT_ENVIRONMENT_DEF(FORCE_CU_LAUNCH_GRID,  bool,                     false)
+HMPPRT_ENVIRONMENT_DEF(DISABLE_OPENCL,        bool,                     false)
+HMPPRT_ENVIRONMENT_DEF(DEFAULT_OPENCL_DEVICE, int,                      0)
+HMPPRT_ENVIRONMENT_DEF(AUTO_PAGE_LOCK,        bool,                     false)
+HMPPRT_ENVIRONMENT_DEF(OPENCL_DEVICE_TYPE,    std::string,              "CL_DEVICE_TYPE_GPU")

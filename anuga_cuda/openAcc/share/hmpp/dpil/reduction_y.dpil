@@ -1,0 +1,22 @@
+
+$FUNCMS function $FUNCNAME(priv: $TYPE, tmpa: ^ $MS [~gr_btnumy()][~gr_btnumx()] $TYPE, orig: $TYPE) : $TYPE
+{
+  ~gr_barrier();
+  tmpa^[~gr_btidy()][~gr_btidx()] = priv;
+
+  n : s32;
+  for (n = ((~gr_btnumy() - 1) >> 1) + 1 : n > 0 : n = (n >> 1))
+  {
+    next : s32;
+    next = ~gr_btidy() + n;
+    ~gr_barrier();
+    if (~gr_btidy() < n && next < ~gr_btnumy())
+    {
+      tmpa^[~gr_btidy()][~gr_btidx()] = %$OP(tmpa^[~gr_btidy()][~gr_btidx()], tmpa^[next][~gr_btidx()])
+    }
+  }
+
+  ~gr_barrier();
+  return %$OP(tmpa^[0][~gr_btidx()], orig);
+}
+
