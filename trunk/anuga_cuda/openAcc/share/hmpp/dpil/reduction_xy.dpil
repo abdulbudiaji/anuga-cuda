@@ -1,0 +1,34 @@
+$FUNCMS gridfunction $FUNCNAME(neutral: $TYPE,
+                               scalar: ^[1]$TYPE,
+                               tmpa: ^ $MS [$BLOCKSIZE] $TYPE,
+                               size: s32,
+                               array: ^[size] $TYPE)
+{
+  var : $TYPE;
+  var = neutral;
+  loop i : s32 in [~gr_btidf() : size - 1 : $BLOCKSIZE]
+  {
+    var = %$OP(var, array^[i]);
+  }
+
+  tmpa^[~gr_btidf()] = var;
+
+  n : s32;
+  for (n = (($BLOCKSIZE - 1) >> 1) + 1 : n > 0 : n = (n >> 1))
+  {
+    next : s32;
+    next = ~gr_btidf() + n;
+
+    ~gr_barrier();
+
+    if (~gr_btidf() < n && next < $BLOCKSIZE)
+    {
+      tmpa^[~gr_btidf()] = %$OP(tmpa^[~gr_btidf()], tmpa^[next])
+    }
+  }
+
+  if (~gr_btidf() == 0)
+  {
+    scalar^[0] = %$OP(tmpa^[0], scalar^[0]);
+  }
+}

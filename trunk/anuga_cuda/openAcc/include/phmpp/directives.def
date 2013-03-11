@@ -1,0 +1,50 @@
+/*
+ * Copyright (C) 2008-2013 CAPS entreprise.  All Rights Reserved.
+ * 
+ * The source code contained or described herein and all documents  related
+ * to the source code ("Material") are owned  by  CAPS  entreprise  or  its
+ * suppliers or licensors.
+ * 
+ * Title to the Material remains with CAPS entreprise or its suppliers  and
+ * licensors.  The Material contains trade secrets and proprietary and con-
+ * fidential information of CAPS entreprise or its suppliers and licensors.
+ * 
+ * The Material is protected by the French intellectual property code,  in-
+ * tellectual property laws and international treaties.  No part of the Ma-
+ * terial may be used, copied, reproduced, modified,  published,  uploaded,
+ * posted, transmitted, distributed or disclosed in any  way  without  CAPS
+ * entreprise's prior express written permission.
+ * 
+ * No license under any patent, copyright, trade secret or other  intellec-
+ * tual property right is granted to or conferred upon you by disclosure or
+ * delivery of the Material, either expressly, by implication,  inducement,
+ * estoppel or otherwise.
+ * 
+ * Any license under such intellectual property rights  must  be  expressed
+ * and approved by CAPS entreprise in writing.
+ */
+D(ACQUIRE,            PHMPP_EK_ACCELERATOR_REQUEST, "acquire",                            "Acquire the device for the HMPP Group")
+D(RELEASE,            PHMPP_EK_ACCELERATOR_REQUEST, "release",                            "Release the device and free memory allocated for the HMPP Group")
+D(ALLOCATE_ALL,       PHMPP_EK_OBJECT_REQUEST,      "allocate",                           "Allocate memory on the device for the HMPP Group")
+D(FREE_ALL,           PHMPP_EK_OBJECT_REQUEST,      "free",                               "Free the device memory allocated for the HMPP Group")
+D(ALLOCATE,           PHMPP_EK_OBJECT_REQUEST,      "allocate, args",                     "Allocate the given arguments of the HMPP Group")
+D(FREE,               PHMPP_EK_OBJECT_REQUEST,      "free, args",                         "Free the given arguments of the HMPP Group")
+D(LOAD,               PHMPP_EK_TRANSFER_REQUEST,    "advancedload, args",                 "Synchronously load HMPP arguments on the device")
+D(LOAD_ASYNC,         PHMPP_EK_TRANSFER_REQUEST,    "advancedload, args, asynchronous",   "Asynchronously load HMPP arguments on the device")
+D(LOAD_WAIT,          PHMPP_EK_TRANSFER_REQUEST,    "waitload, args",                     "Wait untill all the given HMPP arguments' loads are completed")
+D(STORE,              PHMPP_EK_TRANSFER_REQUEST,    "delegatedstore, args",               "Synchronously store HMPP arguments from the device")
+D(STORE_ASYNC,        PHMPP_EK_TRANSFER_REQUEST,    "delegatedstore, args, asynchronous", "Asynchronously store HMPP arguments from the device")
+D(STORE_WAIT,         PHMPP_EK_TRANSFER_REQUEST,    "waitstore, args",                    "Wait untill all the given HMPP arguments' stores are completed")
+D(CALLSITE,           PHMPP_EK_CODELET_REQUEST,     "callsite",                           "Launch a synchronous execution of the Codelet on the device")
+D(CALLSITE_ASYNC,     PHMPP_EK_CODELET_REQUEST,     "callsite, asynchronous",             "Launch an asynchronous execution of the Codelet on the device")
+D(SYNCHRONIZE,        PHMPP_EK_CODELET_REQUEST,     "synchronize",                        "Wait untill the completion of the Codelet execution")
+D(HOST_READ,          PHMPP_EK_SYSTEM_REQUEST,      "hostread, args",                     "Tells HMPP the users want to access the given HMPP arguments")
+D(HOST_WRITE,         PHMPP_EK_SYSTEM_REQUEST,      "hostwrite, args",                    "Tells HMPP the users have modified the given HMPP arguments")
+D(MIRROR_ALLOCATE,    PHMPP_EK_OBJECT_REQUEST,      "allocate, data",                     "Allocate memory for a mirror on the device")
+D(MIRROR_FREE,        PHMPP_EK_OBJECT_REQUEST,      "free, data",                         "Free memory of a mirror on the device")
+D(MIRROR_LOAD,        PHMPP_EK_TRANSFER_REQUEST,    "advancedload, data",                 "Synchronously load data to the mirror on the device")
+D(MIRROR_LOAD_ASYNC,  PHMPP_EK_TRANSFER_REQUEST,    "advancedload, data, asynchronous",   "Asynchronously load data to the mirror on the device")
+D(MIRROR_LOAD_WAIT,   PHMPP_EK_TRANSFER_REQUEST,    "waitload, data",                     "Wait untill all the given mirrors' loads are completed")
+D(MIRROR_STORE,       PHMPP_EK_TRANSFER_REQUEST,    "delegatedstore, data",               "Synchronously store data from the mirror on the device")
+D(MIRROR_STORE_ASYNC, PHMPP_EK_TRANSFER_REQUEST,    "delegatedstore, data, asynchronous", "Asynchronously store data from the mirror on the device")
+D(MIRROR_STORE_WAIT,  PHMPP_EK_TRANSFER_REQUEST,    "waitstore, data",                    "Wait untill all the given mirrors' stores are completed")

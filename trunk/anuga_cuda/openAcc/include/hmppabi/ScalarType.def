@@ -1,0 +1,37 @@
+/*
+ * Copyright (C) 2008-2013 CAPS entreprise.  All Rights Reserved.
+ * 
+ * The source code contained or described herein and all documents  related
+ * to the source code ("Material") are owned  by  CAPS  entreprise  or  its
+ * suppliers or licensors.
+ * 
+ * Title to the Material remains with CAPS entreprise or its suppliers  and
+ * licensors.  The Material contains trade secrets and proprietary and con-
+ * fidential information of CAPS entreprise or its suppliers and licensors.
+ * 
+ * The Material is protected by the French intellectual property code,  in-
+ * tellectual property laws and international treaties.  No part of the Ma-
+ * terial may be used, copied, reproduced, modified,  published,  uploaded,
+ * posted, transmitted, distributed or disclosed in any  way  without  CAPS
+ * entreprise's prior express written permission.
+ * 
+ * No license under any patent, copyright, trade secret or other  intellec-
+ * tual property right is granted to or conferred upon you by disclosure or
+ * delivery of the Material, either expressly, by implication,  inducement,
+ * estoppel or otherwise.
+ * 
+ * Any license under such intellectual property rights  must  be  expressed
+ * and approved by CAPS entreprise in writing.
+ */
+// num, name,            ctype,     dtype,    h5type,          ffi_type,        signed version   unsigned version
+
+D(   1, SCALAR_DOUBLE,   double,    double,   NATIVE_DOUBLE,   ffi_type_double, SCALAR_NONE,     SCALAR_NONE)
+D(   2, SCALAR_FLOAT,    float,     float,    NATIVE_FLOAT,    ffi_type_float,  SCALAR_NONE,     SCALAR_NONE)
+D(   3, SCALAR_INT8,     int8_t,    s8,       NATIVE_INT8,     ffi_type_sint8,  SCALAR_INT8,     SCALAR_UINT8)
+D(   4, SCALAR_INT16,    int16_t,   s16,      NATIVE_INT16,    ffi_type_sint16, SCALAR_INT16,    SCALAR_UINT16)
+D(   5, SCALAR_INT32,    int32_t,   s32,      NATIVE_INT32,    ffi_type_sint32, SCALAR_INT32,    SCALAR_UINT32)
+D(   6, SCALAR_INT64,    int64_t,   s64,      NATIVE_INT64,    ffi_type_sint64, SCALAR_INT64,    SCALAR_UINT64)
+D(   7, SCALAR_UINT8,    uint8_t,   u8,       NATIVE_UINT8,    ffi_type_uint8,  SCALAR_INT8,     SCALAR_UINT8)
+D(   8, SCALAR_UINT16,   uint16_t,  u16,      NATIVE_UINT16,   ffi_type_uint16, SCALAR_INT16,    SCALAR_UINT16)
+D(   9, SCALAR_UINT32,   uint32_t,  u32,      NATIVE_UINT32,   ffi_type_uint32, SCALAR_INT32,    SCALAR_UINT32)
+D(  10, SCALAR_UINT64,   uint64_t,  u64,      NATIVE_UINT64,   ffi_type_uint64, SCALAR_INT64,    SCALAR_UINT64)
