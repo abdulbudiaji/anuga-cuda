@@ -1,8 +1,9 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<math.h>
-#include<assert.h>
+#include<cstdio>
+#include<cstdlib>
+#include<cstring>
+#include<cmath>
+#include<cassert>
+using namespace std;
 
 double max(double a, double b)
 { return (a >= b) ? a : b; }
@@ -36,6 +37,7 @@ void spe_bubble_sort(int* _list , long* neighbours, int k)
     }
 }
 */
+
 int _rotate(double *q, double n1, double n2) 
 {
     /*Rotate the momentum component q (q[1], q[2])
@@ -235,16 +237,7 @@ int _flux_function_central(double *q_left, double *q_right,
 
 
 void compute_fluxes_central_structure_CUDA(
-        int N,
-        int N2,
-        double evolve_max_timestep,
-        double  g,
-        double epsilon,
-        double h0,
-        double limiting_threshold,
-        int optimise_dry_cells,
-
-        double * restrict timestep,
+        double * timestep,
         long * neighbours,
         long * neighbour_edges,
         double * normals,
@@ -259,10 +252,19 @@ void compute_fluxes_central_structure_CUDA(
         double * stage_boundary_values,
         double * xmom_boundary_values,
         double * ymom_boundary_values,
-        double * restrict stage_explicit_update,
-        double * restrict xmom_explicit_update,
-        double * restrict ymom_explicit_update, 
-        double * restrict max_speed_array)
+        double * stage_explicit_update,
+        double * xmom_explicit_update,
+        double * ymom_explicit_update, 
+        double * max_speed_array,
+
+        int N,
+        int N2,
+        double evolve_max_timestep,
+        double  g,
+        double epsilon,
+        double h0,
+        double limiting_threshold,
+        int optimise_dry_cells)
 {
 
 
@@ -388,15 +390,6 @@ void compute_fluxes_central_structure_CUDA(
 
 
 void compute_fluxes_central_structure_cuda_single(
-        int N,
-        int N2,
-        double evolve_max_timestep,
-        double g,
-        double epsilon,
-        double h0,
-        double limiting_threshold,
-        int optimise_dry_cells,
-        
         double * timestep,
         long * neighbours,
         long * neighbour_edges,
@@ -415,29 +408,20 @@ void compute_fluxes_central_structure_cuda_single(
         double * stage_explicit_update,
         double * xmom_explicit_update,
         double * ymom_explicit_update,
-        double * max_speed_array){
-    int j, k;
-    
-    double w_left, h_left, uh_left, vh_left, u_left;
-    double w_right, h_right, uh_right, vh_right, u_right;
-    double s_min, s_max, soundspeed_left, soundspeed_right;
-    double denom, inverse_denominator, z;
-    double temp;
-    
-    // Workspace (allocate once, use many)
-    double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
-    
-    
-    
-    double q_left[3], q_right[3];
-    double z_left,  z_right;
-    double n1,  n2;
-    double edgeflux[3],  max_speed, max_speed_total;
-    double length, inv_area;
-    
-    int i, m, n;
-    int ki, nm;
-    
+        double * max_speed_array,
+
+        int N,
+        int N3,
+        int N6,
+        int N2,
+        double evolve_max_timestep,
+        double g,
+        double epsilon,
+        double h0,
+        double limiting_threshold,
+        int optimise_dry_cells)
+{
+    int k; 
     //#ifdef UNSORTED_DOMAIN
     //    int b[3]={0,1,2}, l;
     //    spe_bubble_sort( b, neighbours+k*3, k);
@@ -452,23 +436,54 @@ void compute_fluxes_central_structure_cuda_single(
     //#else
     //        ki = k * 3 + i;
     //#endif
-    #pragma acc kernels loop copyin(neighbours[0:3*N], neighbour_edges[0:3*N], normals[0:6*N],edgelengths[0:3*N], radii[0:N], areas[0:N], tri_full_flag[0:N], stage_edge_values[0:3*N], xmom_edge_values[0:3*N], ymom_edge_values[0:3*N], bed_edge_values[0:3*N], stage_boundary_values[0:N2], xmom_boundary_values[0:N2], ymom_boundary_values[0:N2]) copy(timestep[0:N], stage_explicit_update[0:N], xmom_explicit_update[0:N], ymom_explicit_update[0:N], max_speed_array[0:N]) 
+    #pragma acc kernels loop copyin(neighbours[0:N3], neighbour_edges[0:N3], &
+    #pragma acc & normals[0:N6],edgelengths[0:N3], radii[0:N], areas[0:N], &
+    #pragma acc & tri_full_flag[0:N], stage_edge_values[0:N3], & 
+    #pragma acc & xmom_edge_values[0:N3], &
+    #pragma acc & ymom_edge_values[0:N3], bed_edge_values[0:N3], &
+    #pragma acc & stage_boundary_values[0:N2], xmom_boundary_values[0:N2], &
+    #pragma acc & ymom_boundary_values[0:N2]) &
+    #pragma acc copy(timestep[0:N], &
+    #pragma acc & stage_explicit_update[0:N], xmom_explicit_update[0:N], &
+    #pragma acc & ymom_explicit_update[0:N], max_speed_array[0:N]) 
+//    #pragma acc loop independent
     for (k=0; k < N; k++)
     {
+        double w_left, h_left, uh_left, vh_left, u_left;
+        double w_right, h_right, uh_right, vh_right, u_right;
+        double s_min, s_max, soundspeed_left, soundspeed_right;
+        double denom, inverse_denominator, z;
+        double temp;
+
+        // Workspace (allocate once, use many)
+        double q_left_rotated[3], q_right_rotated[3], 
+            flux_right[3], flux_left[3];
+
+
+
+        double q_left[3], q_right[3];
+        double z_left,  z_right;
+        double n1,  n2;
+        double edgeflux[3],  max_speed, max_speed_total;
+        double length, inv_area;
+
+        int i, j, m, ni;
+        int ki, nm;
+
         max_speed_total = 0;
+
         for (i=0; i< 3; i++)
         {
             ki= k*3 + i;
-            
             
             q_left[0] = stage_edge_values[ki];
             q_left[1] = xmom_edge_values[ki];
             q_left[2] = ymom_edge_values[ki];
             z_left = bed_edge_values[ki];
             
-            n = neighbours[ki];
-            if (n<0) {
-                m= -n -1;
+            ni = neighbours[ki];
+            if (ni<0) {
+                m= -ni -1;
                 
                 q_right[0] = stage_boundary_values[m];
                 q_right[1] = xmom_boundary_values[m];
@@ -477,9 +492,9 @@ void compute_fluxes_central_structure_cuda_single(
             } else {
                 m = neighbour_edges[ki];
 #ifdef REARRANGED_DOMAIN
-                nm = n + m*N;
+                nm = ni + m*N;
 #else
-                nm = n *3 + m;
+                nm = ni *3 + m;
 #endif
                 
                 q_right[0] = stage_edge_values[nm];
@@ -492,9 +507,10 @@ void compute_fluxes_central_structure_cuda_single(
                 if(fabs(q_left[0] - z_left) < epsilon &&
                    fabs(q_right[0] - z_right) < epsilon ) {
                     max_speed = 0.0;
-                    continue;
+//                    continue;
                 }
             }
+/*
             
             
 #ifdef REARRANGED_DOMAIN
@@ -504,7 +520,8 @@ void compute_fluxes_central_structure_cuda_single(
             n1 = normals[2*ki];
             n2 = normals[2*ki + 1];
 #endif
-            
+*/
+/*            
             
             /////////////////////////////////////////////////////////
             
@@ -621,11 +638,28 @@ void compute_fluxes_central_structure_cuda_single(
             }
             else {
                 inverse_denominator = 1.0 / denom;
-                for (j = 0; j < 3; j++) {
-                    edgeflux[j] = s_max * flux_left[j] - s_min * flux_right[j];
-                    edgeflux[j] += s_max * s_min * (q_right_rotated[j] - q_left_rotated[j]);
-                    edgeflux[j] *= inverse_denominator;
-                }
+                //for (j = 0; j < 3; j++) {
+                //    edgeflux[j] = s_max *flux_left[j] -s_min *flux_right[j];
+                //    edgeflux[j] += s_max * s_min * (
+                //        q_right_rotated[j] - q_left_rotated[j]);
+                //    edgeflux[j] *= inverse_denominator;
+                //}
+                edgeflux[0] = s_max *flux_left[0] -s_min *flux_right[0];
+                edgeflux[0] += s_max * s_min * (
+                        q_right_rotated[0] - q_left_rotated[0]);
+                edgeflux[0] *= inverse_denominator;
+                
+                edgeflux[1] = s_max *flux_left[1] -s_min *flux_right[1];
+                edgeflux[1] += s_max * s_min * (
+                        q_right_rotated[1] - q_left_rotated[1]);
+                edgeflux[1] *= inverse_denominator;
+                
+                edgeflux[2] = s_max *flux_left[2] -s_min *flux_right[2];
+                edgeflux[2] += s_max * s_min * (
+                        q_right_rotated[2] - q_left_rotated[2]);
+                edgeflux[2] *= inverse_denominator;
+                
+
                 
                 // Maximal wavespeed
                 //max_speed = max(fabs(s_max), fabs(s_min));
@@ -641,12 +675,12 @@ void compute_fluxes_central_structure_cuda_single(
             }
             
             //////////////////////////////////////////////////////
+*/
             
             length = edgelengths[ki];
             edgeflux[0] *= length;
             edgeflux[1] *= length;
             edgeflux[2] *= length;
-            
             
             stage_explicit_update[k] -= edgeflux[0];
             xmom_explicit_update[k] -= edgeflux[1];
@@ -658,10 +692,11 @@ void compute_fluxes_central_structure_cuda_single(
                     if (timestep[k] > radii[k]/max_speed)
                         timestep[k] = radii[k]/ max_speed;
                     
-                    if (n>=0){
-                        //timestep[k] =min(timestep[k], radii[n]/max_speed);
-                        if (timestep[k] > radii[n]/max_speed)
-                            timestep[k] = radii[n]/ max_speed;
+                    if (ni>=0){
+                        //timestep[k] =min(timestep[k], radii[ni]/max_speed);
+//                        if (timestep[k] > radii[ni]/max_speed)
+//                            timestep[k] = radii[ni]/ max_speed;
+
                     }
                 }
             }
@@ -669,9 +704,8 @@ void compute_fluxes_central_structure_cuda_single(
             if (max_speed_total < max_speed)
             max_speed_total = max_speed;
         }
-        
-        
-        
+
+
         inv_area = 1.0 / areas[k];
         stage_explicit_update[k] *= inv_area;
         xmom_explicit_update[k] *= inv_area;
@@ -825,7 +859,6 @@ int main(int argc, char *argv[])
         scanf("%lf %lf\n", vc+i*6, vc+i*6 +1);
         scanf("%lf %lf\n", vc+i*6+2, vc+i*6 +3);
         scanf("%lf %lf\n", vc+i*6+4, vc+i*6 +5);
-
     }
 
     for(i=0; i < N2; i++)
@@ -835,16 +868,8 @@ int main(int argc, char *argv[])
         scanf("%lf\n", yb+i);
     }
 
+    printf(" --> Enter Kernel\n");
     compute_fluxes_central_structure_cuda_single(
-            N, 
-            N2,
-            evolve_max_timestep, 
-            g, 
-            epsilon,
-            h0,
-            limiting_threshold,
-            optimise_dry_cells,
-
             timestep,
             n,
             ne,
@@ -863,6 +888,50 @@ int main(int argc, char *argv[])
             su,
             xu,
             yu,
-            max_speed_array);
+            max_speed_array,
+
+            N, 
+            N*3,
+            N*6,
+            N2,
+            evolve_max_timestep, 
+            g, 
+            epsilon,
+            h0,
+            limiting_threshold,
+            optimise_dry_cells);
+
+    printf(" --> Enter C\n");
+/*
+    compute_fluxes_central_structure_CUDA(
+            timestep,
+            n,
+            ne,
+            normals,
+            el,
+            radii,
+            a,
+            tri,
+            se,
+            xe,
+            ye,
+            be,
+            sb,
+            xb,
+            yb,
+            su,
+            xu,
+            yu,
+            max_speed_array,
+
+            N, 
+            N2,
+            evolve_max_timestep, 
+            g, 
+            epsilon,
+            h0,
+            limiting_threshold,
+            optimise_dry_cells);
+*/
 }
 

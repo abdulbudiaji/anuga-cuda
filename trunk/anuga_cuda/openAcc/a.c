@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-void vecaddgpu( float *restrict r, float *a, float *b, int n ){
+
+
+void vecaddgpu( float *restrict r, float *a, float *b, int n, int var){
     #pragma acc kernels loop copyin(a[0:n],b[0:n]) copyout(r[0:n])
-    for( int i = 0; i < n; ++i ) r[i] = a[i] + b[i];
+    for( int i = 0; i < n; ++i ) r[i] = a[i] + b[i] + var;
 }
 
 int main( int argc, char* argv[] ){
@@ -24,9 +26,9 @@ int main( int argc, char* argv[] ){
         b[i] = (float)(1000*i);
     }
     /* compute on the GPU */
-    vecaddgpu( r, a, b, n );
+    vecaddgpu( r, a, b, n, 3);
     /* compute on the host to compare */
-    for( i = 0; i < n; ++i ) e[i] = a[i] + b[i];
+    for( i = 0; i < n; ++i ) e[i] = a[i] + b[i] + 3;
     /* compare results */
     errs = 0;
     for( i = 0; i < n; ++i ){
