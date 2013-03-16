@@ -21,7 +21,7 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import \
 # PyCUDA module
 import pycuda.driver as drv
 from pycuda.compiler import SourceModule
-auto_init_context = False
+auto_init_context = True
 using_page_locked = False
 if auto_init_context:
     import pycuda.autoinit
