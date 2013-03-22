@@ -69,7 +69,7 @@ class GPU_domain(Domain):
             ghost_layer_width=2,
             using_gpu=False,
             cotesting=False,
-            stream=True,
+            stream= False,
             domain=None): 
 
         if domain == None:
@@ -750,6 +750,9 @@ class GPU_domain(Domain):
 
         # semi_implicit_update
         asy_cpy(
+                self.quantities['stage'].semi_implicit_update,
+                self.quantities['stage'].semi_implicit_update_gpu)
+        asy_cpy(
                 self.quantities['xmomentum'].semi_implicit_update,
                 self.quantities['xmomentum'].semi_implicit_update_gpu)
         asy_cpy(
@@ -806,6 +809,8 @@ class GPU_domain(Domain):
 
         for name in ['height', 'xvelocity', 'yvelocity']:
             Q = self.quantities[name]
+            asy_cpy( Q.vertex_values, Q.vertex_values_gpu)
+            asy_cpy( Q.x_gradient, Q.x_gradient_gpu)
             asy_cpy( Q.x_gradient, Q.x_gradient_gpu)
             asy_cpy( Q.y_gradient, Q.y_gradient_gpu)
 
@@ -1196,6 +1201,9 @@ class GPU_domain(Domain):
             manning_friction_implicit(self)
 
         if self.cotesting:
+            from anuga.shallow_water.shallow_water_domain import \
+                    manning_friction_implicit
+            manning_friction_implicit(self)
             test_manning_friction_implicit(self) 
 
 
@@ -1800,6 +1808,10 @@ class GPU_domain(Domain):
 
     # 2nd level cotesting
     def update_boundary(self):
+        if self.cotesting:
+            print 2
+            test_update_boundary(self)
+            print 3
         if self.using_gpu:
             W2 = 1
             W3 = 1
@@ -1818,6 +1830,7 @@ class GPU_domain(Domain):
                     continue
 
                 if isinstance(B, Reflective_boundary):
+                    test_update_boundary(self, True)
                     W1 = self.evaluate_segment_reflective_block
                     self.evaluate_segment_reflective_func(
                         numpy.int32( N ),
@@ -1845,8 +1858,11 @@ class GPU_domain(Domain):
                         block = (W1, W2, W3),
                         grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                         )
+                    
+                    test_update_boundary(self, True)
 
                 elif isinstance(B, Dirichlet_boundary):
+                    test_update_boundary(self, True)
                     q_bdry = B.dirichlet_values
                     conserved_quantities = True
                     if len(q_bdry) == len(self.evolved_quantities):
@@ -1886,6 +1902,7 @@ class GPU_domain(Domain):
                                 block = (W1, W2, W3),
                                 grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                                 )
+                    test_update_boundary(self, True)
 
                 else:
                     raise Exception("Can not find right type")
@@ -1895,13 +1912,18 @@ class GPU_domain(Domain):
 
 
         if self.cotesting:
+            Generic_Domain.update_boundary(self.cotesting_domain)
+            print 4
             test_update_boundary(self)
+            print 5
 
 
 
     # 2nd level cotesting
     # Using Stream
     def update_other_quantities(self):
+        if self.cotesting:
+            test_update_other_quantities(self)
         if self.using_gpu:
             if self.flow_algorithm == 'yusuke':
                 return
@@ -2519,6 +2541,7 @@ def cpy_back_and_cmp(a, b, value_type, gpu = True):
 
 def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     gpu = domain.using_gpu
+    sc = domain.cotesting_domain
     s1 = domain.quantities['stage']
     xm1 = domain.quantities['xmomentum']
     ym1 = domain.quantities['ymomentum']
@@ -2528,6 +2551,15 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     xm2 = domain.cotesting_domain.quantities['xmomentum']
     ym2 = domain.cotesting_domain.quantities['ymomentum']
     e2 = domain.cotesting_domain.quantities['elevation']
+
+    h1 = domain.quantities['height']
+    xv1 = domain.quantities['xvelocity']
+    yv1 = domain.quantities['yvelocity']
+
+    h2 = sc.quantities['height']
+    xv2 = sc.quantities['xvelocity']
+    yv2 = sc.quantities['yvelocity']
+    
 
     res = []
     if IO == 'Input':
@@ -2564,6 +2596,9 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
     res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
 
+    res.append( cpy_back_and_cmp(h1, h2,'vertex_values', gpu) )
+    res.append( cpy_back_and_cmp(xv1, xv2,'vertex_values', gpu) )
+    res.append( cpy_back_and_cmp(yv1, yv2,'vertex_values', gpu) )
     if res.count(True) != res.__len__():
         raise Exception( " --> distribute_to_vertices_and_edges ", res)
 
@@ -2672,10 +2707,14 @@ def test_update_timestep(domain):
     res.append( numpy.allclose(domain.CFL , sc.CFL ))
     res.append( numpy.allclose(domain.smallsteps , sc.smallsteps ))
     res.append( numpy.allclose(domain.max_smallsteps , sc.max_smallsteps ))
-    res.append( numpy.allclose(domain.recorded_max_timestep , sc.recorded_max_timestep ))
-    res.append( numpy.allclose(domain.recorded_min_timestep , sc.recorded_min_timestep ))
-    res.append( numpy.allclose(domain.evolve_max_timestep , sc.evolve_max_timestep ))
-    res.append( numpy.allclose(domain.evolve_min_timestep , sc.evolve_min_timestep ))
+    res.append( numpy.allclose(
+        domain.recorded_max_timestep , sc.recorded_max_timestep ))
+    res.append( numpy.allclose(
+        domain.recorded_min_timestep , sc.recorded_min_timestep ))
+    res.append( numpy.allclose(
+        domain.evolve_max_timestep , sc.evolve_max_timestep ))
+    res.append( numpy.allclose(
+        domain.evolve_min_timestep , sc.evolve_min_timestep ))
     res.append( numpy.allclose(domain.flux_timestep , sc.flux_timestep ))
 
 
@@ -2684,7 +2723,7 @@ def test_update_timestep(domain):
 
 
 
-def test_update_conserved_quantities(domain):
+def test_update_conserved_quantities(domain, output =True):
     gpu = domain.using_gpu
     for name in domain.conserved_quantities:
         Q1 = domain.quantities[name]
@@ -2693,9 +2732,12 @@ def test_update_conserved_quantities(domain):
     
         res = []
         res.append( cpy_back_and_cmp( Q1, Q2, "centroid_values", gpu))
-        res.append( cpy_back_and_cmp( Q1, Q2, "semi_implicit_update", gpu))
+        if output:
+            res.append( cpy_back_and_cmp( 
+                Q1, Q2, "semi_implicit_update", gpu))
         res.append( cpy_back_and_cmp( Q1, Q2, "explicit_update", gpu))
-        res.append( numpy.allclose(domain.timestep, domain.cotesting_domain.timestep))
+        res.append( numpy.allclose(
+                domain.timestep, domain.cotesting_domain.timestep))
         
         if res.count(True) != res.__len__():
             if not res[0]:
@@ -2716,14 +2758,46 @@ def test_update_conserved_quantities(domain):
 
 def test_manning_friction_implicit(domain):
     gpu = domain.using_gpu
-    pass
+    sc = domain.cotesting_domain
 
 
-def test_update_boundary(domain):
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+    e1 = domain.quantities['elevation']
+    f1 = domain.quantities['friction']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+    e2 = sc.quantities['elevation']
+    f2 = sc.quantities['friction']
+
+    res = []
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu))
+
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu))
+
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+
+    res.append( cpy_back_and_cmp( f1, f2, 'centroid_values', gpu))
+
+    if res.count(True) != res.__len__():
+        if domain.use_sloped_mannings:
+            raise Exception( " --> manning friction sloped ", res)
+        else:
+            raise Exception( " --> manning friction flat ", res)
+
+
+
+def test_update_boundary(domain, inputOnly=False):
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
-    Generic_Domain.update_boundary( sc )
-
 
     s1 = domain.quantities['stage']
     xm1 = domain.quantities['xmomentum']
@@ -2773,13 +2847,44 @@ def test_update_boundary(domain):
             res.append( cpy_back_and_cmp(xv1, xv2,'boundary_values', gpu) )
             res.append( cpy_back_and_cmp(yv1, yv2,'boundary_values', gpu) )
 
+            if ipt.count( True) != ipt.__len__():
+               print "\n  Input values check ", ipt
+               if not res[0]:
+                   print "se", s1.edge_values, s2.edge_values
+               if not res[1]:
+                   print "ee", e1.edge_values, e2.edge_values
+               if not res[2]:
+                   print "he", h1.edge_values, h2.edge_values
+               if not res[3]:
+                   print "xme", xm1.edge_values, xm2.edge_values
+               if not res[4]:
+                   print "yme", ym1.edge_values, ym2.edge_values
+               if not res[5]:
+                   print "xve", xv1.edge_values, xv2.edge_values
+               if not res[6]:
+                   print "yve", yv1.edge_values, yv2.edge_values
 
-            if res.count(True) != res.__len__():
-                print "Error in update_boundary", tag, res
-                if ipt.count( True) != ipt.__len__():
-                    print "  Input values check ", ipt
+            if not inputOnly and res.count(True) != res.__len__():
+                print "\n Error in update_boundary", tag, res
+                if not res[0]:
+                    print "sb", s1.boundary_values, s2.boundary_values
+                if not res[1]:
+                    print "eb", e1.boundary_values, e2.boundary_values
+                if not res[2]:
+                    print "hb", h1.boundary_values, h2.boundary_values
+                if not res[3]:
+                    print "xmb", xm1.boundary_values, xm2.boundary_values
+                if not res[4]:
+                    print "ymb", ym1.boundary_values, ym2.boundary_values
+                if not res[5]:
+                    print "xvb", xv1.boundary_values, xv2.boundary_values
+                if not res[6]:
+                    print "yvb", yv1.boundary_values, yv2.boundary_values
 
-                raise Exception()
+
+
+                raise Exception("Error in update_boundary reflective "+ tag)
+
         elif isinstance( B1, Dirichlet_boundary ):
             for j ,name in enumerate(domain.evolved_quantities):
                 Q1 = domain.quantities[name].boundary_values
@@ -2800,7 +2905,32 @@ def test_update_boundary(domain):
 
 def test_update_other_quantities(domain):
     gpu = domain.using_gpu
-    pass
+    sc = domain.cotesting_domain
+
+    h1 = domain.quantities['height']
+    xv1 = domain.quantities['xvelocity']
+    yv1 = domain.quantities['yvelocity']
+
+    h2 = sc.quantities['height']
+    xv2 = sc.quantities['xvelocity']
+    yv2 = sc.quantities['yvelocity']
+    
+    res = []
+
+    res.append( cpy_back_and_cmp(h1, h2,'edge_values', gpu) )
+    res.append( cpy_back_and_cmp(xv1, xv2,'edge_values', gpu) )
+    res.append( cpy_back_and_cmp(yv1, yv2,'edge_values', gpu) )
+
+    res.append( cpy_back_and_cmp(h1, h2,'vertex_values', gpu) )
+    res.append( cpy_back_and_cmp(xv1, xv2,'vertex_values', gpu) )
+    res.append( cpy_back_and_cmp(yv1, yv2,'vertex_values', gpu) )
+
+    res.append( cpy_back_and_cmp(h1, h2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(xv1, xv2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(yv1, yv2,'centroid_values', gpu) )
+
+    if res.count( True) != res.__len__():
+       raise Exception("Error in update_other_quantities", res)
 
 
 def test_compute_fluxes(domain):

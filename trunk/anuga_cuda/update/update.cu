@@ -44,8 +44,6 @@ __global__ void update(
     }
     //}
 
-
-
     // Reset semi_implicit_update here ready for next time step
     //memset(semi_implicit_update, 0, N*sizeof(double));
 }

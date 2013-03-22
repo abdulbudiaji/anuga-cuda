@@ -1,4 +1,6 @@
-testing_domain_path="/home/u5044856/anuga-cuda/anuga_cuda/testing_domains/"
+work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
+
+testing_domain_path = work_dir+"testing_domains/"
 
 merimbula_dir = testing_domain_path+"merimbula/"
 
@@ -6,32 +8,19 @@ cairns_dir= testing_domain_path+"cairns/"
 
 
 kernel_path = {
-    "compute_fluxes_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/compute_fluxes/",
-    "gravity_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/gravity/",
-    "extrapolate_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/extrapolate/",
-    "protect_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/protect/",
-    "balance_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/balance/",
-    "interpolate_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/interpolate_from_vertices_to_edges/",
-    "evaluate_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/evaluate_segment/",
-    "get_absolute_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/get_absolute/",
-    "manning_friction_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/manning_friction/",
-    "saxpy_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/saxpy_centroid_values/",
-    "set_boundary_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/set_boundary/",
-    "update_centroids_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/update_centroids_of_velocities_and_height/",
-    "update_dir" : \
-        "/home/u5044856/anuga-cuda/anuga_cuda/update/"
+    "compute_fluxes_dir" : work_dir+"compute_fluxes/",
+    "gravity_dir" : work_dir+"gravity/",
+    "extrapolate_dir" : work_dir+"extrapolate/",
+    "protect_dir" : work_dir+"protect/",
+    "balance_dir" : work_dir+"balance/",
+    "interpolate_dir" : work_dir+"interpolate_from_vertices_to_edges/",
+    "evaluate_dir" : work_dir+"evaluate_segment/",
+    "get_absolute_dir" : work_dir+"get_absolute/",
+    "manning_friction_dir" : work_dir+"manning_friction/",
+    "saxpy_dir" : work_dir+"saxpy_centroid_values/",
+    "set_boundary_dir" : work_dir+"set_boundary/",
+    "update_centroids_dir":work_dir+"update_centroids_of_velocities_and_height/",
+    "update_dir" : work_dir+"update/"
     }
 
 
