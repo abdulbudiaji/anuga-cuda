@@ -20,12 +20,8 @@ def mem_all_cpy(a):
 
 
 def compute_fluxes_and_grivity(domain, parallelFlag = 1):
-
     
     print " in the compute_fluxes_central_structure cuda function"
-    N = domain.number_of_elements
-
-    
 
     mod = SourceModule("""
     #include "math.h"
@@ -473,6 +469,8 @@ def compute_fluxes_and_grivity(domain, parallelFlag = 1):
     
         """)
     
+    N = domain.number_of_elements
+
     elements = numpy.random.randn(5)
     elements = elements.astype(numpy.float64)
     elements[0] = domain.g
@@ -492,14 +490,13 @@ def compute_fluxes_and_grivity(domain, parallelFlag = 1):
         domain.quantities['xmomentum'].explicit_update[i]=0.0
         domain.quantities['ymomentum'].explicit_update[i] =0.0
     
-
     
     if (N % 256 == 0):
         W1 = 16
         W2 = 16
     elif (N % 32 ==0):
         W1 = 32
-        W2 = 1
+        W2 = 10
     else:
         raise Exception('N can not be splited')
 
@@ -571,8 +568,8 @@ def compute_fluxes_and_grivity(domain, parallelFlag = 1):
             xmom_explicit_update_gpu, 
             ymom_explicit_update_gpu, 
             max_speed_gpu, 
-            block = ( W1, 1, 1),
-            grid = ( (N + W1 - 1)/W1, 1) 
+            block = ( W1, W2, 1),
+            grid = ( (N)/(W1*W2), 1) 
             )
 
 #        cuda.memcpy_dtoh(domain.quantities['stage'].explicit_update, stage_explicit_update_gpu)

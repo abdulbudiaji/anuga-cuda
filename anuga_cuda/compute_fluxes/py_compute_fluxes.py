@@ -25,7 +25,7 @@ if auto_init_context:
 else:
     drv.init()
     dev = drv.Device(0)
-    ctx = dev.make_context( drv.ctx_flags.MAP_HOST)
+    ctx = dev.make_context( drv.ctc_flags.SCHED_AUTO | drv.ctx_flags.MAP_HOST)
 
 from pycuda.compiler import SourceModule
 import pycuda.tools as tl
@@ -195,6 +195,12 @@ if using_page_locked_array:
     xmom_up_pla = page_locked_array( domain2.quantities['xmomentum'].explicit_update )
     ymom_up_pla = page_locked_array( domain2.quantities['ymomentum'].explicit_update )
     maxspeed_pla = page_locked_array( domain2.max_speed )
+
+    stage_vtx_val_pla = page_locked_array( domain2.quantities['stage'].vertex_values)
+    stage_cen_val_pla = page_locked_array( domain2.quantities['stage'].centroid_values)
+    bed_cen_val_pla = page_locked_array( domain2.quantities['elevation'].centroid_values)
+    vtx_coord_pla = page_locked_array( domain2.vertex_coordinates)
+
 
 
 """********** ********** ********** ********** **********
