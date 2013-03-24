@@ -1,8 +1,8 @@
 __global__ void extrapolate_first_order(
         int N,
         double * centroid_values,
-        double * vertex_values,
-        double * edge_values)
+        double * edge_values,
+        double * vertex_values)
 {
     const int k = 
             threadIdx.x+threadIdx.y*blockDim.x+

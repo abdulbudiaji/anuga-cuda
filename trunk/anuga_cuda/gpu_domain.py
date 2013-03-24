@@ -32,6 +32,12 @@ else:
     dev = drv.Device(0)
     ctx = dev.make_context( drv.ctx_flags.MAP_HOST)
 
+print '\n=== Device attributes'
+print 'Name:', dev.name()
+print 'Compute capability:', dev.compute_capability()
+print 'Concurrent Kernels:', \
+    bool(dev.get_attribute(
+                drv.device_attribute.CONCURRENT_KERNELS))
 
 
 # Config 
@@ -2192,6 +2198,7 @@ class GPU_domain(Domain):
         kernel functions.
         """
 
+        print self.timestep
 
         #for t in Domain.evolve(self, yieldstep=yieldstep,
         #            finaltime=finaltime,
@@ -3043,8 +3050,7 @@ def test_protect_against_infinitesimal_and_negative_heights(domain):
 
 
     if res.count(True) != res.__len__():
-        raise Exception( " --> protect_against_infinitesimal_and_negative_heights ",
-                        res)
+        raise Exception( " --> protect_against_infinitesimal_and_negative_heights ",res)
 
 
 def test_extrapolate_second_order_sw(domain):
@@ -3093,9 +3099,19 @@ def test_extrapolate_second_order_sw(domain):
     if res.count(True) != res.__len__():
         print res
         cnt = 0
+        print "\n  stage vertex_values"
+        print s1.vertex_values
+        print s2.vertex_values
+        print "\n  xmom vertex_values"
+        print xm1.vertex_values
+        print xm2.vertex_values
+        print "\n  ymom vertex_values"
+        print ym1.vertex_values
+        print ym2.vertex_values
+
         for i in range(domain.number_of_elements):
-            if (xm1.vertex_values[i] != xm2.vertex_values[i]).all():
-                if i< 10:
+            if (xm1.vertex_values[i] != xm2.vertex_values[i]).any():
+                if cnt< 10:
                     print i, xm1.vertex_values[i], xm2.vertex_values[i]
                 cnt += 1
         print cnt
@@ -3210,6 +3226,9 @@ def test_interpolate_from_vertices_to_edges(domain):
 
 
     if res.count(True) != res.__len__():
+        for i in range(domain.number_of_elements):
+            if (s1.edge_values[i] != s2.edge_values[i]).any():
+                print i, s1.edge_values[i], s2.edge_values[i]
         raise Exception( " --> interpolate_from_vertices_to_edges ", res)
 
 
