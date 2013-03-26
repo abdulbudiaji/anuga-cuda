@@ -1883,7 +1883,10 @@ if __name__ == '__main__':
     if  testing_gpu_domain:
         from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
-                open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read()
+                open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
+                arch = 'compute_20',
+                code = 'sm_20',
+                options = ['-use_fast_math', '--prec-div=false', '--compiler-options', '-O2']
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
                 #"compute_fluxes_central_structure_cuda_single")
@@ -1910,7 +1913,7 @@ if __name__ == '__main__':
 
         #domain2.compute_fluxes_func(
         compute_fluxes_central_function(
-                numpy.uint(domain2.number_of_elements),
+                numpy.uint32(domain2.number_of_elements),
                 numpy.float64(domain2.evolve_max_timestep),
                 numpy.float64(domain2.g),
                 numpy.float64(domain2.epsilon),
@@ -2048,40 +2051,40 @@ if __name__ == '__main__':
     print "---------> # of differences: %d" % counter
 
 
-    print "******* stage_explicit_update"
-    #print domain1.quantities['stage'].explicit_update
-    #print domain2.quantities['stage'].explicit_update
-    counter = 0
-    for i in range(domain1.number_of_elements):
-        if approx_cmp( domain1.quantities['stage'].explicit_update[i] ,
-                domain2.quantities['stage'].explicit_update[i]):
-            counter += 1
-    print "---------> # of differences: %d" % counter
+    #print "******* stage_explicit_update"
+    ##print domain1.quantities['stage'].explicit_update
+    ##print domain2.quantities['stage'].explicit_update
+    #counter = 0
+    #for i in range(domain1.number_of_elements):
+    #    if approx_cmp( domain1.quantities['stage'].explicit_update[i] ,
+    #            domain2.quantities['stage'].explicit_update[i]):
+    #        counter += 1
+    #print "---------> # of differences: %d" % counter
 
 
-    print "******* xmom_explicit_update"
-    #print domain1.quantities['xmomentum'].explicit_update
-    #print domain2.quantities['xmomentum'].explicit_update
-    counter = 0
-    for i in range(domain1.number_of_elements):
-        if approx_cmp( domain1.quantities['xmomentum'].explicit_update[i] ,
-                domain2.quantities['xmomentum'].explicit_update[i]):
-            counter += 1
-            if counter < 10:
-                print i, domain1.quantities['xmomentum'].explicit_update[i], \
-                        domain2.quantities['xmomentum'].explicit_update[i]
-    print "---------> # of differences: %d" % counter
+    #print "******* xmom_explicit_update"
+    ##print domain1.quantities['xmomentum'].explicit_update
+    ##print domain2.quantities['xmomentum'].explicit_update
+    #counter = 0
+    #for i in range(domain1.number_of_elements):
+    #    if approx_cmp( domain1.quantities['xmomentum'].explicit_update[i] ,
+    #            domain2.quantities['xmomentum'].explicit_update[i]):
+    #        counter += 1
+    #        if counter < 10:
+    #            print i, domain1.quantities['xmomentum'].explicit_update[i], \
+    #                    domain2.quantities['xmomentum'].explicit_update[i]
+    #print "---------> # of differences: %d" % counter
 
-    
-    print "******* ymom_explicit_update"
-    #print domain1.quantities['ymomentum'].explicit_update
-    #print domain2.quantities['ymomentum'].explicit_update
-    counter = 0
-    for i in range(domain1.number_of_elements):
-        if approx_cmp( domain1.quantities['ymomentum'].explicit_update[i],
-                domain2.quantities['ymomentum'].explicit_update[i]):
-            counter += 1
-    print "---------> # of differences: %d" % counter
+    #
+    #print "******* ymom_explicit_update"
+    ##print domain1.quantities['ymomentum'].explicit_update
+    ##print domain2.quantities['ymomentum'].explicit_update
+    #counter = 0
+    #for i in range(domain1.number_of_elements):
+    #    if approx_cmp( domain1.quantities['ymomentum'].explicit_update[i],
+    #            domain2.quantities['ymomentum'].explicit_update[i]):
+    #        counter += 1
+    #print "---------> # of differences: %d" % counter
 
 
 

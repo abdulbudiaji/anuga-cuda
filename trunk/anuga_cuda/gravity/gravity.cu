@@ -1,3 +1,4 @@
+#define BLOCK_SIZE 288
 __global__ void gravity_wb(
         int N,
         double g,
@@ -18,7 +19,7 @@ __global__ void gravity_wb(
             threadIdx.x+threadIdx.y*blockDim.x+
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
-    int i;
+    int i, k3=k*3;
 
     double w0, w1, w2, 
            x0, y0, x1, y1, x2, y2,
@@ -26,16 +27,17 @@ __global__ void gravity_wb(
 
     double wx, wy, det,
            hh[3];
-    double sidex, sidey, area, n0, n1, fact;
+    //double sidex, sidey;
+    double area, n0, n1, fact;
 
-    __shared__ double sh_data[32*6];
+    __shared__ double sh_data[ BLOCK_SIZE *6];
 
     if (k >= N)
         return;
 
-    w0 = stage_vertex_values[3*k + 0];
-    w1 = stage_vertex_values[3*k + 1];
-    w2 = stage_vertex_values[3*k + 2];
+    w0 = stage_vertex_values[k3 + 0];
+    w1 = stage_vertex_values[k3 + 1];
+    w2 = stage_vertex_values[k3 + 2];
 
     x0 = vertex_coordinates[k*6 + 0];
     y0 = vertex_coordinates[k*6 + 1];
@@ -62,12 +64,12 @@ __global__ void gravity_wb(
     ymom_explicit_update[k] += -g * wy * avg_h;
 
 
-    hh[0] = stage_edge_values[k*3] - bed_edge_values[k*3];
-    hh[1] = stage_edge_values[k*3+1] - bed_edge_values[k*3+1];
-    hh[2] = stage_edge_values[k*3+2] - bed_edge_values[k*3+2];
+    hh[0] = stage_edge_values[k3] - bed_edge_values[k3];
+    hh[1] = stage_edge_values[k3+1] - bed_edge_values[k3+1];
+    hh[2] = stage_edge_values[k3+2] - bed_edge_values[k3+2];
 
-    sidex = 0.0;
-    sidey = 0.0;
+    //sidex = 0.0;
+    //sidey = 0.0;
     area = areas[k];
 
     for ( i = 0 ; i < 3 ; i++ )
@@ -75,7 +77,7 @@ __global__ void gravity_wb(
         n0 = normals[k*6 + 2*i];
         n1 = normals[k*6 + 2*i + 1];
 
-        fact =  -0.5 * g * hh[i] * hh[i] * edgelengths[k*3 + i];
+        fact =  -0.5 * g * hh[i] * hh[i] * edgelengths[k3 + i];
 
         //sidex += fact*n0;
         //sidey += fact*n1;
