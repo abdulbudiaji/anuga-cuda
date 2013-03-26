@@ -76,10 +76,10 @@ for i in range(domain.number_of_elements):
 
     
     fileHandle.write(
-        "%lf %lf %lf\n" % (n[i][0], n[i][1], n[i][2]))
+        "%ld %ld %ld\n" % (n[i][0], n[i][1], n[i][2]))
 
     fileHandle.write(
-        "%lf %lf %lf\n" % (ne[i][0], ne[i][1], ne[i][2]))
+        "%ld %ld %ld\n" % (ne[i][0], ne[i][1], ne[i][2]))
     
     fileHandle.write( "%lf %lf %lf %lf %lf %lf\n" %\
         (normals[i][0], normals[i][1], normals[i][2], 

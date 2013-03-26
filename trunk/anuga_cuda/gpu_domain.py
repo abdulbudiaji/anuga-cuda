@@ -32,12 +32,6 @@ else:
     dev = drv.Device(0)
     ctx = dev.make_context( drv.ctx_flags.MAP_HOST)
 
-print '\n=== Device attributes'
-print 'Name:', dev.name()
-print 'Compute capability:', dev.compute_capability()
-print 'Concurrent Kernels:', \
-    bool(dev.get_attribute(
-                drv.device_attribute.CONCURRENT_KERNELS))
 
 
 # Config 
