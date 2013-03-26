@@ -1896,7 +1896,10 @@ if __name__ == '__main__':
         domain2.asynchronous_transfer()
         ctx.synchronize()
 
-
+        compute_fluxes_central_function.set_cache_config(drv.func_cache.PREFER_L1)
+        #compute_fluxes_central_function.set_cache_config(drv.func_cache.PREFER_NONE)
+        #compute_fluxes_central_function.set_cache_config(drv.func_cache.PREFER_EQUAL)
+        #compute_fluxes_central_function.set_cache_config(drv.func_cache.PREFER_SHARED)
         import sys
         W1 = 0
         for i in range( len(sys.argv)):
