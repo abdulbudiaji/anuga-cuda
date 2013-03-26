@@ -1,4 +1,9 @@
-work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
+WorkingStation = "Xe"
+if WorkingStation == "Xe":
+    work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
+else:
+    work_dir="/home/u5044856/anuga-cuda/anuga_cuda/"
+
 
 testing_domain_path = work_dir+"testing_domains/"
 
@@ -24,42 +29,81 @@ kernel_path = {
     }
 
 
-kernel_block_configuration = {
-    "balance_fun" : 32,
 
-    "compute_fluxes_fun" : 64,
+if WorkingStation == "Xe":
+    kernel_block_configuration = {
+        "balance_fun" : 128,
 
-    "extrapolate_first_order_fun" : 32,
+        "compute_fluxes_fun" : 256,
 
-    "extrapolate_second_order_sw_fun" : 64,
-    "extrapolate_velocity_second_order_true_fun" : 128,
-    "extrapolate_second_order_edge_swb2_fun" : 64,
-    "extrapolate_second_order_and_limit_by_vertex_fun" : 64,
-    "extrapolate_second_order_and_limit_by_edge_fun" : 64, # FIXME
+        "extrapolate_first_order_fun" : 128,
 
-    "evaluate_segment_reflective_fun" : 64,
-    "evaluate_segment_dirichlet_1_fun" : 64, # FIXME
-    "evaluate_segment_dirichlet_2_fun" : 64, # FIXME
+        "extrapolate_second_order_sw_fun" : 256,
+        "extrapolate_velocity_second_order_true_fun" : 256,
+        "extrapolate_second_order_edge_swb2_fun" : 256,
+        "extrapolate_second_order_and_limit_by_vertex_fun" : 256,
+        "extrapolate_second_order_and_limit_by_edge_fun" : 256, # FIXME
 
-    "gravity_fun" : 32,
+        "evaluate_segment_reflective_fun" : 256,
+        "evaluate_segment_dirichlet_1_fun" : 256, # FIXME
+        "evaluate_segment_dirichlet_2_fun" : 256, # FIXME
 
-    "get_absolute_fun" : 64,
+        "gravity_fun" : 288,
 
-    "interpolate_fun" : 32,
+        "get_absolute_fun" : 256,
 
-    "manning_friction_flat_fun" : 192,
-    "manning_friction_sloped_fun" : 128,
+        "interpolate_fun" : 256,
 
-    "protect_sw_ext_fun" : 64,
-    "protect_swb2_fun" : 64, # FIXME
+        "manning_friction_flat_fun" : 256,
+        "manning_friction_sloped_fun" : 256,
 
-    "saxpy_fun" : 64,
+        "protect_sw_ext_fun" : 256,
+        "protect_swb2_fun" : 256, # FIXME
 
-    "set_boundary_values_from_edges_fun" : 32,
+        "saxpy_fun" : 256,
 
-    "update_centroids_fun" : 64,
-    "update_fun" : 64,
-    }
+        "set_boundary_values_from_edges_fun" : 256,
+
+        "update_centroids_fun" : 256,
+        "update_fun" : 256,
+        }
+else:
+    kernel_block_configuration = {
+        "balance_fun" : 32,
+
+        "compute_fluxes_fun" : 64,
+
+        "extrapolate_first_order_fun" : 32,
+
+        "extrapolate_second_order_sw_fun" : 64,
+        "extrapolate_velocity_second_order_true_fun" : 128,
+        "extrapolate_second_order_edge_swb2_fun" : 64,
+        "extrapolate_second_order_and_limit_by_vertex_fun" : 64,
+        "extrapolate_second_order_and_limit_by_edge_fun" : 64, # FIXME
+
+        "evaluate_segment_reflective_fun" : 64,
+        "evaluate_segment_dirichlet_1_fun" : 64, # FIXME
+        "evaluate_segment_dirichlet_2_fun" : 64, # FIXME
+
+        "gravity_fun" : 32,
+
+        "get_absolute_fun" : 64,
+
+        "interpolate_fun" : 32,
+
+        "manning_friction_flat_fun" : 192,
+        "manning_friction_sloped_fun" : 128,
+
+        "protect_sw_ext_fun" : 64,
+        "protect_swb2_fun" : 64, # FIXME
+
+        "saxpy_fun" : 64,
+
+        "set_boundary_values_from_edges_fun" : 32,
+
+        "update_centroids_fun" : 64,
+        "update_fun" : 64,
+        }
 
 
 balance_stream =                0

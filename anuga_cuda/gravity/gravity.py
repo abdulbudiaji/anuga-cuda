@@ -377,9 +377,12 @@ if __name__ == '__main__':
     from anuga_cuda import *
     from time import time
 
-    domain1 = generate_merimbula_domain()
+    #domain1 = generate_merimbula_domain()
+    #domain2 = generate_merimbula_domain(True)
+    domain1 = generate_channel3_domain()
+    domain2 = generate_channel3_domain(True)
 
-    domain2 = generate_merimbula_domain(True)
+
     domain2.equip_kernel_functions()
 
     testing_domain3 = False

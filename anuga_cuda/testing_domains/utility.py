@@ -36,8 +36,10 @@ def get_kernel_function_info(a, W1=0, W2=1, W3=1):
 
     print "***************************************"
     print "  Function Info    "
-    print "   -> max threads per block: %d / %d" % \
-                (a.max_threads_per_block, dev.max_threads_per_block)
+    print "   -> max threads per block: %d / %d / %d" % \
+                (a.max_threads_per_block, 
+                        dev.max_threads_per_block,
+                        dev.max_threads_per_multiprocessor)
     print "   -> shared mem : %d / %d" % (a.shared_size_bytes, td.shared_memory)
     print "   -> const mem : %d" % a.const_size_bytes
     print "   -> local mem : %d" % a.local_size_bytes

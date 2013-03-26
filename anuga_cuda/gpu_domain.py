@@ -75,7 +75,7 @@ class GPU_domain(Domain):
             ghost_layer_width=2,
             using_gpu=False,
             cotesting=False,
-            stream= False,
+            stream= True,
             domain=None): 
 
         if domain == None:
@@ -108,17 +108,17 @@ class GPU_domain(Domain):
 
         self.using_gpu = using_gpu
         self.cotesting = cotesting
+        print '\n=== Device attributes'
+        print 'Name:', dev.name()
+        print 'Compute capability:', dev.compute_capability()
+        print 'Concurrent Kernels:', \
+            bool(dev.get_attribute(
+                drv.device_attribute.CONCURRENT_KERNELS))
         if stream:
             if bool(dev.get_attribute(
                 drv.device_attribute.CONCURRENT_KERNELS)):
                 self.using_stream = stream
             else:
-                print '\n=== Device attributes'
-                print 'Name:', dev.name()
-                print 'Compute capability:', dev.compute_capability()
-                print 'Concurrent Kernels:', \
-                    bool(dev.get_attribute(
-                        drv.device_attribute.CONCURRENT_KERNELS))
                 print 'Disable stream'
                 self.using_stream = False
         else:
@@ -150,10 +150,9 @@ class GPU_domain(Domain):
         """
 
         # compute_fluxes function
-        self.compute_fluxes_mod = SourceModule(
-                open( kp["compute_fluxes_dir"] + \
-                        "compute_fluxes.cu","r" ).read(),
-                include_dirs=[kp["compute_fluxes_dir"]]
+        self.compute_fluxes_mod = get_sourceModule( 
+                kp["compute_fluxes_dir"],
+                "compute_fluxes.cu"
                 )
 
         self.compute_fluxes_func = self.compute_fluxes_mod.get_function(
@@ -166,10 +165,7 @@ class GPU_domain(Domain):
 
 
         # gravity_wb function
-        self.gravity_wb_mod = SourceModule(
-                open( kp["gravity_dir"]+"gravity.cu","r ").read(),
-                include_dirs=[ kp["gravity_dir"] ]
-                )
+        self.gravity_wb_mod = get_sourceModule( kp["gravity_dir"], "gravity.cu")
 
         self.gravity_wb_func = self.gravity_wb_mod.get_function(
                 "gravity_wb")
@@ -179,12 +175,9 @@ class GPU_domain(Domain):
 
 
         # extrapolate_second_order_sw function
-        self.extrapolate_second_order_sw_mod = SourceModule(
-                open( kp["extrapolate_dir"] +\
-                        "extrapolate_second_order_sw.cu").read(),
-                options=["--ptxas-options=-v"],
-                include_dirs=[ kp["extrapolate_dir"]]
-            )
+        self.extrapolate_second_order_sw_mod = get_sourceModule(
+                kp["extrapolate_dir"],
+                "extrapolate_second_order_sw.cu")
 
         self.extrapolate_second_order_sw_true_func = \
             self.extrapolate_second_order_sw_mod.get_function(
@@ -210,11 +203,9 @@ class GPU_domain(Domain):
 
         # extrapolate_second_order_and_limit_by_vertex_or_edge function
         self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod = \
-            SourceModule(
-                open( kp["extrapolate_dir"] + \
+            get_sourceModule(
+                kp["extrapolate_dir"],
                 "extrapolate_second_order_and_limit_by_vertex_or_edge.cu"
-                    ).read(),
-                include_dirs=[ kp["extrapolate_dir"]]
                 )
 
         self.extrapolate_second_order_and_limit_by_vertex_func = \
@@ -235,11 +226,9 @@ class GPU_domain(Domain):
 
 
         # extrapolate_first_order function
-        self.extrapolate_first_order_mod = \
-            SourceModule(
-                open( kp["extrapolate_dir"] +\
-                    "extrapolate_first_order.cu").read(),
-                include_dirs=[ kp["extrapolate_dir"] ]
+        self.extrapolate_first_order_mod = get_sourceModule(
+                kp["extrapolate_dir"],
+                "extrapolate_first_order.cu"
                 )
 
         self.extrapolate_first_order_func = \
@@ -252,11 +241,9 @@ class GPU_domain(Domain):
 
 
         # extrapolate_second_order_edge_swb2 function
-        self.extrapolate_second_order_edge_swb2_mod = \
-            SourceModule(
-                open( kp["extrapolate_dir"] +\
-                        "extrapolate_second_order_edge_swb2.cu").read(),
-                include_dirs= [ kp["extrapolate_dir"] ]
+        self.extrapolate_second_order_edge_swb2_mod = get_sourceModule(
+                kp["extrapolate_dir"],
+                "extrapolate_second_order_edge_swb2.cu"
                 )
 
         self.extrapolate_second_order_edge_swb2_func = \
@@ -269,10 +256,7 @@ class GPU_domain(Domain):
 
 
         # protect function
-        self.protect_mod = SourceModule(
-                open( kp["protect_dir"] + "protect.cu").read(),
-                include_dirs=[ kp["protect_dir"] ]
-                )
+        self.protect_mod = get_sourceModule(kp["protect_dir"], "protect.cu")
 
         self.protect_sw_func = self.protect_mod.get_function("_protect_sw")
         
@@ -285,10 +269,8 @@ class GPU_domain(Domain):
 
 
         # balance function
-        self.balance_deep_and_shallow_mod = SourceModule(
-                open( kp["balance_dir"] + "balance_deep_and_shallow.cu").read(),
-                include_dirs=[ kp["balance_dir"]]
-                )
+        self.balance_deep_and_shallow_mod = get_sourceModule(
+                kp["balance_dir"], "balance_deep_and_shallow.cu")
 
         self.balance_deep_and_shallow_func = \
             self.balance_deep_and_shallow_mod.get_function(
@@ -299,11 +281,9 @@ class GPU_domain(Domain):
 
 
         # interpolate_from_vertices_to_edges function
-        self.interpolate_from_vertices_to_edges_mod = SourceModule(
-                open( kp["interpolate_dir"] + \
-                    "interpolate_from_vertices_to_edges.cu").read(),
-                include_dirs=[ kp["interpolate_dir"]]
-                )
+        self.interpolate_from_vertices_to_edges_mod = get_sourceModule(
+                kp["interpolate_dir"],
+                "interpolate_from_vertices_to_edges.cu")
 
         self.interpolate_from_vertices_to_edges_func = \
             self.interpolate_from_vertices_to_edges_mod.get_function(
@@ -315,10 +295,8 @@ class GPU_domain(Domain):
 
 
         # evaluate_segment function
-        self.evaluate_segment_mod = SourceModule(
-                open( kp["evaluate_dir"] +"evaluate_segment.cu").read(),
-                include_dirs=[ kp["evaluate_dir"] ]
-                )
+        self.evaluate_segment_mod = get_sourceModule(
+                kp["evaluate_dir"], "evaluate_segment.cu")
 
         self.evaluate_segment_reflective_func = \
             self.evaluate_segment_mod.get_function(
@@ -340,10 +318,8 @@ class GPU_domain(Domain):
 
 
         # get_absolute function
-        self.get_absolute_mod = SourceModule(
-                open( kp["get_absolute_dir"] +"get_absolute.cu").read(),
-                include_dirs=[ kp["get_absolute_dir"] ]
-                )
+        self.get_absolute_mod = get_sourceModule(
+                kp["get_absolute_dir"], "get_absolute.cu")
             
         self.get_absolute_func = \
             self.get_absolute_mod.get_function("get_absolute")
@@ -353,11 +329,9 @@ class GPU_domain(Domain):
 
 
         # manning_friction function
-        self.manning_friction_mod = SourceModule(
-                open( kp["manning_friction_dir"] + \
-                    "manning_friction.cu").read(),
-                include_dirs=[ kp["manning_friction_dir"] ]
-                )
+        self.manning_friction_mod = get_sourceModule(
+                kp["manning_friction_dir"],
+                "manning_friction.cu")
 
         self.manning_friction_sloped_func = \
             self.manning_friction_mod.get_function(
@@ -375,10 +349,8 @@ class GPU_domain(Domain):
 
 
         # saxpy_centroid_values function
-        self.saxpy_centroid_values_mod = SourceModule(
-                open( kp["saxpy_dir"] + "saxpy_centroid_values.cu").read(),
-                include_dirs=[ kp["saxpy_dir"] ]
-                )
+        self.saxpy_centroid_values_mod = get_sourceModule(
+                kp["saxpy_dir"], "saxpy_centroid_values.cu")
 
         self.saxpy_centroid_values_func = \
             self.saxpy_centroid_values_mod.get_function(
@@ -389,10 +361,8 @@ class GPU_domain(Domain):
 
 
         # set_boundry function
-        self.set_boundary_mod = SourceModule(
-                open( kp["set_boundary_dir"] + "set_boundary.cu").read(),
-                include_dirs=[ kp["set_boundary_dir"] ]
-                )
+        self.set_boundary_mod = get_sourceModule(
+                kp["set_boundary_dir"], "set_boundary.cu")
                 
         self.set_boundary_values_from_edges_func = \
             self.set_boundary_mod.get_function(
@@ -404,11 +374,9 @@ class GPU_domain(Domain):
 
 
         # update_centroids_of_velocities_and_height function
-        self.update_centroids_of_velocities_and_height_mod = SourceModule(
-                open( kp["update_centroids_dir"] +\
-                    "update_centroids_of_velocities_and_height.cu").read(),
-                include_dirs=[ kp["update_centroids_dir"] ]
-                )
+        self.update_centroids_of_velocities_and_height_mod = get_sourceModule(
+                kp["update_centroids_dir"],
+                "update_centroids_of_velocities_and_height.cu")
         
         self.update_centroids_of_velocities_and_height_func = \
             self.update_centroids_of_velocities_and_height_mod.\
@@ -420,9 +388,8 @@ class GPU_domain(Domain):
 
         
         # update function
-        self.update_mod = SourceModule(
-                open(kp["update_dir"]+"update.cu").read(),
-                include_dirs=[ kp["update_dir"] ])
+        self.update_mod = get_sourceModule( kp["update_dir"], "update.cu")
+        
         self.update_func = self.update_mod.get_function("update")
 
         self.update_block = kbc["update_fun"]
@@ -893,7 +860,7 @@ class GPU_domain(Domain):
 
                 block = (W1, W2, W3),
                 grid = ((N+W1*W2*W3-1)/(W1*W2*W3), 1),
-                stream = self.stream[ balance_stream ]
+                stream = self.stream[balance_stream]
                 )
 
         else:
@@ -946,7 +913,7 @@ class GPU_domain(Domain):
                         self.quantities['ymomentum'].centroid_values_gpu,
                         block = (W1, W2, W3),
                         grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                        stream = self.stream[ protect_sw_stream]
+                        stream = self.stream[ protect_sw_stream ]
                         )
 
 
@@ -1045,8 +1012,7 @@ class GPU_domain(Domain):
                     self.xmomentum_centroid_store_gpu,
                     self.ymomentum_centroid_store_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                    stream = self.stream[ extra_2_sw_stream]
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
 
         else:
@@ -1178,7 +1144,7 @@ class GPU_domain(Domain):
                    self.quantities['ymomentum'].semi_implicit_update_gpu,
                    block = (W1, W2, W3),
                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                   stream = self.stream[ manning_sloped_stream ]
+                   stream = self.stream[ manning_sloped_stream]
                    )
             else:
                 W1 = self.manning_friction_flat_block
@@ -1242,8 +1208,7 @@ class GPU_domain(Domain):
                     self.quantities['xmomentum'].explicit_update_gpu,
                     self.quantities['ymomentum'].explicit_update_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                    stream = self.stream[ manning_sloped_stream ]
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
             else:
                 W1 = self.manning_friction_flat_block
@@ -1262,8 +1227,7 @@ class GPU_domain(Domain):
                     self.quantities['ymomentum'].explicit_update_gpu,
 
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                    stream = self.stream[ manning_flat_stream ]
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
    
         else:
@@ -1305,8 +1269,7 @@ class GPU_domain(Domain):
                     Q.explicit_update_gpu,
                     Q.semi_implicit_update_gpu,
                     block = (W1, W2, W3),
-                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                    stream = self.stream[ update_stream ]
+                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                     )
 
                 drv.memset_d32(Q.semi_implicit_update_gpu, 0, N*2)
@@ -1326,15 +1289,15 @@ class GPU_domain(Domain):
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
                 #FIXME: may use asynchronous_transfer
-                #drv.memcpy_dtod(
-                #        Q.centroid_backup_values_gpu, 
-                #        Q.centroid_values_gpu)
-                drv.memcpy_dtod_async(
+                drv.memcpy_dtod(
                         Q.centroid_backup_values_gpu, 
-                        Q.centroid_values_gpu,
-                        size = Q.centroid_values.nbytes,
-                        stream = drv.Stream()
-                        )
+                        Q.centroid_values_gpu)
+                #drv.memcpy_dtod_async(
+                #        Q.centroid_backup_values_gpu, 
+                #        Q.centroid_values_gpu,
+                #        size = Q.centroid_values.nbytes,
+                #        stream = drv.Stream()
+                #        )
                         
         else:
             Domain.backup_conserved_quantities(self)
@@ -1363,7 +1326,8 @@ class GPU_domain(Domain):
                     Q.centroid_backup_values_gpu,
                     block = (W1, W2, W3),
                     grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                    stream = drv.Stream()
+                    # FIXME: use 3 different stream 
+                    stream = self.stream[ saxpy_stream ]
                     )
                     
         else:
@@ -1385,7 +1349,6 @@ class GPU_domain(Domain):
 
                 
     # 3rd level 
-    # Cotesting on update_other_quantities
     # Using Stream
     def update_centroids_of_velocities_and_height(self):
         if self.using_gpu:
@@ -1395,7 +1358,6 @@ class GPU_domain(Domain):
             W2 = 1
             W3 = 1
 
-            strm = drv.Stream()
             self.set_boundary_values_from_edges_func(
                 numpy.int32(Nb),
                 self.boundary_cells_gpu,
@@ -1404,7 +1366,7 @@ class GPU_domain(Domain):
                 self.quantities['elevation'].edge_values_gpu,
                 block = (W1, W2, W3),
                 grid=((Nb+W1*W2*W3-1)/(W1*W2*W3),1),
-                stream = strm
+                stream = self.stream[ set_boundary_from_edge_stream]
                 )
 
             W1 = self.update_centroids_of_velocities_and_height_block
@@ -1428,11 +1390,17 @@ class GPU_domain(Domain):
                 self.quantities['yvelocity'].boundary_values_gpu,
                 block = (W1, W2, W3),
                 grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                stream = strm
+                stream = self.stream[ set_boundary_from_edge_stream]
                 )
 
         else:
             Domain.update_centroids_of_velocities_and_height(self)
+
+        if self.cotesting:
+            Domain.update_centroids_of_velocities_and_height(
+                    self.cotesting_domain)
+            test_update_centroids_of_velocities_and_height(self)
+
 
 
     
@@ -1485,8 +1453,11 @@ class GPU_domain(Domain):
                     stream = self.stream[ cf_central_stream ]
                     )
                     
-                drv.memcpy_dtoh( self.timestep_array, 
-                        self.timestep_array_gpu)
+                #drv.memcpy_dtoh( self.timestep_array, 
+                #        self.timestep_array_gpu)
+                drv.memcpy_dtoh_async( self.timestep_array, 
+                        self.timestep_array_gpu, 
+                        stream = self.stream[ cf_central_stream]) 
 
                 W1 = self.gravity_wb_block
                 self.gravity_wb_func(
@@ -1814,10 +1785,6 @@ class GPU_domain(Domain):
 
     # 2nd level cotesting
     def update_boundary(self):
-        if self.cotesting:
-            print 2
-            test_update_boundary(self)
-            print 3
         if self.using_gpu:
             W2 = 1
             W3 = 1
@@ -1836,7 +1803,6 @@ class GPU_domain(Domain):
                     continue
 
                 if isinstance(B, Reflective_boundary):
-                    test_update_boundary(self, True)
                     W1 = self.evaluate_segment_reflective_block
                     self.evaluate_segment_reflective_func(
                         numpy.int32( N ),
@@ -1865,7 +1831,6 @@ class GPU_domain(Domain):
                         grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
                         )
                     
-                    test_update_boundary(self, True)
 
                 elif isinstance(B, Dirichlet_boundary):
                     test_update_boundary(self, True)
@@ -1919,17 +1884,13 @@ class GPU_domain(Domain):
 
         if self.cotesting:
             Generic_Domain.update_boundary(self.cotesting_domain)
-            print 4
             test_update_boundary(self)
-            print 5
 
 
 
     # 2nd level cotesting
     # Using Stream
     def update_other_quantities(self):
-        if self.cotesting:
-            test_update_other_quantities(self)
         if self.using_gpu:
             if self.flow_algorithm == 'yusuke':
                 return
@@ -1949,8 +1910,7 @@ class GPU_domain(Domain):
                         Q.edge_values_gpu,
                         Q.vertex_values_gpu,
                         block = (W1, W2, W3),
-                        grid =((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                        stream = self.stream[ extra_1_stream ]
+                        grid =((N+W1*W2*W3-1)/(W1*W2*W3),1)
                         )
 
             drv.memset_d32(Q.x_gradient_gpu,0,N*2)
@@ -1960,7 +1920,9 @@ class GPU_domain(Domain):
 
 
         if self.cotesting:
-            Domain.update_other_quantities(self.cotesting_domain)
+            for name in ['height', 'xvelocity', 'yvelocity']:
+                Q = self.cotesting_domain.quantities[name]
+                Q.extrapolate_first_order()
             test_update_other_quantities(self)
 
 
@@ -2197,8 +2159,9 @@ class GPU_domain(Domain):
         the evolve procedure, but necessary functions are reloaded as 
         kernel functions.
         """
-
-        print self.timestep
+            
+        import time
+        st_time = time.time()
 
         #for t in Domain.evolve(self, yieldstep=yieldstep,
         #            finaltime=finaltime,
@@ -2413,8 +2376,8 @@ class GPU_domain(Domain):
                     sc.max_speed = numpy.zeros(N, numpy.float)
 
 
-
-
+        ctx.synchronize()
+        print time.time() - st_time
         """ Pop up stack memory
         
         If not using PyCUDA auto_init context, we need to pop up 
@@ -2428,7 +2391,16 @@ class GPU_domain(Domain):
 
 
     
-
+""" Below are some utilities
+"""
+def get_sourceModule(k_dir, k_name):
+    return SourceModule(
+            open( k_dir + k_name, "r").read(),
+            arch = 'compute_20',
+            code = 'sm_20',
+            options =['-use_fast_math', '--compiler-options', '-O3'],
+            include_dirs=[ k_dir ]
+            )
 
 def get_page_locked_array(a):
     """This function convert the pageable array
@@ -2541,6 +2513,8 @@ def cpy_back_and_cmp(a, b, value_type, gpu = True):
         else:
             raise Exception('Unknown value_type %s' % value_type)
         
+
+
 
 
 """ Below are test functions for each main cotesting level
@@ -3301,3 +3275,48 @@ def test_extrapolate_first_order(domain):
 
     if res.count(True) != res.__len__():
         raise Exception( " --> extrapolate_first_order ", res)
+
+
+def test_update_centroids_of_velocities_and_height(domain):
+    gpu = domain.using_gpu
+    sc = domain.cotesting_domain
+
+    s1 = domain.quantities['stage']
+    xm1 = domain.quantities['xmomentum']
+    ym1 = domain.quantities['ymomentum']
+    e1 = domain.quantities['elevation']
+    h1 = domain.quantities['height']
+    xv1 = domain.quantities['xvelocity']
+    yv1 = domain.quantities['yvelocity']
+
+    s2 = sc.quantities['stage']
+    xm2 = sc.quantities['xmomentum']
+    ym2 = sc.quantities['ymomentum']
+    e2 = sc.quantities['elevation']
+    h2 = sc.quantities['height']
+    xv2 = sc.quantities['xvelocity']
+    yv2 = sc.quantities['yvelocity']
+    
+            
+    res = []
+
+    res.append( cpy_back_and_cmp(s1, s2,'boundary_values', gpu) )
+    res.append( cpy_back_and_cmp(e1, e2,'boundary_values', gpu) )
+    res.append( cpy_back_and_cmp(h1, h2,'boundary_values', gpu) )
+    res.append( cpy_back_and_cmp(xm1, xm2,'boundary_values', gpu) )
+    res.append( cpy_back_and_cmp(ym1, ym2,'boundary_values', gpu) )
+    res.append( cpy_back_and_cmp(xv1, xv2,'boundary_values', gpu) )
+    res.append( cpy_back_and_cmp(yv1, yv2,'boundary_values', gpu) )
+
+    res.append( cpy_back_and_cmp(s1, s2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(e1, e2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(h1, h2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(xm1, xm2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(ym1, ym2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(xv1, xv2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(yv1, yv2,'centroid_values', gpu) )
+
+    if res.count(True) != res.__len__():
+        raise Exception("Error in update_centroids_of_velocities_and_height")
+
+
