@@ -4,6 +4,7 @@
 
 #define B blockDim.x*blockDim.y
 #define T threadIdx.x+threadIdx.y*blockDim.x
+#define BLOCK_SIZE 256
 
 #ifdef UNSORTED_DOMAIN
 __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
@@ -97,14 +98,17 @@ inline __device__ double _compute_speed(double *uh,
 
 
 
-inline __device__ int _flux_function_central(double *q_left, double *q_right,
+inline __device__ int _flux_function_central(
+        double q_left0, double q_left1, double q_left2, 
+        double q_right0, double q_right1, double q_right2,
         double z_left, double z_right,
         double n1, double n2,
         double epsilon,
         double h0,
         double limiting_threshold,
         double g,
-        double *edgeflux, double *max_speed) 
+        double *edgeflux0, double *edgeflux1, double *edgeflux2,
+        double *max_speed) 
 {
     /*Compute fluxes between volumes for the shallow water wave equation
       cast in terms of the 'stage', w = h+z using
@@ -129,21 +133,21 @@ inline __device__ int _flux_function_central(double *q_left, double *q_right,
     double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
     // Copy conserved quantities to protect from modification
-    q_left_rotated[0] = q_left[0];
-    q_right_rotated[0] = q_right[0];
-    q_left_rotated[1] = q_left[1];
-    q_right_rotated[1] = q_right[1];
-    q_left_rotated[2] = q_left[2];
-    q_right_rotated[2] = q_right[2];
+    q_left_rotated[0] = q_left0;
+    q_right_rotated[0] = q_right0;
+    q_left_rotated[1] = q_left1;
+    q_right_rotated[1] = q_right1;
+    q_left_rotated[2] = q_left2;
+    q_right_rotated[2] = q_right2;
 
     // Align x- and y-momentum with x-axis
     //_rotate(q_left_rotated, n1, n2);
-    q_left_rotated[1] = n1*q_left[1] + n2*q_left[2];
-    q_left_rotated[2] = -n2*q_left[1] + n1*q_left[2];
+    q_left_rotated[1] = n1*q_left1 + n2*q_left2;
+    q_left_rotated[2] = -n2*q_left1 + n1*q_left2;
 
     //_rotate(q_right_rotated, n1, n2);
-    q_right_rotated[1] = n1*q_right[1] + n2*q_right[2];
-    q_right_rotated[2] = -n2*q_right[1] + n1*q_right[2];
+    q_right_rotated[1] = n1*q_right1 + n2*q_right2;
+    q_right_rotated[2] = -n2*q_right1 + n1*q_right2;
 
 
     if (fabs(z_left - z_right) > 1.0e-10) {
@@ -246,25 +250,39 @@ inline __device__ int _flux_function_central(double *q_left, double *q_right,
     // Flux computation
     denom = s_max - s_min;
     if (denom < epsilon) { // FIXME (Ole): Try using h0 here
-        memset(edgeflux, 0, 3 * sizeof (double));
+        //memset(edgeflux, 0, 3 * sizeof (double));
+        *edgeflux0 = 0;
+        *edgeflux1 = 0;
+        *edgeflux2 = 0;
         *max_speed = 0.0;
     }
     else {
         inverse_denominator = 1.0 / denom;
-        for (i = 0; i < 3; i++) {
-            edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
-            edgeflux[i] += s_max * s_min * (q_right_rotated[i] - q_left_rotated[i]);
-            edgeflux[i] *= inverse_denominator;
-        }
+        //for (i = 0; i < 3; i++) {
+        //    edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
+        //    edgeflux[i] += s_max * s_min * (q_right_rotated[i] - q_left_rotated[i]);
+        //    edgeflux[i] *= inverse_denominator;
+        //}
+        *edgeflux0 = s_max * flux_left[0] - s_min * flux_right[0];
+        *edgeflux0 += s_max * s_min * (q_right_rotated[0] - q_left_rotated[0]);
+        *edgeflux0 *= inverse_denominator;
+
+        *edgeflux1 = s_max * flux_left[1] - s_min * flux_right[1];
+        *edgeflux1 += s_max * s_min * (q_right_rotated[1] - q_left_rotated[1]);
+        *edgeflux1 *= inverse_denominator;
+
+        *edgeflux2 = s_max * flux_left[2] - s_min * flux_right[2];
+        *edgeflux2 += s_max * s_min * (q_right_rotated[2] - q_left_rotated[2]);
+        *edgeflux2 *= inverse_denominator;
 
         // Maximal wavespeed
         *max_speed = max(fabs(s_max), fabs(s_min));
 
         // Rotate back
         //_rotate(edgeflux, n1, -n2);
-        temp = edgeflux[1];
-        edgeflux[1] = n1* temp -n2*edgeflux[2];
-        edgeflux[2] = n2*temp + n1*edgeflux[2];
+        temp = *edgeflux1;
+        *edgeflux1 = n1* temp -n2* *edgeflux2;
+        *edgeflux2 = n2*temp + n1* *edgeflux2;
     }
 
     return 0;
@@ -320,7 +338,18 @@ __global__ void compute_fluxes_central_structure_CUDA(
     int i, m, n;
     int ki, nm = 0, ki2; // Index shorthands
 
-    double ql[3], qr[3], edgeflux[3];
+    //double ql[3], qr[3], edgeflux[3];
+    __shared__ double ql0[BLOCK_SIZE];
+    __shared__ double ql1[BLOCK_SIZE];
+    __shared__ double ql2[BLOCK_SIZE];
+
+    __shared__ double qr0[BLOCK_SIZE];
+    __shared__ double qr1[BLOCK_SIZE];
+    __shared__ double qr2[BLOCK_SIZE];
+
+    __shared__ double edgeflux0[BLOCK_SIZE];
+    __shared__ double edgeflux1[BLOCK_SIZE];
+    __shared__ double edgeflux2[BLOCK_SIZE];
 
     if (k >= N)
         return;
@@ -348,17 +377,17 @@ __global__ void compute_fluxes_central_structure_CUDA(
 
         n = neighbours[ki];
 
-        ql[0] = stage_edge_values[ki];
-        ql[1] = xmom_edge_values[ki];
-        ql[2] = ymom_edge_values[ki];
+        ql0[T] = stage_edge_values[ki];
+        ql1[T] = xmom_edge_values[ki];
+        ql2[T] = ymom_edge_values[ki];
         zl = bed_edge_values[ki];
 
         if (n < 0) {
             m = -n - 1; // Convert negative flag to boundary index
 
-            qr[0] = stage_boundary_values[m];
-            qr[1] = xmom_boundary_values[m];
-            qr[2] = ymom_boundary_values[m];
+            qr0[T] = stage_boundary_values[m];
+            qr1[T] = xmom_boundary_values[m];
+            qr2[T] = ymom_boundary_values[m];
             zr = zl; // Extend bed elevation to boundary
         } else {
             m = neighbour_edges[ki];
@@ -367,15 +396,15 @@ __global__ void compute_fluxes_central_structure_CUDA(
 #else
             nm = n + N*m;
 #endif
-            qr[0] = stage_edge_values[nm];
-            qr[1] = xmom_edge_values[nm];
-            qr[2] = ymom_edge_values[nm];
+            qr0[T] = stage_edge_values[nm];
+            qr1[T] = xmom_edge_values[nm];
+            qr2[T] = ymom_edge_values[nm];
             zr = bed_edge_values[nm];
         }
 
         if (optimise_dry_cells){
-            if ( fabs(ql[0] - zl) < epsilon &&
-                    fabs(qr[0] - zr) < epsilon) {
+            if ( fabs(ql0[T] - zl) < epsilon &&
+                    fabs(qr0[T] - zr) < epsilon) {
                 max_speed = 0.0;
                 continue;
             }
@@ -383,29 +412,37 @@ __global__ void compute_fluxes_central_structure_CUDA(
 
 #ifndef REARRANGED_DOMAIN
         ki2 = 2 * ki; //k*6 + i*2
-        _flux_function_central(ql, qr, zl, zr,
+        _flux_function_central(
+                ql0[T], ql1[T], ql2[T],
+                qr0[T], qr1[T], qr2[T],
+                zl, zr,
                 normals[ki2], normals[ki2 + 1],
                 epsilon, h0, limiting_threshold, g,
-                edgeflux, &max_speed);
+                &edgeflux0[T], &edgeflux1[T], &edgeflux2[T],
+                &max_speed);
 #else
         ki2 = k + N*i*2;
-        _flux_function_central(ql, qr, zl, zr,
+        _flux_function_central(
+                ql0[T], ql1[T], ql2[T],
+                qr0[T], qr1[T], qr2[T],
+                zl, zr,
                 normals[ki2], normals[ki2 + N],
                 epsilon, h0, limiting_threshold, g,
-                edgeflux, &max_speed);
+                &edgeflux0[T], &edgeflux1[T], &edgeflux2[T],
+                &max_speed);
 #endif
 
 
         length = edgelengths[ki];
-        edgeflux[0] *= length;
-        edgeflux[1] *= length;
-        edgeflux[2] *= length;
+        edgeflux0[T] *= length;
+        edgeflux1[T] *= length;
+        edgeflux2[T] *= length;
 
 
 
-        stage_explicit_update[k] -= edgeflux[0];
-        xmom_explicit_update[k] -= edgeflux[1];
-        ymom_explicit_update[k] -= edgeflux[2];
+        stage_explicit_update[k]-= edgeflux0[T];
+        xmom_explicit_update[k] -= edgeflux1[T];
+        ymom_explicit_update[k] -= edgeflux2[T];
 
         if (tri_full_flag[k] == 1) {
             if ( max_speed > epsilon) {
@@ -429,355 +466,6 @@ __global__ void compute_fluxes_central_structure_CUDA(
     ymom_explicit_update[k] *= inv_area;
 
     max_speed_array[k] =  max_speed_total;
-}
-
-
-
-/*****************************************/
-/*          Sequential version           */
-/*****************************************/
-__global__ void compute_fluxes_central_structure_serial(
-        double * timestep,
-        long * neighbours,
-        long * neighbour_edges,
-        double * normals,
-        double * edgelengths,
-        double * radii,
-        double * areas,
-        double * tri_full_flag,
-        double * stage_edge_values,
-        double * xmom_edge_values,
-        double * ymom_edge_values,
-        double * bed_edge_values,
-        double * stage_boundary_values,
-        double * xmom_boundary_values,
-        double * ymom_boundary_values,
-        double * stage_explicit_update,
-        double * xmom_explicit_update,
-        double * ymom_explicit_update, 
-        long * already_computed_flux,
-        double * max_speed_array,
-        double * elements)
-{
-    int k;
-
-    // Local variables
-    double max_speed, length, inv_area, zl, zr;
-
-    double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
-
-    double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
-    // threshold for performance reasons.
-    // See ANUGA manual under flux limiting
-    int i, m, n;
-    int ki, nm = 0, ki2; // Index shorthands
-
-
-    // Workspace (making them static actually made function slightly slower (Ole))
-    double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
-
-    //static long call = 1; // Static local variable flagging already computed flux
-
-    // Start computation
-    //call++; // Flag 'id' of flux calculation for this timestep
-    for(k=0;k<43200;k++)
-    {
-        // Loop through neighbours and compute edge flux for each
-        for (i = 0; i < 3; i++) {
-            ki = k * 3 + i; // Linear index to edge i of triangle k
-
-            //if (already_computed_flux[ki] == elements[Dcall]) {
-            // We've already computed the flux across this edge
-            //    continue;
-            //}
-
-            // Get left hand side values from triangle k, edge i
-            ql[0] = stage_edge_values[ki];
-            ql[1] = xmom_edge_values[ki];
-            ql[2] = ymom_edge_values[ki];
-            zl = bed_edge_values[ki];
-
-            // Get right hand side values either from neighbouring triangle
-            // or from boundary array (Quantities at neighbour on nearest face).
-            n = neighbours[ki];
-            if (n < 0) {
-                // Neighbour is a boundary condition
-                m = -n - 1; // Convert negative flag to boundary index
-
-                qr[0] = stage_boundary_values[m];
-                qr[1] = xmom_boundary_values[m];
-                qr[2] = ymom_boundary_values[m];
-                zr = zl; // Extend bed elevation to boundary
-            } else {
-                // Neighbour is a real triangle
-                m = neighbour_edges[ki];
-                nm = n * 3 + m; // Linear index (triangle n, edge m)
-
-                qr[0] = stage_edge_values[nm];
-                qr[1] = xmom_edge_values[nm];
-                qr[2] = ymom_edge_values[nm];
-                zr = bed_edge_values[nm];
-            }
-
-            // Now we have values for this edge - both from left and right side.
-
-            if (elements[Doptimise_dry_cells]) {
-                // Check if flux calculation is necessary across this edge
-                // This check will exclude dry cells.
-                // This will also optimise cases where zl != zr as
-                // long as both are dry
-
-                if (fabs(ql[0] - zl) < elements[Depsilon] &&
-                        fabs(qr[0] - zr) < elements[Depsilon]) {
-                    // Cell boundary is dry
-
-                    already_computed_flux[ki] = elements[Dcall]; // #k Done
-                    if (n >= 0) {
-                        already_computed_flux[nm] = elements[Dcall]; // #n Done
-                    }
-
-                    max_speed = 0.0;
-                    continue;
-
-                }
-            }
-
-
-            /*
-               if (fabs(zl - zr) > 1.0e-10) {
-               report_python_error(AT, "Discontinuous Elevation");
-               return 0.0;
-               }
-             */
-
-            // Outward pointing normal vector (domain.normals[k, 2*i:2*i+2])
-            ki2 = 2 * ki; //k*6 + i*2
-
-            // Edge flux computation (triangle k, edge i)
-            _flux_function_central(ql, qr, zl, zr,
-                    normals[ki2], normals[ki2 + 1],
-                    elements[Depsilon], h0, limiting_threshold, elements[Dg],
-                    edgeflux, &max_speed);
-
-
-            // Multiply edgeflux by edgelength
-            length = edgelengths[ki];
-            edgeflux[0] *= length;
-            edgeflux[1] *= length;
-            edgeflux[2] *= length;
-
-
-            // Update triangle k with flux from edge i
-            stage_explicit_update[k] -= edgeflux[0];
-            xmom_explicit_update[k] -= edgeflux[1];
-            ymom_explicit_update[k] -= edgeflux[2];
-
-            already_computed_flux[ki] = elements[Dcall]; // #k Done
-
-
-            // Update neighbour n with same flux but reversed sign
-            //if (n >= 0) {
-            //    stage_explicit_update[n] += edgeflux[0];
-            //    xmom_explicit_update[n] += edgeflux[1];
-            //    ymom_explicit_update[n] += edgeflux[2];
-
-            //    already_computed_flux[nm] = elements[Dcall]; // #n Done
-            //}
-
-            // Update timestep based on edge i and possibly neighbour n
-            if (tri_full_flag[k] == 1) {
-                if (max_speed > elements[Depsilon]) {
-                    // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
-
-                    // CFL for triangle k
-                    elements[Dtimestep] = min(elements[Dtimestep], radii[k] / max_speed);
-
-                    if (n >= 0) {
-                        // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-                        elements[Dtimestep] = min(elements[Dtimestep], radii[n] / max_speed);
-                    }
-
-                    // Ted Rigbys suggested less conservative version
-                    //if (n>=0) {
-                    //  timestep = min(timestep, (radii[k]+radii[n])/max_speed);
-                    //} else {
-                    //  timestep = min(timestep, radii[k]/max_speed);
-                    // }
-                }
-            }
-        } // End edge i (and neighbour n)
-        // Normalise triangle k by area and store for when all conserved
-        // quantities get updated
-        inv_area = 1.0 / areas[k];
-        stage_explicit_update[k] *= inv_area;
-        xmom_explicit_update[k] *= inv_area;
-        ymom_explicit_update[k] *= inv_area;
-
-
-        // Keep track of maximal speeds
-        max_speed_array[k] = max_speed;
-    }
-    //return timestep;
-}
-
-
-
-
-/*****************************************/
-/* Rearrange the domain variable order   */
-/* so as to achieve memory corelasing    */
-/*****************************************/
-
-__global__ void compute_fluxes_central_structure_MeCo(
-        double * timestep,
-        long * neighbours,
-        long * neighbour_edges,
-        double * normals,
-        double * edgelengths,
-        double * radii,
-        double * areas,
-        long * tri_full_flag,
-        double * stage_edge_values,
-        double * xmom_edge_values,
-        double * ymom_edge_values,
-        double * bed_edge_values,
-        double * stage_boundary_values,
-        double * xmom_boundary_values,
-        double * ymom_boundary_values,
-        double * stage_explicit_update,
-        double * xmom_explicit_update,
-        double * ymom_explicit_update, 
-        double * max_speed_array,
-        double * elements
-)
-{
-    const long k = 
-            threadIdx.x+threadIdx.y*blockDim.x+
-            (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
-
-
-    double max_speed, length, inv_area, zl, zr;
-
-    double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
-
-    double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
-
-    int i, m, n;
-    int ki, nm = 0, ki2; // Index shorthands
-
-    double ql[3], qr[3], edgeflux[3];
-
-    //int b[3]={0,1,2};
-    //spe_bubble_sort( b, neighbours+k*3, k);
-    //for (j = 0; j < 3; j++) {
-    //    i = b[j];
-
-    __shared__ double sh_data[32*9];
-
-    for ( i = 0; i < 3; i++) {
-
-        ki = k * 3 + i; // Linear index to edge i of triangle k
-
-        n = neighbours[ki];
-
-        ql[0] = stage_edge_values[ki];
-        ql[1] = xmom_edge_values[ki];
-        ql[2] = ymom_edge_values[ki];
-        zl = bed_edge_values[ki];
-
-        if (n < 0) {
-            m = -n - 1; // Convert negative flag to boundary index
-
-            qr[0] = stage_boundary_values[m];
-            qr[1] = xmom_boundary_values[m];
-            qr[2] = ymom_boundary_values[m];
-            zr = zl; // Extend bed elevation to boundary
-        } else {
-            m = neighbour_edges[ki];
-            nm = n * 3 + m; // Linear index (triangle n, edge m)
-
-            qr[0] = stage_edge_values[nm];
-            qr[1] = xmom_edge_values[nm];
-            qr[2] = ymom_edge_values[nm];
-            zr = bed_edge_values[nm];
-        }
-
-        if (elements[Doptimise_dry_cells]) {
-            if (fabs(ql[0] - zl) < elements[Depsilon] &&
-                    fabs(qr[0] - zr) < elements[Depsilon]) {
-
-                max_speed = 0.0;
-                continue;
-            }
-        }
-
-        ki2 = 2 * ki; //k*6 + i*2
-
-
-        _flux_function_central(ql, qr, zl, zr,
-                normals[ki2], normals[ki2 + 1],
-                elements[Depsilon], h0, limiting_threshold, elements[Dg],
-                edgeflux, &max_speed);
-
-        length = edgelengths[ki];
-        edgeflux[0] *= length;
-        edgeflux[1] *= length;
-        edgeflux[2] *= length;
-
-
-
-        //stage_explicit_update[k] -= edgeflux[0];
-        //xmom_explicit_update[k] -= edgeflux[1];
-        //ymom_explicit_update[k] -= edgeflux[2];
-        //temp_array[k*3+i] = -edgeflux[1];
-
-        sh_data[threadIdx.x + i*blockDim.x]= -edgeflux[0];
-        sh_data[threadIdx.x + (i+3)*blockDim.x]= -edgeflux[1];
-        sh_data[threadIdx.x + (i+6)*blockDim.x]= -edgeflux[2];
-        __syncthreads();
-
-        //cuda_atomicAdd( stage_explicit_update + k, -edgeflux[0] );
-        //cuda_atomicAdd( xmom_explicit_update + k, -edgeflux[1] );
-        //cuda_atomicAdd( ymom_explicit_update + k, -edgeflux[2] );
-
-
-        if (tri_full_flag[k] == 1) {
-            if (max_speed > elements[Depsilon]) {
-                timestep[k] = min(timestep[k], radii[k] / max_speed);
-
-                if (n >= 0) {
-                    timestep[k] = min(timestep[k], radii[n] / max_speed);
-                }
-            }
-        }
-
-    } // End edge i (and neighbour n)
-
-
-
-    inv_area = 1.0 / areas[k];
-    //stage_explicit_update[k] *= inv_area;
-    //xmom_explicit_update[k] *= inv_area;
-    //ymom_explicit_update[k] *= inv_area;
-    stage_explicit_update[k] = (
-            sh_data[threadIdx.x] + 
-            sh_data[threadIdx.x+blockDim.x] +
-            sh_data[threadIdx.x+blockDim.x*2]) * inv_area;
-
-    xmom_explicit_update[k] = (
-            sh_data[threadIdx.x+3*blockDim.x] + 
-            sh_data[threadIdx.x+4*blockDim.x] +
-            sh_data[threadIdx.x+5*blockDim.x]) * inv_area;
-
-    ymom_explicit_update[k] = (
-            sh_data[threadIdx.x+6*blockDim.x] + 
-            sh_data[threadIdx.x+7*blockDim.x] +
-            sh_data[threadIdx.x+8*blockDim.x]) * inv_area;
-
-
-    __syncthreads();
-
-    max_speed_array[k] =  max_speed;
 }
 
 #endif
