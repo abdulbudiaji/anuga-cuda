@@ -1874,7 +1874,8 @@ if __name__ == '__main__':
     
 
 
-    sort_domain(domain2)
+    #sort_domain(domain2)
+    domain2 = rearrange_domain(domain2)
     print " Number of elements is: %d" % domain1.number_of_elements
     """
     CUDA Function
@@ -1893,6 +1894,15 @@ if __name__ == '__main__':
                 "compute_fluxes_central_structure_CUDA")
 
         domain2.allocate_device_array()
+
+        # Testing the mem coalscing
+        #N = domain2.number_of_elements
+        #for i in range(N):
+        #    domain2.neighbours[i][:] = [i+1,i+2,i+3]
+        #domain2.neighbours[N-3][:] = [N-2, N-1, N-4]
+        #domain2.neighbours[N-2][:] = [N-1, N-3, N-4]
+        #domain2.neighbours[N-1][:] = [N-2, N-3, N-4]
+
         domain2.asynchronous_transfer()
         ctx.synchronize()
 
@@ -1902,14 +1912,18 @@ if __name__ == '__main__':
         #compute_fluxes_central_function.set_cache_config(drv.func_cache.PREFER_SHARED)
         import sys
         W1 = 0
+        W2 = 0
         for i in range( len(sys.argv)):
             if sys.argv[i] == "-b":
                 W1 = int(sys.argv[i+1])
+            elif sys.argv[i] == "-b1":
+                W2 = int(sys.argv[i+1])
 
         if not W1:
             W1 = compute_fluxes_central_function.max_threads_per_block
+        if not W2:
+            W2 = 1
         print W1
-        W2 = 1
         W3 = 1
 
         get_kernel_function_info(compute_fluxes_central_function,W1,W2, W3)
@@ -1922,7 +1936,7 @@ if __name__ == '__main__':
                 numpy.float64(domain2.epsilon),
                 numpy.float64(domain2.H0 * domain2.H0),
                 numpy.float64(domain2.H0 * 10),
-                numpy.uint(domain2.optimise_dry_cells),
+                numpy.uint32(domain2.optimise_dry_cells),
 
                 domain2.timestep_array_gpu,
                 domain2.neighbours_gpu,
@@ -1947,7 +1961,7 @@ if __name__ == '__main__':
                 grid = ((domain2.number_of_elements+W1*W2*W3-1)/(W1*W2*W3), 1)
                 )
 
-        ctx.synchronize()
+        #ctx.synchronize()
         drv.memcpy_dtoh(domain2.quantities['stage'].explicit_update,
                         domain2.quantities['stage'].explicit_update_gpu)
         drv.memcpy_dtoh(domain2.quantities['xmomentum'].explicit_update,

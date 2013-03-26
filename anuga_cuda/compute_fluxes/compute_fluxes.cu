@@ -1,5 +1,9 @@
 //#define UNSORTED_DOMAIN
 #define USING_MULTI_FUNCTION
+#define REARRANGED_DOMAIN
+
+#define B blockDim.x*blockDim.y
+#define T threadIdx.x+threadIdx.y*blockDim.x
 
 #ifdef UNSORTED_DOMAIN
 __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
@@ -38,7 +42,7 @@ __device__ void spe_bubble_sort(int* _list , long* neighbours, int k)
 #define Dnumber_of_elements
 
 
-__device__ int _rotate(double *q, double n1, double n2) 
+inline __device__ int _rotate(double *q, double n1, double n2) 
 {
     /*Rotate the momentum component q (q[1], q[2])
       from x,y coordinates to coordinates based on normal vector (n1, n2).
@@ -63,7 +67,7 @@ __device__ int _rotate(double *q, double n1, double n2)
 
 
 
-__device__ double _compute_speed(double *uh,
+inline __device__ double _compute_speed(double *uh,
         double *h,
         double epsilon,
         double h0,
@@ -93,7 +97,7 @@ __device__ double _compute_speed(double *uh,
 
 
 
-__device__ int _flux_function_central(double *q_left, double *q_right,
+inline __device__ int _flux_function_central(double *q_left, double *q_right,
         double z_left, double z_right,
         double n1, double n2,
         double epsilon,
@@ -271,7 +275,6 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
 
 
 
-
 /*****************************************/
 /* The CUDA compute fluex function       */
 /*****************************************/
@@ -279,7 +282,6 @@ __device__ int _flux_function_central(double *q_left, double *q_right,
 
 __global__ void compute_fluxes_central_structure_CUDA(
         int N,
-        //double * elements,
         double evolve_max_timestep,
         double  g,
         double epsilon,
@@ -308,15 +310,12 @@ __global__ void compute_fluxes_central_structure_CUDA(
         double * max_speed_array)
 {
     const long k = 
-            threadIdx.x+threadIdx.y*blockDim.x+
+            threadIdx.x+ threadIdx.y*blockDim.x +
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
 
     double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
 
-    //double h0 = elements[DH0] * elements[DH0]; // This ensures a good balance when h approaches H0.
-
-    //double limiting_threshold = 10 * elements[DH0]; // Avoid applying limiter below this
 
     int i, m, n;
     int ki, nm = 0, ki2; // Index shorthands
@@ -340,7 +339,12 @@ __global__ void compute_fluxes_central_structure_CUDA(
 #else
     for ( i = 0; i < 3; i++) {
 #endif
+
+#ifndef REARRANGED_DOMAIN
         ki = k * 3 + i; // Linear index to edge i of triangle k
+#else   
+        ki = k + N *i;
+#endif
 
         n = neighbours[ki];
 
@@ -358,18 +362,18 @@ __global__ void compute_fluxes_central_structure_CUDA(
             zr = zl; // Extend bed elevation to boundary
         } else {
             m = neighbour_edges[ki];
+#ifndef REARRANGED_DOMAIN
             nm = n * 3 + m; // Linear index (triangle n, edge m)
-
+#else
+            nm = n + N*m;
+#endif
             qr[0] = stage_edge_values[nm];
             qr[1] = xmom_edge_values[nm];
             qr[2] = ymom_edge_values[nm];
             zr = bed_edge_values[nm];
         }
 
-        //if (elements[Doptimise_dry_cells]) {
         if (optimise_dry_cells){
-            //if (fabs(ql[0] - zl) < elements[Depsilon] &&
-            //        fabs(qr[0] - zr) < elements[Depsilon]) {
             if ( fabs(ql[0] - zl) < epsilon &&
                     fabs(qr[0] - zr) < epsilon) {
                 max_speed = 0.0;
@@ -377,14 +381,20 @@ __global__ void compute_fluxes_central_structure_CUDA(
             }
         }
 
+#ifndef REARRANGED_DOMAIN
         ki2 = 2 * ki; //k*6 + i*2
-
-
         _flux_function_central(ql, qr, zl, zr,
                 normals[ki2], normals[ki2 + 1],
-                //elements[Depsilon], h0, limiting_threshold, elements[Dg],
                 epsilon, h0, limiting_threshold, g,
                 edgeflux, &max_speed);
+#else
+        ki2 = k + N*i*2;
+        _flux_function_central(ql, qr, zl, zr,
+                normals[ki2], normals[ki2 + N],
+                epsilon, h0, limiting_threshold, g,
+                edgeflux, &max_speed);
+#endif
+
 
         length = edgelengths[ki];
         edgeflux[0] *= length;
@@ -397,13 +407,7 @@ __global__ void compute_fluxes_central_structure_CUDA(
         xmom_explicit_update[k] -= edgeflux[1];
         ymom_explicit_update[k] -= edgeflux[2];
 
-        //cuda_atomicAdd( stage_explicit_update + k, -edgeflux[0] );
-        //cuda_atomicAdd( xmom_explicit_update + k, -edgeflux[1] );
-        //cuda_atomicAdd( ymom_explicit_update + k, -edgeflux[2] );
-
-
         if (tri_full_flag[k] == 1) {
-            //if (max_speed > elements[Depsilon]) {
             if ( max_speed > epsilon) {
                 timestep[k] = min(timestep[k], radii[k] / max_speed);
 
@@ -784,17 +788,17 @@ __global__ void compute_fluxes_central_structure_MeCo(
 /* also combination all subfunctions     */
 /*****************************************/
 
-#define B blockDim.x*blockDim.y
-#define T threadIdx.x+threadIdx.y*blockDim.x
 
 //__global__ void _flux_function_central_2(
 __global__ void compute_fluxes_central_structure_cuda_single(
-        long N,
-        double g,
+        int N,
+        double evolve_max_timestep,
+        double  g,
         double epsilon,
         double h0,
         double limiting_threshold,
         int optimise_dry_cells,
+
         double * timestep,
         long * neighbours,
         long * neighbour_edges,
@@ -813,7 +817,7 @@ __global__ void compute_fluxes_central_structure_cuda_single(
         double * stage_explicit_update,
         double * xmom_explicit_update,
         double * ymom_explicit_update, 
-        double * max_speed_array) 
+        double * max_speed_array)
 {
     int j;
 
@@ -827,7 +831,6 @@ __global__ void compute_fluxes_central_structure_cuda_single(
     double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
 
-    //const int k = threadIdx.x + blockIdx.x * blockDim.x;
     const long k = 
             threadIdx.x+threadIdx.y*blockDim.x+
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
@@ -839,14 +842,16 @@ __global__ void compute_fluxes_central_structure_cuda_single(
     double length, inv_area;
 
     int i, m, n;
-    //int B = blockDim.x*blockDim.y;
-    //int T = threadIdx.x+threadIdx.y*blockDim.x;
     int ki, nm;
 
     __shared__ double sh_data[32*9];
 
     if ( k >= N)
         return;
+
+    timestep[k] = evolve_max_timestep;
+
+
 #ifdef UNSORTED_DOMAIN
     int b[3]={0,1,2}, l;
     spe_bubble_sort( b, neighbours+k*3, k);
@@ -905,7 +910,6 @@ __global__ void compute_fluxes_central_structure_cuda_single(
         n1 = normals[2*ki];
         n2 = normals[2*ki + 1];
 #endif
-
 
         /////////////////////////////////////////////////////////
 
