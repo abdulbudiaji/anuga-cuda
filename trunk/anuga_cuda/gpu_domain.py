@@ -108,6 +108,9 @@ class GPU_domain(Domain):
         print 'Concurrent Kernels:', \
             bool(dev.get_attribute(
                 drv.device_attribute.CONCURRENT_KERNELS))
+        print "Current cache/shared memory configure is ", ctx.get_cache_config()
+        ctx.set_cache_config(drv.func_cache.PREFER_L1)
+
         if stream:
             if bool(dev.get_attribute(
                 drv.device_attribute.CONCURRENT_KERNELS)):
@@ -152,7 +155,7 @@ class GPU_domain(Domain):
         self.compute_fluxes_func = self.compute_fluxes_mod.get_function(
                 #"compute_fluxes_central_structure_cuda_single")
                 "compute_fluxes_central_structure_CUDA")
-
+        self.compute_fluxes_func.set_cache_config(drv.func_cache.PREFER_L1)
         self.compute_fluxes_central_structure_block = \
                 kbc["compute_fluxes_fun"]
         
@@ -176,14 +179,21 @@ class GPU_domain(Domain):
         self.extrapolate_second_order_sw_true_func = \
             self.extrapolate_second_order_sw_mod.get_function(
                     "extrapolate_second_order_sw_true")
+        self.extrapolate_second_order_sw_true_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
 
         self.extrapolate_second_order_sw_false_func = \
             self.extrapolate_second_order_sw_mod.get_function(
                 "extrapolate_second_order_sw_false")
+        self.extrapolate_second_order_sw_false_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
 
         self.extrapolate_velocity_second_order_true_func = \
             self.extrapolate_second_order_sw_mod.get_function(
                 "extrapolate_velocity_second_order_true")
+        self.extrapolate_velocity_second_order_true_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
+
 
 
         self.extrapolate_second_order_sw_true_block = \
@@ -206,11 +216,15 @@ class GPU_domain(Domain):
             self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod.\
                 get_function(
                     "extrapolate_second_order_and_limit_by_vertex")
+        self.extrapolate_second_order_and_limit_by_vertex_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
 
         self.extrapolate_second_order_and_limit_by_edge_func = \
             self.extrapolate_second_order_and_limit_by_vertex_or_edge_mod.\
                 get_function(
                     "extrapolate_second_order_and_limit_by_edge")
+        self.extrapolate_second_order_and_limit_by_edge_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
 
         self.extrapolate_second_order_and_limit_by_vertex_block = \
             kbc["extrapolate_second_order_and_limit_by_vertex_fun"]
@@ -228,6 +242,7 @@ class GPU_domain(Domain):
         self.extrapolate_first_order_func = \
             self.extrapolate_first_order_mod.get_function(
                     "extrapolate_first_order")
+        self.extrapolate_first_order_func.set_cache_config(drv.func_cache.PREFER_L1)
 
         self.extrapolate_first_order_block = \
             kbc["extrapolate_first_order_fun"]
@@ -243,6 +258,8 @@ class GPU_domain(Domain):
         self.extrapolate_second_order_edge_swb2_func = \
             self.extrapolate_second_order_edge_swb2_mod.get_function(
                     "_extrapolate_second_order_edge_sw")
+        self.extrapolate_second_order_edge_swb2_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
 
         self.extrapolate_second_order_edge_swb2_block =\
             kbc["extrapolate_second_order_edge_swb2_fun"]
@@ -253,9 +270,10 @@ class GPU_domain(Domain):
         self.protect_mod = get_sourceModule(kp["protect_dir"], "protect.cu")
 
         self.protect_sw_func = self.protect_mod.get_function("_protect_sw")
+        self.protect_sw_func.set_cache_config(drv.func_cache.PREFER_L1)
         
-        self.protect_swb2_func=self.protect_mod.get_function(
-                    "_protect_swb2")
+        self.protect_swb2_func=self.protect_mod.get_function("_protect_swb2")
+        self.protect_swb2_func.set_cache_config(drv.func_cache.PREFER_L1)
 
         self.protect_sw_block = kbc["protect_sw_ext_fun"]
         self.protect_swb2_block= kbc["protect_swb2_fun"]
@@ -269,6 +287,7 @@ class GPU_domain(Domain):
         self.balance_deep_and_shallow_func = \
             self.balance_deep_and_shallow_mod.get_function(
                 "_balance_deep_and_shallow")
+        self.balance_deep_and_shallow_func.set_cache_config(drv.func_cache.PREFER_L1)
 
         self.balance_deep_and_shallow_block = kbc["balance_fun"]
             
@@ -282,6 +301,8 @@ class GPU_domain(Domain):
         self.interpolate_from_vertices_to_edges_func = \
             self.interpolate_from_vertices_to_edges_mod.get_function(
                 "_interpolate_from_vertices_to_edges")
+        self.interpolate_from_vertices_to_edges_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
 
         self.interpolate_from_vertices_to_edges_block = \
             kbc["interpolate_fun"]
@@ -295,12 +316,21 @@ class GPU_domain(Domain):
         self.evaluate_segment_reflective_func = \
             self.evaluate_segment_mod.get_function(
                 "evaluate_segment_reflective")
+        self.evaluate_segment_reflective_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
+
         self.evaluate_segment_dirichlet_1_func = \
             self.evaluate_segment_mod.get_function(
                 "evaluate_segment_dirichlet_1")
+        self.evaluate_segment_dirichlet_1_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
+
         self.evaluate_segment_dirichlet_2_func = \
             self.evaluate_segment_mod.get_function(
                 "evaluate_segment_dirichlet_2")
+        self.evaluate_segment_dirichlet_2_func.set_cache_config(
+                drv.func_cache.PREFER_L1)
+
 
         self.evaluate_segment_reflective_block = \
             kbc["evaluate_segment_reflective_fun"]
@@ -317,6 +347,7 @@ class GPU_domain(Domain):
             
         self.get_absolute_func = \
             self.get_absolute_mod.get_function("get_absolute")
+        self.get_absolute_func.set_cache_config(drv.func_cache.PREFER_L1)
 
         self.get_absolute_block = kbc["get_absolute_fun"]
 
@@ -330,10 +361,12 @@ class GPU_domain(Domain):
         self.manning_friction_sloped_func = \
             self.manning_friction_mod.get_function(
                 "_manning_friction_sloped")
+        self.manning_friction_sloped_func.set_cache_config(drv.func_cache.PREFER_L1)
 
         self.manning_friction_flat_func = \
             self.manning_friction_mod.get_function(
                 "_manning_friction_flat")
+        self.manning_friction_flat_func.set_cache_config(drv.func_cache.PREFER_L1)
 
         self.manning_friction_sloped_blcok = \
             kbc["manning_friction_sloped_fun"]

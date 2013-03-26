@@ -1,3 +1,6 @@
+
+#define REARRANGED_DOMAIN
+
 #define BLOCK_SIZE 288
 __global__ void gravity_wb(
         int N,
@@ -19,7 +22,12 @@ __global__ void gravity_wb(
             threadIdx.x+threadIdx.y*blockDim.x+
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
-    int i, k3=k*3;
+    int i,
+#ifndef REARRANGED_DOMAIN
+        k3=k*3;
+#else   
+        k3 = k + N*3;
+#endif
 
     double w0, w1, w2, 
            x0, y0, x1, y1, x2, y2,
