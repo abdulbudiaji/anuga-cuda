@@ -34,7 +34,7 @@ if WorkingStation == "Xe":
     kernel_block_configuration = {
         "balance_fun" : 128,
 
-        "compute_fluxes_fun" : 256,
+        "compute_fluxes_fun" : 128,
 
         "extrapolate_first_order_fun" : 128,
 
@@ -48,7 +48,7 @@ if WorkingStation == "Xe":
         "evaluate_segment_dirichlet_1_fun" : 256, # FIXME
         "evaluate_segment_dirichlet_2_fun" : 256, # FIXME
 
-        "gravity_fun" : 288,
+        "gravity_fun" : 448,
 
         "get_absolute_fun" : 256,
 

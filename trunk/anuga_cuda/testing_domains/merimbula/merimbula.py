@@ -98,6 +98,8 @@ for i in range(len(sys.argv)):
     elif sys.argv[i] == '-ustore':
         domain.store = True
         print " --> Disable storing"
+    elif sys.argv[i] == '-rg':
+        domain.rearranged_domain = True
 
 
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))

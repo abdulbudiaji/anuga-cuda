@@ -381,7 +381,7 @@ if __name__ == '__main__':
     #domain2 = generate_merimbula_domain(True)
     domain1 = generate_channel3_domain()
     domain2 = generate_channel3_domain(True)
-
+    domain2 = rearrange_domain( domain2)
 
     domain2.equip_kernel_functions()
 
@@ -450,7 +450,7 @@ if __name__ == '__main__':
         
         N = domain2.number_of_elements
         domain2.gravity_wb_func(
-            numpy.uint( N),
+            numpy.uint32( N),
             numpy.float64( domain2.g),
             cuda.In( domain2.quantities['stage'].vertex_values), 
             cuda.In( domain2.quantities['stage'].edge_values), 

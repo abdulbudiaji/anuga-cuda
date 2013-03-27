@@ -724,9 +724,14 @@ if __name__ == '__main__':
     testing_gpu_domain= True
     testing_2 = True
     testing_3 = False
+    testing_rearranged_domain = True
 
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(True)
+    if testing_rearranged_domain:
+        sort_domain(domain1)
+        domain2 = rearrange_domain(domain2)
+        rearrange_domain_check(domain1, domain2)
     domain2.equip_kernel_functions()
 
     print "~~~~~~~ domain 1 ~~~~~~~"
@@ -746,14 +751,18 @@ if __name__ == '__main__':
     if testing_gpu_domain:
         import sys
         W1 = 0
+        W2 = 0
         for i in range( len(sys.argv)):
             if sys.argv[i] == "-b":
                 W1 = int(sys.argv[i+1])
+            elif sys.argv[i] == "-b1":
+                W2 = int(sys.argv[i+1])
 
         if not W1:
             W1 = domain2.extrapolate_second_order_and_limit_by_vertex_func.max_threads_per_block
-        print W1
-        W2 = 1
+        if not W2:
+            W2 = 1
+        print W1, W2
         W3 = 1
 
         get_kernel_function_info(
@@ -797,28 +806,48 @@ if __name__ == '__main__':
             cnt_ev = 0
             cnt_xg = 0
             cnt_yg = 0
-            for i in range(Q1.centroid_values.shape[0]):
+            N = Q1.centroid_values.shape[0]
+            for i in range( N ):
                 if Q1.centroid_values[i] != Q2.centroid_values[i]:
                     cnt_cv += 1
                     if cnt_cv < 10:
                         print "cv %d, %lf, %lf" % \
                                 (i, Q1.centroid_values[i], Q2.centroid_values[i])
-                #if (Q1.vertex_values[i] != Q2.vertex_values[i]).any():
-                if approx_cmp(Q1.vertex_values[i][0],Q2.vertex_values[i][0]) or \
-                         approx_cmp(Q1.vertex_values[i][1],Q2.vertex_values[i][1]) or \
-                         approx_cmp(Q1.vertex_values[i][2],Q2.vertex_values[i][2]) :
+                #if approx_cmp(Q1.vertex_values[i][0],Q2.vertex_values[i][0]) or \
+                #   approx_cmp(Q1.vertex_values[i][1],Q2.vertex_values[i][1]) or \
+                #    approx_cmp(Q1.vertex_values[i][2],Q2.vertex_values[i][2]) :
+                if approx_cmp(Q1.vertex_values[i][0],
+                            Q2.vertex_values[i/3][i%3])or \
+                   approx_cmp(Q1.vertex_values[i][1],
+                           Q2.vertex_values[(i+N)/3][(i+N)%3]) or \
+                    approx_cmp(Q1.vertex_values[i][2],
+                            Q2.vertex_values[(i+2*N)/3][(i+2*N)%3]) :
                     cnt_vv += 1
                     if cnt_vv < 10:
-                        print "vv %d, %s, %s" % \
-                                (i, Q1.vertex_values[i], Q2.vertex_values[i])
+                        print "vv %d, %lf %lf %lf, %s" % \
+                                (i, 
+                                Q2.vertex_values[i/3][i%3],
+                                Q2.vertex_values[(i+N)/3][(i+N)%3],
+                                Q2.vertex_values[(i+2*N)/3][(i+2*N)%3],
+                                Q1.vertex_values[i])
                 #if (Q1.edge_values[i] != Q2.edge_values[i]).any():
-                if approx_cmp(Q1.edge_values[i][0] , Q2.edge_values[i][0]) or\
-                        approx_cmp(Q1.edge_values[i][1] , Q2.edge_values[i][1]) or\
-                        approx_cmp(Q1.edge_values[i][2] , Q2.edge_values[i][2]) :
+                #if approx_cmp(Q1.edge_values[i][0] , Q2.edge_values[i][0]) or\
+                #    approx_cmp(Q1.edge_values[i][1] , Q2.edge_values[i][1]) or\
+                #    approx_cmp(Q1.edge_values[i][2] , Q2.edge_values[i][2]) :
+                if approx_cmp(Q1.edge_values[i][0] , 
+                            Q2.edge_values[i/3][i%3]) or\
+                    approx_cmp(Q1.edge_values[i][1] , 
+                            Q2.edge_values[(i+N)/3][(i+N)%3]) or\
+                    approx_cmp(Q1.edge_values[i][2] , 
+                            Q2.edge_values[(i+2*N)/3][(i+2*N)%3]) :
                     cnt_ev += 1
                     if cnt_ev < 10:
-                        print "ev %d, %s, %s" % \
-                                (i, Q1.edge_values[i], Q2.edge_values[i])
+                        print "ev %d, %lf %lf %lf, %s" % \
+                                (i, 
+                                Q2.edge_values[i/3][i%3],
+                                Q2.edge_values[(i+N)/3][(i+N)%3],
+                                Q2.edge_values[(i+2*N)/3][(i+2*N)%3],
+                                Q1.edge_values[i])
                 #if Q1.x_gradient[i] != Q2.x_gradient[i]:
                 if approx_cmp(Q1.x_gradient[i], Q2.x_gradient[i]) :
                     cnt_xg += 1

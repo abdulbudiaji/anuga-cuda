@@ -330,11 +330,42 @@ def rearrange_domain_check(domain1, domain2):
     bed_vertex_values = domain1.quantities['elevation'].vertex_values
 
 
+    vc = domain2.vertex_coordinates
+    xc = domain2.edge_coordinates
+    cc = domain2.centroid_coordinates
+
+
+    se = domain2.quantities['stage'].edge_values
+    xe = domain2.quantities['xmomentum'].edge_values
+    ye = domain2.quantities['ymomentum'].edge_values
+    be = domain2.quantities['elevation'].edge_values
+
+    sv = domain2.quantities['stage'].vertex_values
+    xv = domain2.quantities['xmomentum'].vertex_values
+    yv = domain2.quantities['ymomentum'].vertex_values
+    bv = domain2.quantities['elevation'].vertex_values
+
+
+
     N = domain1.number_of_elements
 
     cnt_nb = 0
     cnt_nbedge = 0
     cnt_surrnb = 0
+    cnt_norm = 0
+    cnt_el = 0
+    cnt_vc = 0
+    cnt_ec = 0
+    cnt_cc = 0
+    cnt_se = 0
+    cnt_xe = 0
+    cnt_ye = 0
+    cnt_be = 0
+    cnt_sv = 0
+    cnt_xv = 0
+    cnt_xv = 0
+    cnt_yv = 0
+    cnt_bv = 0
     for i in range(N):
         if neighbours[i][0] != domain2.neighbours[i/3][i%3] or \
 				neighbours[i][1] != domain2.neighbours[(i+N)/3][(i+N)%3] or \
@@ -345,10 +376,11 @@ def rearrange_domain_check(domain1, domain2):
 
         if neighbour_edges[i][0] != domain2.neighbour_edges[i/3][i%3] or \
 			neighbour_edges[i][1] != domain2.neighbour_edges[(i+N)/3][(i+N)%3]or\
-			neighbour_edges[i][2] != domain2.neighbour_edges[(i+N*2)/3][(i+N*2)%3]:
+			neighbour_edges[i][2] !=domain2.neighbour_edges[(i+N*2)/3][(i+N*2)%3]:
 			cnt_nbedge+=1
         
-        if surrogate_neighbours[i][0] != domain2.surrogate_neighbours[i/3][i%3] or \
+        if surrogate_neighbours[i][0] != \
+                domain2.surrogate_neighbours[i/3][i%3]or\
 			    surrogate_neighbours[i][1] !=\
                     domain2.surrogate_neighbours[(i+N)/3][(i+N)%3]or\
 			    surrogate_neighbours[i][2] !=\
@@ -361,7 +393,7 @@ def rearrange_domain_check(domain1, domain2):
 			    normals[i][3] != domain2.normals[(i+N*3)/6][(i+N*3)%6] or \
 			    normals[i][4] != domain2.normals[(i+N*4)/6][(i+N*4)%6] or \
 			    normals[i][5] != domain2.normals[(i+N*5)/6][(i+N*5)%6]:
-			cnt_surrnb+=1
+			cnt_norm +=1
 
 
 
@@ -369,17 +401,17 @@ def rearrange_domain_check(domain1, domain2):
     print "nb=%d, nb_edge=%d" % (cnt_nb, cnt_nbedge)
 
 if __name__ == "__main__":
-    from anuga_cuda.merimbula_data.generate_domain import domain_create
+    from anuga_cuda import generate_merimbula_domain
 
     from anuga_cuda.compute_fluxes.compute_fluxes import spe_bubble_sort
 
-    domain1 = domain_create()
-    #domain2 = domain_create()
+    domain1 = generate_merimbula_domain()
+    domain2 = generate_merimbula_domain()
     #sort_domain(domain2)
     #sort_domain_check(domain2)
 	
     #sort_domain(domain1)
     print " **** rearrange_domain **** "
-    domain2=rearrange_domain(domain1, False)
+    domain2=rearrange_domain(domain2, False)
     print " **** check domain ****"
     rearrange_domain_check(domain1, domain2)
