@@ -332,7 +332,7 @@ __global__ void compute_fluxes_central_structure_CUDA(
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
 
 
-    double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
+    double max_speed, max_speed_total=0 , length, zl, zr;
 
 
     int i, m, n;
@@ -459,14 +459,16 @@ __global__ void compute_fluxes_central_structure_CUDA(
     } // End edge i (and neighbour n)
 
 
-
-    inv_area = 1.0 / areas[k];
-    stage_explicit_update[k] *= inv_area;
-    xmom_explicit_update[k] *= inv_area;
-    ymom_explicit_update[k] *= inv_area;
-
     max_speed_array[k] =  max_speed_total;
+
+    max_speed_total = 1.0 / areas[k];
+    stage_explicit_update[k] *= max_speed_total;
+    xmom_explicit_update[k] *= max_speed_total;
+    ymom_explicit_update[k] *= max_speed_total;
+
 }
+
+
 
 #endif
 

@@ -70,6 +70,7 @@ class GPU_domain(Domain):
             using_gpu=False,
             cotesting=False,
             stream= True,
+            rearranged=False,
             domain=None): 
 
         if domain == None:
@@ -102,6 +103,7 @@ class GPU_domain(Domain):
 
         self.using_gpu = using_gpu
         self.cotesting = cotesting
+        self.rearranged = rearranged
         print '\n=== Device attributes'
         print 'Name:', dev.name()
         print 'Compute capability:', dev.compute_capability()
@@ -2113,6 +2115,7 @@ class GPU_domain(Domain):
                 self.cotesting_domain.cotesting = False
 
 
+
             self.stream = []
             if self.using_stream:
                 print " *** Enable Strem ***"
@@ -2121,6 +2124,15 @@ class GPU_domain(Domain):
             else:
                 for i in range(kbc.__len__()):
                     self.stream.append(None)
+            
+            
+
+            if self.rearranged:
+                print " *** Enable Rearraned Domain ***"
+                self = rearrange_domain(self)
+                if self.cotesting:
+                    sort_domain(self.cotesting_domain)
+
 
 
             """ Fix forcing_terms 
