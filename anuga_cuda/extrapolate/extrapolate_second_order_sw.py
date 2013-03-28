@@ -1486,8 +1486,7 @@ def extrapolate_second_order_sw_python(domain, ss=None, xs=None, ys=None):
 
 
 if __name__ == '__main__':
-    from anuga_cuda import generate_merimbula_domain, get_kernel_function_info
-
+    from anuga_cuda import *
 
 
     import pycuda.driver as drv
@@ -1498,8 +1497,16 @@ if __name__ == '__main__':
     from pycuda.compiler import SourceModule
     import numpy
 
+    using_rearranged_domain = True
+    using_python = False
 
+    domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(True)
+    if using_rearranged_domain:
+        domain2 = rearrange_domain(domain2)
+        sort_domain(domain1)
+
+
     domain2.equip_kernel_functions()
 
 
@@ -1562,7 +1569,6 @@ if __name__ == '__main__':
         extrapolate_second_order_sw_cuda_FALSE_second_order(domain2)
     
     
-    domain1 = generate_merimbula_domain()
     domain1.extrapolate_second_order_sw()
 
     stage_h1= domain1.quantities['stage']
@@ -1605,9 +1611,12 @@ if __name__ == '__main__':
     print res
     if not res.count(True) == res.__len__():
         for i in range(domain1.number_of_elements):
-            if not approx_cmp(svv1[i][0], svv2[i][0]) and \
-                    approx_cmp(svv1[i][1], svv2[i][1]) and \
-                    approx_cmp(svv1[i][2], svv2[i][2]):
+            #if not approx_equal(svv1[i][0], svv2[i][0]) and \
+            #        approx_equal(svv1[i][1], svv2[i][1]) and \
+            #        approx_equal(svv1[i][2], svv2[i][2]):
+            if not approx_equal(svv1[i][0], svv2[i/3][i%3]) and \
+                    approx_equal(svv1[i][1], svv2[(i+N)/3][(i+N)%3]) and \
+                    approx_equal(svv1[i][2], svv2[(i+2*N)/3][(i+2*N)%3]):
                 counter_s_vv += 1
                 if counter_s_vv < 10:
                     print i, stage_h1.vertex_values[i], stage_h2.vertex_values[i],\
@@ -1616,49 +1625,62 @@ if __name__ == '__main__':
             if xmom_h1.centroid_values[i] != xmom_h2.centroid_values[i]:
                 counter_x_cv += 1
 
-            if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
+            #if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
+            if xmom_h1.vertex_values[i][0] != \
+                    xmom_h2.vertex_values[i/3][i%3] or \
+                xmom_h1.vertex_values[i][1] != \
+                xmom_h2.vertex_values[(i+N)/3][(i+N)%3] or \
+                xmom_h1.vertex_values[i][2] != \
+                xmom_h2.vertex_values[(i+2*N)/3][(i+2*N)%3] :
                 counter_x_vv += 1
 
             if ymom_h1.centroid_values[i] != ymom_h2.centroid_values[i]:
                 counter_y_cv += 1
 
-            if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
+            #if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
+            if ymom_h1.vertex_values[i][0] != \
+                    ymom_h2.vertex_values[i/3][i%3] or \
+                ymom_h1.vertex_values[i][1] != \
+                ymom_h2.vertex_values[(i+N)/3][(i+N)%3] or \
+                ymom_h1.vertex_values[i][2] != \
+                ymom_h2.vertex_values[(i+2*N)/3][(i+2*N)%3] :
                 counter_y_vv += 1
 
         print "*** # diff %d %d %d %d %d" % \
             (counter_s_vv, counter_x_cv, counter_x_vv, counter_y_cv, counter_y_vv)
     
-    
-    extrapolate_second_order_sw_python(domain2) 
-    res = []
-    res.append( numpy.allclose(svv1, svv2))
-    res.append(numpy.allclose(xmom_h1.centroid_values,xmom_h2.centroid_values))
-    res.append(numpy.allclose(xmom_h1.vertex_values, xmom_h2.vertex_values))
-    res.append(numpy.allclose(ymom_h1.centroid_values, ymom_h2.centroid_values))
-    res.append(numpy.allclose(ymom_h1.vertex_values, ymom_h2.vertex_values))
-    print res
-    if not res.count(True) == res.__len__():
-        for i in range(domain1.number_of_elements):
-            if not numpy.allclose(svv1[i], svv2[i]) :
-                counter_s_vv += 1
-                if counter_s_vv < 10:
-                    print i, stage_h1.vertex_values[i], \
-                        stage_h2.vertex_values[i],\
-                        (stage_h1.vertex_values[i] == stage_h2.vertex_values[i])
+  
+    if using_python:
+        extrapolate_second_order_sw_python(domain2) 
+        res = []
+        res.append( numpy.allclose(svv1, svv2))
+        res.append(numpy.allclose(xmom_h1.centroid_values,xmom_h2.centroid_values))
+        res.append(numpy.allclose(xmom_h1.vertex_values, xmom_h2.vertex_values))
+        res.append(numpy.allclose(ymom_h1.centroid_values, ymom_h2.centroid_values))
+        res.append(numpy.allclose(ymom_h1.vertex_values, ymom_h2.vertex_values))
+        print res
+        if not res.count(True) == res.__len__():
+            for i in range(domain1.number_of_elements):
+                if not numpy.allclose(svv1[i], svv2[i]) :
+                    counter_s_vv += 1
+                    if counter_s_vv < 10:
+                        print i, stage_h1.vertex_values[i], \
+                            stage_h2.vertex_values[i],\
+                            (stage_h1.vertex_values[i] == stage_h2.vertex_values[i])
 
-            if xmom_h1.centroid_values[i] != xmom_h2.centroid_values[i]:
-                counter_x_cv += 1
+                if xmom_h1.centroid_values[i] != xmom_h2.centroid_values[i]:
+                    counter_x_cv += 1
 
-            if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
-                counter_x_vv += 1
+                if (xmom_h1.vertex_values[i] != xmom_h2.vertex_values[i]).any():
+                    counter_x_vv += 1
 
-            if ymom_h1.centroid_values[i] != ymom_h2.centroid_values[i]:
-                counter_y_cv += 1
+                if ymom_h1.centroid_values[i] != ymom_h2.centroid_values[i]:
+                    counter_y_cv += 1
 
-            if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
-                counter_y_vv += 1
+                if (ymom_h1.vertex_values[i] != ymom_h2.vertex_values[i]).any():
+                    counter_y_vv += 1
 
-        print "*** # diff %d %d %d %d %d" % \
-            ( counter_s_vv, counter_x_cv, 
-                counter_x_vv, counter_y_cv, counter_y_vv)
-    
+            print "*** # diff %d %d %d %d %d" % \
+                ( counter_s_vv, counter_x_cv, 
+                    counter_x_vv, counter_y_cv, counter_y_vv)
+        

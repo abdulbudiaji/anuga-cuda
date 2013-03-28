@@ -1,9 +1,19 @@
+#!/usr/bin/env python
+
+
 import numpy
 from pycuda import driver as drv
-from anuga_cuda import generate_merimbula_domain, get_kernel_function_info
+from anuga_cuda import *
+
+using_rearranged_domain=True
 
 domain1 = generate_merimbula_domain()
 domain2 = generate_merimbula_domain(gpu=True)
+
+if using_rearranged_domain:
+    domain2 = rearrange_domain(domain2)
+    sort_domain(domain1)
+
 
 domain1.protect_against_infinitesimal_and_negative_heights()
 
@@ -45,9 +55,6 @@ x1 = domain1.quantities['xmomentum'].centroid_values
 y1 = domain1.quantities['ymomentum'].centroid_values
 x2 = domain2.quantities['xmomentum'].centroid_values
 y2 = domain2.quantities['ymomentum'].centroid_values
-
-print x1, y1
-print x2, y2
 
 for i in range(N):
     if x1[i] != x2[i]:

@@ -32,24 +32,40 @@ __global__ void evaluate_segment_reflective(
          id_vol = vol_ids[k],
          id_edge= edge_ids[k];
 
+#ifndef REARRANGED_DOMAIN
     double n1 = normals[id_vol*6 + id_edge*2],
-            n2 = normals[id_vol*6 + id_edge*2 + 1];
-    
+           n2 = normals[id_vol*6 + id_edge*2 + 1];
     double q1 = xmom_edge_values[id_vol*3 + id_edge],
-            q2 = ymom_edge_values[id_vol*3 + id_edge];
+           q2 = ymom_edge_values[id_vol*3 + id_edge];
+#else
+    double n1 = normals[id_vol + id_edge*2*N],
+           n2 = normals[id_vol + (id_edge*2+1)*N];
+    double q1 = xmom_edge_values[id_vol + id_edge*N],
+           q2 = ymom_edge_values[id_vol + id_edge*N];
+#endif
     
     double r1 = -q1*n1 - q2*n2,
             r2 = -q1*n2 + q2*n1;
 
+#ifndef REARRANGED_DOMAIN
     stage_boundary_values[id] = stage_edge_values[id_vol*3 + id_edge];
     bed_boundary_values[id] = bed_edge_values[id_vol*3 + id_edge];
     height_boundary_values[id] = height_edge_values[id_vol*3 + id_edge];
 
+    q1 = xvel_edge_values[id_vol*3 + id_edge];
+    q2 = yvel_edge_values[id_vol*3 + id_edge];
+#else
+    stage_boundary_values[id] = stage_edge_values[id_vol + id_edge*N];
+    bed_boundary_values[id] = bed_edge_values[id_vol + id_edge*N];
+    height_boundary_values[id] = height_edge_values[id_vol + id_edge*N];
+
+    q1 = xvel_edge_values[id_vol + id_edge*N];
+    q2 = yvel_edge_values[id_vol + id_edge*N];
+#endif
+
     xmom_boundary_values[id] = n1*r1 - n2*r2;
     ymom_boundary_values[id] = n2*r1 + n1*r2;
 
-    q1 = xvel_edge_values[id_vol*3 + id_edge];
-    q2 = yvel_edge_values[id_vol*3 + id_edge];
 
     r1 = q1*n1 + q2*n2;
     r2 = q1*n2 - q2*n1;

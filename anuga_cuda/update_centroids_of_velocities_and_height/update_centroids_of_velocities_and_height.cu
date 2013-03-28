@@ -50,5 +50,4 @@ __global__ void update_centroids_of_velocities_and_height(
     factor = h_B[k] / (h_B[k]*h_B[k] + H0);
     u_B[k] = uh_B[k]*factor;
     v_B[k] = vh_B[k]*factor;
-
 }

@@ -1,3 +1,5 @@
+#define REARRANGED_DOMAIN
+
 __global__ void _manning_friction_flat(
         int N,
         double g, 
@@ -11,22 +13,29 @@ __global__ void _manning_friction_flat(
         double* xmom, 
         double* ymom) 
 {
-
     const int k = 
         threadIdx.x+threadIdx.y*blockDim.x+
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     if ( k >= N )
         return;
+#ifndef REARRANGED_DOMAIN
     int k3;
+#endif
     double S, h, z, z0, z1, z2;
 
     //for (k = 0; k < N; k++) {
     if (eta[k] > eps) {
+#ifndef REARRANGED_DOMAIN
         k3 = 3 * k;
-        // Get bathymetry
         z0 = zv[k3 + 0];
         z1 = zv[k3 + 1];
         z2 = zv[k3 + 2];
+#else
+        z0 = zv[k];
+        z1 = zv[k + N];
+        z2 = zv[k + 2*N];
+#endif
+
         z = (z0 + z1 + z2) / 3.0;
         h = w[k] - z;
         if (h >= eps) {
@@ -59,21 +68,22 @@ __global__ void _manning_friction_sloped(
         double* xmom_update, 
         double* ymom_update) 
 {
-
     const int k = 
         threadIdx.x+threadIdx.y*blockDim.x+
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     if ( k >= N )
         return;
+#ifndef REARRANGED_DOMAIN
     int k3, k6;
+#endif
     double S, h, z, z0, z1, z2, zs, zx, zy;
     double x0, y0, x1, y1, x2, y2;
     double det;
 
     //for (k = 0; k < N; k++) {
     if (eta[k] > eps) {
+#ifndef REARRANGED_DOMAIN
         k3 = 3 * k;
-        // Get bathymetry
         z0 = zv[k3 + 0];
         z1 = zv[k3 + 1];
         z2 = zv[k3 + 2];
@@ -87,6 +97,19 @@ __global__ void _manning_friction_sloped(
         y1 = x[k6 + 3];
         x2 = x[k6 + 4];
         y2 = x[k6 + 5];
+#else
+        z0 = zv[k];
+        z1 = zv[k + N];
+        z2 = zv[k + 2*N];
+
+        // Compute bed slope
+        x0 = x[k];
+        y0 = x[k + N];
+        x1 = x[k + 2*N];
+        y1 = x[k + 3*N];
+        x2 = x[k + 4*N];
+        y2 = x[k + 5*N];
+#endif
 
         //_gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
         det = (y2-y0)*(x1-x0) - (y1-y0)*(x2-x0);

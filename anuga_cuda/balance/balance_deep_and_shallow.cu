@@ -1,3 +1,5 @@
+#define REARRANGED_DOMAIN
+
 __global__ void  _balance_deep_and_shallow(
         int N,
         double H0,
@@ -18,7 +20,7 @@ __global__ void  _balance_deep_and_shallow(
     const int k = 
         threadIdx.x+threadIdx.y*blockDim.x+
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
-    int  k3, i;
+    int i;
 
     double dz, hmin, alpha, h_diff, hc_k;
     double epsilon = 1.0e-6; // FIXME: Temporary measure
@@ -38,22 +40,34 @@ __global__ void  _balance_deep_and_shallow(
         // and it is independent of dimension
         // In the 1d case zc = (z0+z1)/2
         // In the 2d case zc = (z0+z1+z2)/3
+#ifndef REARRANGED_DOMAIN
+        int k3 = 3 * k;
+#endif
 
-        k3 = 3 * k;
         hc_k = wc[k] - zc[k]; // Centroid value at triangle k
 
         dz = 0.0;
         if (tight_slope_limiters == 0) {
             // FIXME: Try with this one precomputed
             for (i = 0; i < 3; i++) {
+#ifndef REARRANGED_DOMAIN
                 dz = max(dz, fabs(zv[k3 + i] - zc[k]));
+#else   
+                dz = max(dz, fabs(zv[k + i*N] -zc[k]));
+#endif
             }
         }
 
         // Calculate depth at vertices (possibly negative here!)
+#ifndef REARRANGED_DOMAIN
         hv[0] = wv[k3] - zv[k3];
         hv[1] = wv[k3 + 1] - zv[k3 + 1];
         hv[2] = wv[k3 + 2] - zv[k3 + 2];
+#else   
+        hv[0] = wv[k] - zv[k];
+        hv[1] = wv[k + N] - zv[k + N];
+        hv[2] = wv[k + 2*N] - zv[k + 2*N];
+#endif
 
         // Calculate minimal depth across all three vertices
         hmin = min(hv[0], min(hv[1], hv[2]));
@@ -136,8 +150,11 @@ __global__ void  _balance_deep_and_shallow(
 
         if (alpha < 1) {
             for (i = 0; i < 3; i++) {
-
+#ifndef REARRANGED_DOMAIN
                 wv[k3 + i] = zv[k3 + i] + (1 - alpha) * hc_k + alpha * hv[i];
+#else   
+                wv[k + i*N] = zv[k + i*N] + (1 - alpha) * hc_k + alpha * hv[i];
+#endif
 
                 // Update momentum at vertices
                 if (use_centroid_velocities == 1) {
@@ -154,11 +171,17 @@ __global__ void  _balance_deep_and_shallow(
                         vc = 0.0;
                     }
 
-                    // Vertex momenta guaranteed to be consistent with depth guaranteeing
                     // controlled speed
-                    hv[i] = wv[k3 + i] - zv[k3 + i]; // Recompute (balanced) vertex depth
+                    // Recompute (balanced) vertex depth
+#ifndef REARRANGED_DOMAIN
+                    hv[i] = wv[k3 + i] - zv[k3 + i]; 
                     xmomv[k3 + i] = uc * hv[i];
                     ymomv[k3 + i] = vc * hv[i];
+#else   
+                    hv[i] = wv[k + i*N] - zv[k + i*N]; 
+                    xmomv[k + i*N] = uc * hv[i];
+                    ymomv[k + i*N] = vc * hv[i];
+#endif
 
                 } else {
                     // Update momentum as a linear combination of
@@ -172,8 +195,13 @@ __global__ void  _balance_deep_and_shallow(
                     // and ymomc as they'll be more representative first order
                     // values.
 
-                    xmomv[k3 + i] = (1 - alpha) * xmomc[k] + alpha * xmomv[k3 + i];
-                    ymomv[k3 + i] = (1 - alpha) * ymomc[k] + alpha * ymomv[k3 + i];
+#ifndef REARRANGED_DOMAIN
+                    xmomv[k3 + i] = (1 - alpha) * xmomc[k] + alpha *xmomv[k3 + i];
+                    ymomv[k3 + i] = (1 - alpha) * ymomc[k] + alpha *ymomv[k3 + i];
+#else   
+                    xmomv[k + i*N] = (1-alpha) * xmomc[k] + alpha *xmomv[k + i*N];
+                    ymomv[k + i*N] = (1-alpha) * ymomc[k] + alpha *ymomv[k + i*N];
+#endif
 
                 }
             }
