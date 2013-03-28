@@ -3,11 +3,12 @@
 
 import numpy
 from pycuda import driver as drv
-from anuga_cuda import generate_merimbula_domain
-from anuga_cuda import generate_cairns_domain, get_kernel_function_info
+from anuga_cuda import *
+
 
 using_tsunami_domain = False
-testing_sloped = True
+testing_sloped = False
+using_rearranged_domain = True
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
@@ -15,6 +16,11 @@ if using_tsunami_domain:
 else:
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(gpu=True)
+
+if using_rearranged_domain:
+    domain2 = rearrange_domain(domain2)
+    sort_domain(domain1)
+
 
 domain2.equip_kernel_functions()
 

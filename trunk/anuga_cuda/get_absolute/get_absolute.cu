@@ -9,6 +9,12 @@ __global__ void get_absolute(
             (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     if (k >= N )
         return;
-    points[k*2] += xllcorner;
-    points[k*2 + 1] += yllcorner;
+#ifndef REARRANGED_DOMAIN
+    int k2 = k*2;
+    points[k2] += xllcorner;
+    points[k2 + 1] += yllcorner;
+#else
+    points[k] += xllcorner;
+    points[k + N] += yllcorner;
+#endif
 }
