@@ -1,4 +1,5 @@
 gravity = gravity
+compute_fluxes = compute_fluxes
 
 HMPPRT_PATH = /home/devres/john/openHMPP/
 
@@ -12,13 +13,23 @@ HMPP_FLAGS20 = -e --nvcc-options -Xptxas=-v,-arch=sm_15 -c --force
 CUDA_ENV_VAR = CUDA_PROFILE=1 
 HMPP_ENV_VAR = HMPPRT_LOG_LEVEL=info HMPPRT_NO_FALLBACK=0
 
-all: gravity
 
-gravity: $(gravity).exe
-	$(CUDA_ENV_VAR) $(HMPPRT_PATH)$(gravity).exe
+all: gravity compute_fluxes
 
-$(gravity).exe: $(gravity).c
+gravity: g.13
+	#$(CUDA_ENV_VAR) $(HMPP_ENV_VAR) $(HMPPRT_PATH)g.13
+	$(CUDA_ENV_VAR) $(HMPPRT_PATH)g.13
+
+g.13: $(gravity).c
 	capsmc $(HMPP_FLAGS13) $(CC) $(CFLAGS) $^ -o $@
+
+compute_fluxes: cf.13
+	#$(CUDA_ENV_VAR) $(HMPP_ENV_VAR) $(HMPPRT_PATH)cf.13
+	$(CUDA_ENV_VAR) $(HMPPRT_PATH)cf.13
+
+cf.13: $(compute_fluxes).c
+	capsmc $(HMPP_FLAGS13) $(CC) $(CFLAGS) $^ -o $@
+
 
 
 clean:

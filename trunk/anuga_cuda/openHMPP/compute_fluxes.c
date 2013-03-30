@@ -5,6 +5,9 @@
 #include<assert.h>
 
 
+#define TOLERANCE_RANGE 1e-14
+
+
 double max(double a, double b)
 { return (a >= b) ? a : b; }
 
@@ -109,7 +112,9 @@ double _compute_speed(double *uh,
 }
 
 
-int _flux_function_central(double *q_left, double *q_right,
+int _flux_function_central(
+#ifdef USING_ORIGINAL_CUDA
+        double *q_left, double *q_right,
         double z_left, double z_right,
         double n1, double n2,
         double epsilon,
@@ -118,6 +123,26 @@ int _flux_function_central(double *q_left, double *q_right,
         double g,
         double *edgeflux, 
         double *max_speed) 
+#else
+        double q_left0, 
+        double q_left1, 
+        double q_left2, 
+        double q_right0,
+        double q_right1,
+        double q_right2,
+        double z_left, 
+        double z_right,
+        double n1, 
+        double n2,
+        double epsilon,
+        double h0,
+        double limiting_threshold,
+        double g,
+        double *edgeflux0, 
+        double *edgeflux1, 
+        double *edgeflux2, 
+        double *max_speed) 
+#endif
 {
     int i;
 
@@ -131,6 +156,7 @@ int _flux_function_central(double *q_left, double *q_right,
     double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
     // Copy conserved quantities to protect from modification
+#ifdef USING_ORIGINAL_CUDA
     q_left_rotated[0] = q_left[0];
     q_right_rotated[0] = q_right[0];
     q_left_rotated[1] = q_left[1];
@@ -146,6 +172,23 @@ int _flux_function_central(double *q_left, double *q_right,
     //_rotate(q_right_rotated, n1, n2);
     q_right_rotated[1] = n1*q_right[1] + n2*q_right[2];
     q_right_rotated[2] = -n2*q_right[1] + n1*q_right[2];
+#else
+    q_left_rotated[0] = q_left0;
+    q_right_rotated[0] = q_right0;
+    q_left_rotated[1] = q_left1;
+    q_right_rotated[1] = q_right1;
+    q_left_rotated[2] = q_left2;
+    q_right_rotated[2] = q_right2;
+
+    // Align x- and y-momentum with x-axis
+    //_rotate(q_left_rotated, n1, n2);
+    q_left_rotated[1] = n1*q_left1 + n2*q_left2;
+    q_left_rotated[2] = -n2*q_left1 + n1*q_left2;
+
+    //_rotate(q_right_rotated, n1, n2);
+    q_right_rotated[1] = n1*q_right1 + n2*q_right2;
+    q_right_rotated[2] = -n2*q_right1 + n1*q_right2;
+#endif
 
 
     if (fabs(z_left - z_right) > 1.0e-10) {
@@ -224,20 +267,40 @@ int _flux_function_central(double *q_left, double *q_right,
     }
     else {
         inverse_denominator = 1.0 / denom;
+#ifdef USING_ORIGINAL_CUDA
         for (i = 0; i < 3; i++) {
             edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
-            edgeflux[i] += s_max * s_min * (q_right_rotated[i] - q_left_rotated[i]);
+            edgeflux[i] += s_max *s_min *(q_right_rotated[i] -q_left_rotated[i]);
             edgeflux[i] *= inverse_denominator;
         }
+#else
+        *edgeflux0 = s_max * flux_left[0] - s_min * flux_right[0];
+        *edgeflux0 += s_max *s_min *(q_right_rotated[0] -q_left_rotated[0]);
+        *edgeflux0 *= inverse_denominator;
+
+        *edgeflux1 = s_max * flux_left[1] - s_min * flux_right[1];
+        *edgeflux1 += s_max *s_min *(q_right_rotated[1] -q_left_rotated[1]);
+        *edgeflux1 *= inverse_denominator;
+
+        *edgeflux2 = s_max * flux_left[2] - s_min * flux_right[2];
+        *edgeflux2 += s_max *s_min *(q_right_rotated[2] -q_left_rotated[2]);
+        *edgeflux2 *= inverse_denominator;
+#endif
 
         // Maximal wavespeed
         *max_speed = max(fabs(s_max), fabs(s_min));
 
         // Rotate back
         //_rotate(edgeflux, n1, -n2);
+#ifdef USING_ORIGINAL_CUDA
         temp = edgeflux[1];
         edgeflux[1] = n1* temp -n2*edgeflux[2];
         edgeflux[2] = n2*temp + n1*edgeflux[2];
+#else
+        temp = *edgeflux1;
+        *edgeflux1 = n1* temp -n2* *edgeflux2;
+        *edgeflux2 = n2*temp + n1* *edgeflux2;
+#endif
     }
 
     return 0;
@@ -256,49 +319,55 @@ int _flux_function_central(double *q_left, double *q_right,
 
 #pragma hmpp cf_central codelet, target=CUDA args[*].transfer=atcall
 void compute_fluxes_central_structure_CUDA(
-        double * timestep,
-        int * neighbours,
-        int * neighbour_edges,
-        double * normals,
-        double * edgelengths,
-        double * radii,
-        double * areas,
-        int * tri_full_flag,
-        double * stage_edge_values,
-        double * xmom_edge_values,
-        double * ymom_edge_values,
-        double * bed_edge_values,
-        double * stage_boundary_values,
-        double * xmom_boundary_values,
-        double * ymom_boundary_values,
-        double * stage_explicit_update,
-        double * xmom_explicit_update,
-        double * ymom_explicit_update, 
-        double * max_speed_array,
-
         int N,
+        int N3,
+        int N6,
         int N2,
+
+        double timestep[N],
+        int neighbours[N3],
+        int neighbour_edges[N3],
+        double normals[N6],
+        double edgelengths[N3],
+        double radii[N],
+        double areas[N],
+        int tri_full_flag[N],
+        double stage_edge_values[N3],
+        double xmom_edge_values[N3],
+        double ymom_edge_values[N3],
+        double bed_edge_values[N3],
+        double stage_boundary_values[N2],
+        double xmom_boundary_values[N2],
+        double ymom_boundary_values[N2],
+        double stage_explicit_update[N],
+        double xmom_explicit_update[N],
+        double ymom_explicit_update[N],
+        double max_speed_array[N],
+
         double evolve_max_timestep,
-        double  g,
+        double g,
         double epsilon,
         double h0,
         double limiting_threshold,
         int optimise_dry_cells)
 {
-    double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
-
-    int i, m, n, k;
-    int ki, nm = 0, ki2; // Index shorthands
-
-    //double ql[3], qr[3], edgeflux[3];
-    double ql0, ql1, ql2,
-            qr0, qr1, qr2,
-            edgeflux0, edgeflux1, edgeflux2;
-
+    int k;
     for(k=0; k<N; k++)
     {
+        int i, m, n;
+        int ki, nm = 0, ki2;
+
+        double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
         timestep[k] = evolve_max_timestep;
-        max_speed_total = 0.0;
+
+#ifdef USING_ORIGINAL_CUDA
+        double ql[3], qr[3], edgeflux[3];
+#else
+        double ql0, ql1, ql2,
+               qr0, qr1, qr2,
+               edgeflux0, edgeflux1, edgeflux2;
+#endif
+
         // Loop through neighbours and compute edge flux for each
         for (i = 0; i < 3; i++) 
         {
@@ -306,39 +375,61 @@ void compute_fluxes_central_structure_CUDA(
 
             n = neighbours[ki];
 
+#ifdef USING_ORIGINAL_CUDA
             ql[0] = stage_edge_values[ki];
             ql[1] = xmom_edge_values[ki];
             ql[2] = ymom_edge_values[ki];
+#else   
+            ql0 = stage_edge_values[ki];
+            ql1 = xmom_edge_values[ki];
+            ql2 = ymom_edge_values[ki];
+#endif
             zl = bed_edge_values[ki];
 
             if (n < 0) {
                 m = -n - 1; // Convert negative flag to boundary index
 
+#ifdef USING_ORIGINAL_CUDA
                 qr[0] = stage_boundary_values[m];
                 qr[1] = xmom_boundary_values[m];
                 qr[2] = ymom_boundary_values[m];
+#else   
+                qr0 = stage_boundary_values[m];
+                qr1 = xmom_boundary_values[m];
+                qr2 = ymom_boundary_values[m];
+#endif
                 zr = zl; // Extend bed elevation to boundary
             } else {
                 m = neighbour_edges[ki];
                 nm = n * 3 + m; // Linear index (triangle n, edge m)
 
+#ifdef USING_ORIGINAL_CUDA
                 qr[0] = stage_edge_values[nm];
                 qr[1] = xmom_edge_values[nm];
                 qr[2] = ymom_edge_values[nm];
+#else   
+                qr0 = stage_edge_values[nm];
+                qr1 = xmom_edge_values[nm];
+                qr2 = ymom_edge_values[nm];
+#endif
                 zr = bed_edge_values[nm];
             }
 
             if (optimise_dry_cells){
+#ifdef USING_ORIGINAL_CUDA
                 if ( fabs(ql[0] - zl) < epsilon &&
                         fabs(qr[0] - zr) < epsilon) {
+#else   
+                if ( fabs(ql0 - zl) < epsilon &&
+                        fabs(qr0 - zr) < epsilon) {
+#endif
                     max_speed = 0.0;
                     continue;
                 }
             }
 
             ki2 = 2 * ki; //k*6 + i*2
-
-
+#ifdef USING_ORIGINAL_CUDA
             _flux_function_central(ql, qr, zl, zr,
                     normals[ki2], normals[ki2 + 1],
                     epsilon, h0, limiting_threshold, g,
@@ -350,12 +441,32 @@ void compute_fluxes_central_structure_CUDA(
             edgeflux[2] *= length;
 
 
-
             stage_explicit_update[k] -= edgeflux[0];
             xmom_explicit_update[k] -= edgeflux[1];
             ymom_explicit_update[k] -= edgeflux[2];
+#else   
+            _flux_function_central(
+                    ql0, ql1, ql2, 
+                    qr0, qr1, qr2,
+                    zl, 
+                    zr,
+                    normals[ki2], normals[ki2 + 1],
+                    epsilon, h0, limiting_threshold, g,
+                    &edgeflux0,
+                    &edgeflux1,
+                    &edgeflux2,
+                    &max_speed);
+
+            length = edgelengths[ki];
+            edgeflux0 *= length;
+            edgeflux1 *= length;
+            edgeflux2 *= length;
 
 
+            stage_explicit_update[k] -= edgeflux0;
+            xmom_explicit_update[k] -= edgeflux1;
+            ymom_explicit_update[k] -= edgeflux2;
+#endif
             if (tri_full_flag[k] == 1) {
                 //if (max_speed > elements[Depsilon]) {
                 if ( max_speed > epsilon) {
@@ -371,12 +482,12 @@ void compute_fluxes_central_structure_CUDA(
             }
         } // End edge i (and neighbour n)
 
-            inv_area = 1.0 / areas[k];
-            stage_explicit_update[k] *= inv_area;
-            xmom_explicit_update[k] *= inv_area;
-            ymom_explicit_update[k] *= inv_area;
+        inv_area = 1.0 / areas[k];
+        stage_explicit_update[k] *= inv_area;
+        xmom_explicit_update[k] *= inv_area;
+        ymom_explicit_update[k] *= inv_area;
 
-            max_speed_array[k] =  max_speed_total;
+        max_speed_array[k] =  max_speed_total;
     }
 }
 
@@ -484,7 +595,6 @@ void compute_fluxes_central_structure_cuda_single(
                     continue;
                 }
             }
-            
             n1 = normals[2*ki];
             n2 = normals[2*ki + 1];
             /////////////////////////////////////////////////////////
@@ -640,7 +750,6 @@ void compute_fluxes_central_structure_cuda_single(
             
             //////////////////////////////////////////////////////
 
-
             length = edgelengths[ki];
             edgeflux_0 *= length;
             edgeflux_1 *= length;
@@ -664,9 +773,9 @@ void compute_fluxes_central_structure_cuda_single(
                     }
                 }
             }
-            //max_speed_total = max(max_speed_total, max_speed);
-            if (max_speed_total < max_speed)
-                max_speed_total = max_speed;
+            if (ni < 0 ||  ni > k){
+                max_speed_total = max(max_speed_total, max_speed);
+            }
         }
 
         inv_area = 1.0 / areas[k];
@@ -855,9 +964,16 @@ int main(int argc, char *argv[])
         scanf("%lf\n", yb+i);
     }
 
-    /*
+    cnt_m = 0;
+    for(i=0; i < N; i++)
+    {
+        if (max_speed_array[i] != test_max_speed_array[i])
+            cnt_m ++;
+    }
+    printf("\n --> Test initial input %d\n", cnt_m);
+    
     printf(" --> Enter Kernel\n");
-    #pragma hmpp cf_central callsite
+    #pragma hmpp cf_central_single callsite
     compute_fluxes_central_structure_cuda_single(
             N, 
             N*3,
@@ -890,37 +1006,86 @@ int main(int argc, char *argv[])
             h0,
             limiting_threshold,
             optimise_dry_cells);
-    */
+
+    /*
     printf(" --> Enter C\n");
     compute_fluxes_central_structure_cuda_single( N, N*3, N*6, N2, timestep, n, ne, normals, el, radii, a, tri, se, xe, ye, be, sb, xb, yb, su, xu, yu, max_speed_array, evolve_max_timestep, g, epsilon, h0, limiting_threshold, optimise_dry_cells);
 
 
 
+    printf(" --> Enter Kernel\n");
+    #pragma hmpp cf_central callsite
+    compute_fluxes_central_structure_CUDA(
+            N, 
+            N*3,
+            N*6,
+            N2,
 
+            timestep,
+            n,
+            ne,
+            normals,
+            el,
+            radii,
+            a,
+            tri,
+            se,
+            xe,
+            ye,
+            be,
+            sb,
+            xb,
+            yb,
+            su,
+            xu,
+            yu,
+            max_speed_array,
+
+            evolve_max_timestep, 
+            g, 
+            epsilon,
+            h0,
+            limiting_threshold,
+            optimise_dry_cells);
+
+
+    */
 
     printf(" --> Enter original C\n");
-    compute_fluxes_central_structure_CUDA( test_timestep, n, ne, normals, el, radii, a, tri, se, xe, ye, be, sb, xb, yb, test_stage_explicit_update, test_xmom_explicit_update, test_ymom_explicit_update, test_max_speed_array, N, N2, evolve_max_timestep, g, epsilon, h0, limiting_threshold, optimise_dry_cells);
-    for (i=0; i < N; i++)
+    compute_fluxes_central_structure_CUDA( 
+            N, N*3, N*6, N2, 
+            test_timestep, n, ne, normals, el, radii, a, tri, 
+            se, xe, ye, be, sb, xb, yb, 
+            test_stage_explicit_update, 
+            test_xmom_explicit_update, 
+            test_ymom_explicit_update, 
+            test_max_speed_array, 
+            evolve_max_timestep, g, epsilon, h0, limiting_threshold, 
+            optimise_dry_cells);
+
+
+
+    for (cnt_s=cnt_x=cnt_y=cnt_m=i=0; i < N; i++)
     {
-        if (su[i] != test_stage_explicit_update[i])
+        if ( fabs(su[i] - test_stage_explicit_update[i]) >= TOLERANCE_RANGE)
         {
             cnt_s++;
             if (cnt_s <= 10)
                 printf(" sta %d %lf %lf\n", i, su[i], test_stage_explicit_update[i]);
         }
-        if (xu[i] != test_xmom_explicit_update[i])
+        if ( fabs(xu[i] - test_xmom_explicit_update[i]) >= TOLERANCE_RANGE)
         {
             cnt_x++;
             if (cnt_x <= 10)
                 printf(" xmom %d %lf %lf\n", i, xu[i], test_xmom_explicit_update[i]);
         }
-        if (yu[i] != test_ymom_explicit_update[i])
+        if ( fabs(yu[i] - test_ymom_explicit_update[i]) >= TOLERANCE_RANGE)
         {
             cnt_y++;
             if (cnt_y <= 10)
                 printf(" ymom %d %lf %lf\n", i, yu[i], test_ymom_explicit_update[i]);
         }
-        if (max_speed_array[i] != test_max_speed_array[i])
+        if ( fabs(max_speed_array[i] -test_max_speed_array[i]) >=TOLERANCE_RANGE)
         {    
             cnt_m++;
             if (cnt_m <= 10)
