@@ -5,7 +5,7 @@
 #include<assert.h>
 
 
-#define TOLERANCE_RANGE 1e-14
+#define TOLERANCE_RANGE 1e-8
 
 
 double max(double a, double b)
