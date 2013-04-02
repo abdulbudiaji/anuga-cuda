@@ -72,7 +72,7 @@ void gravity_wb(
     double wx, wy, det, hh0, hh1,hh2;
     double sidex_0, sidex_1, sidex_2;
     double sidey_0, sidey_1, sidey_2;
-    double area, n0, n1, fact;
+    double area;
 
 
 
@@ -241,6 +241,51 @@ void gravity_wb_orig(
 }
 
 
+
+void gravity_call(
+        int n, int n3, int n6, 
+        DATA_TYPE xmom_explicit_update[n], 
+        DATA_TYPE ymom_explicit_update[n], 
+
+        DATA_TYPE stage_vertex_values[n3],
+        DATA_TYPE stage_edge_values[n3],
+        DATA_TYPE stage_centroid_values[n],
+
+        DATA_TYPE bed_edge_values[n3],
+        DATA_TYPE bed_centroid_values[n],
+
+        DATA_TYPE vertex_coordinates[n6],
+
+        DATA_TYPE normals[n6],
+        DATA_TYPE areas[n],
+        DATA_TYPE edgelengths[n3],
+
+        DATA_TYPE g )
+{
+    #pragma hmpp gravity callsite
+    gravity_wb( n, n3, n6, 
+        xmom_explicit_update,
+        ymom_explicit_update,
+        
+        stage_vertex_values,
+        stage_edge_values,
+        stage_centroid_values,
+        
+        bed_edge_values,
+        bed_centroid_values,
+        
+        vertex_coordinates,
+        
+        normals,
+        areas,
+        edgelengths,
+        
+        g);
+}
+
+
+
+#ifdef ISOLATING_TEST
 int main( int argc, char* argv[] ){
     int n;   /* vector length */
     DATA_TYPE g = 9.8;
@@ -388,3 +433,4 @@ int main( int argc, char* argv[] ){
     printf( "%d  %derrors found\n", errs_x, errs_y );
     return errs_x + errs_y;
 }
+#endif
