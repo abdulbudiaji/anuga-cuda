@@ -1011,6 +1011,7 @@ int main(int argc, char *argv[])
     printf(" --> Enter C\n");
     compute_fluxes_central_structure_cuda_single( N, N*3, N*6, N2, timestep, n, ne, normals, el, radii, a, tri, se, xe, ye, be, sb, xb, yb, su, xu, yu, max_speed_array, evolve_max_timestep, g, epsilon, h0, limiting_threshold, optimise_dry_cells);
 
+    */
 
 
     printf(" --> Enter Kernel\n");
@@ -1049,7 +1050,6 @@ int main(int argc, char *argv[])
             optimise_dry_cells);
 
 
-    */
 
     printf(" --> Enter original C\n");
     compute_fluxes_central_structure_CUDA( 
