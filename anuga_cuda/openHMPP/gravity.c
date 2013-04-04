@@ -285,7 +285,7 @@ void gravity_call(
 
 
 
-#ifdef ISOLATING_TEST
+#ifdef USING_MAIN
 int main( int argc, char* argv[] ){
     int n;   /* vector length */
     DATA_TYPE g = 9.8;

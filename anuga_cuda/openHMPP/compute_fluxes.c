@@ -788,6 +788,7 @@ void compute_fluxes_central_structure_cuda_single(
 }
 
 
+#ifdef USING_MAIN
 int main(int argc, char *argv[])
 {
     int N, N2, optimise_dry_cells;
@@ -1094,4 +1095,4 @@ int main(int argc, char *argv[])
     }
     printf("se:%d  xe:%d  ye:%d  max:%d errors found\n", cnt_s, cnt_x, cnt_y, cnt_m);
 }
-
+#endif
