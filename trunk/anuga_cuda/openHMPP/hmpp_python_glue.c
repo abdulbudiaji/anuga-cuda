@@ -60,7 +60,32 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
                 "Attribute self.beta_w must be in the interval [0, 2]\n");
         return NULL;
     }
-    
+/*    
+    #pragma hmpp gravity callsite
+    gravity_wb(
+        D.number_of_elements,
+        D.number_of_elements * 3,
+        D.number_of_elements * 6,
+        D.xmom_explicit_update,
+        D.ymom_explicit_update,
+
+        D.stage_vertex_values,
+        D.stage_edge_values,
+        D.stage_centroid_values,
+
+        D.bed_edge_values,
+        D.bed_centroid_values,
+
+        D.vertex_coordinates,
+
+        D.normals,
+        D.areas,
+        D.edgelengths,
+
+        D.g
+        );
+*/
+
     gravity_call(
         D.number_of_elements,
         D.number_of_elements * 3,
