@@ -16,7 +16,7 @@ HMPP_ENV_VAR = HMPPRT_LOG_LEVEL=info HMPPRT_NO_FALLBACK=0
 
 
 #hmpp_python_glue.so : hmpp_python_glue.o gravity.o
-#	capsmc ${HMPP_FLAGS13} ${CC} -shared $< -o $@ ${LIBS}
+#	capsmc ${HMPP_FLAGS13} ${CC} -shared $^ -o $@ ${LIBS}
 	#${CC} -shared $< -o $@ ${LIBS}
 
 
@@ -26,15 +26,22 @@ HMPP_ENV_VAR = HMPPRT_LOG_LEVEL=info HMPPRT_NO_FALLBACK=0
 
 
 hmpp_evolve.13 : hmpp_evolve.o gravity.o compute_fluxes.o
-	capsmc ${HMPP_FLAGS13} ${CC} $< -o $@ ${LIBS}
+	capsmc ${HMPP_FLAGS13} ${CC} $^ -o $@ ${LIBS}
 
 
 %.o : %.c   
 	capsmc ${HMPP_FLAGS13} ${CC} ${CXXFLAGS} -c $^ -o $@
 	
     
-
-
+#hmpp_python_glue.so : hmpp_python_glue.o gravity.o
+#	capsmc ${HMPP_FLAGS13} ${CC} -shared $^ -o $@ ${LIBS}
+#
+#gravity.o : gravity.c
+#	capsmc ${HMPP_FLAGS13} ${CC} ${CXXFLAGS} -c $< -o $@ ${LIBS}
+#
+#%.o : %.c
+#	${CC} ${CXXFLAGS} -c $< -o $@
+#
 
 
 
