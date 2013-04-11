@@ -4,23 +4,16 @@
 #include <cstdlib>
 #include <cmath>
 using namespace std;
+
 #else
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #endif
 
-#define USING_DOUBLE
-#define ON_XE
+#include "gravity.h"
 
-#ifdef USING_DOUBLE
-#define TOLERANCE 0.000000000000001
-#define DATA_TYPE double 
-
-#else
-#define TOLERANCE 0.0000001
-#define DATA_TYPE float
-#endif
+//#define CALL_TEST
 
 int errs_x=0, errs_y=0;
 
@@ -42,7 +35,6 @@ int check_tolerance( DATA_TYPE a, DATA_TYPE b)
         
 
 
-#pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall
 void gravity_wb( 
         int n, int n3, int n6, 
         DATA_TYPE xmom_explicit_update[n], 
@@ -262,7 +254,9 @@ void gravity_call(
 
         DATA_TYPE g )
 {
-    printf("sdfsafdsafdsa\n");
+
+    test_call();
+    /*
     #pragma hmpp gravity callsite
     gravity_wb( n, n3, n6, 
         xmom_explicit_update,
@@ -282,12 +276,12 @@ void gravity_call(
         edgelengths,
         
         g);
-    printf("sdfsafdsafdsa\n");
+    */
 }
 
 
 
-#ifdef USING_MAIN
+#ifdef ISOLATING_TEST
 int main( int argc, char* argv[] ){
     int n;   /* vector length */
     DATA_TYPE g = 9.8;
@@ -434,5 +428,188 @@ int main( int argc, char* argv[] ){
     
     printf( "%d  %derrors found\n", errs_x, errs_y );
     return errs_x + errs_y;
+}
+#endif
+
+
+
+#ifndef CALL_TEST
+void test_call(){
+    int n;   /* vector length */
+    DATA_TYPE g = 9.8;
+    int i;
+    
+    DATA_TYPE * xe, //xmom_explicit_update, 
+          * ye; //ymom_explicit_update;
+    DATA_TYPE * test_xe, //xmom_explicit_update, 
+          * test_ye; //ymom_explicit_update;
+
+
+    DATA_TYPE * sv, //stage_vertex_values, 
+          * se, //stage_edge_values, 
+          * sc; //stage_centroid_values;
+
+    DATA_TYPE * be, //bed_edge_values, 
+          * bc; //bed_centroid_values;
+
+    DATA_TYPE * vc, //vertex_coordinates,
+          * normals, 
+          * a, //areas, 
+          * el; //edgelengths;
+
+    char file_name[] = "merimbula.dat";
+    freopen(file_name, "r", stdin);
+
+    scanf("%d\n %lf\n", &n, &g);
+    printf("\n\nThe number of elements is %d\n", n);
+    
+    xe =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
+    //assert( xe != NULL);
+    ye =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
+    //assert( ye != NULL);
+    test_xe =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
+    //assert( test_xe != NULL);
+    test_ye =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE));
+    //assert( test_ye != NULL);
+
+
+    sv =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
+    //assert( sv != NULL);
+    se =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
+    //assert( se != NULL);
+    sc =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) );
+    //assert( sc != NULL);
+    
+    be =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
+    //assert( be != NULL);
+    bc =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) );
+    //assert( bc != NULL);
+
+    vc =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *6);
+    //assert( vc != NULL);
+    normals=(DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *6);
+    //assert( normals != NULL);
+    a =     (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) );
+    //assert( a != NULL);
+    el =    (DATA_TYPE*)malloc( n*sizeof(DATA_TYPE) *3);
+    //assert( el != NULL);
+
+
+#ifdef USING_DOUBLE
+    for( i = 0; i < n; ++i ){
+        scanf("%lf %lf %lf\n", sv+i*3, sv+i*3 +1, sv+i*3 +2);
+        scanf("%lf %lf %lf\n", se+i*3, se+i*3 +1, se+i*3 +2);
+        scanf("%lf\n", sc+i);
+
+        scanf("%lf %lf %lf\n",be+i*3, be+i*3 +1, be+i*3 +2);
+        scanf("%lf\n", bc+i);
+
+        scanf("%lf %lf\n", vc+i*6, vc+i*6 +1);
+        scanf("%lf %lf\n", vc+i*6+2, vc+i*6 +3);
+        scanf("%lf %lf\n", vc+i*6+4, vc+i*6 +5);
+
+        scanf("%lf\n", xe+i);
+        scanf("%lf\n", ye+i);
+
+        scanf("%lf %lf %lf %lf %lf %lf\n", normals+i*6, normals+i*6+1, normals+i*6+2,normals+i*6+3, normals+i*6+4, normals+i*6+5);
+
+        scanf("%lf\n", a+i);
+
+        scanf("%lf %lf %lf\n", el+i*3, el+i*3 +1, el+i*3 +2);
+    }
+#else
+    for( i = 0; i < n; ++i ){
+        scanf("%f %f %f\n", sv+i*3, sv+i*3 +1, sv+i*3 +2);
+        scanf("%f %f %f\n", se+i*3, se+i*3 +1, se+i*3 +2);
+        scanf("%f\n", sc+i);
+
+        scanf("%f %f %f\n",be+i*3, be+i*3 +1, be+i*3 +2);
+        scanf("%f\n", bc+i);
+
+        scanf("%f %f\n", vc+i*6, vc+i*6 +1);
+        scanf("%f %f\n", vc+i*6+2, vc+i*6 +3);
+        scanf("%f %f\n", vc+i*6+4, vc+i*6 +5);
+
+        scanf("%f\n", xe+i);
+        scanf("%f\n", ye+i);
+
+        scanf("%f %f %f %f %f %f\n", normals+i*6, normals+i*6+1, normals+i*6+2,normals+i*6+3, normals+i*6+4, normals+i*6+5);
+
+        scanf("%f\n", a+i);
+
+        scanf("%f %f %f\n", el+i*3, el+i*3 +1, el+i*3 +2);
+    }
+#endif
+
+#ifndef ON_XE
+    memcpy(test_xe, xe, n*sizeof(DATA_TYPE));
+    memcpy(test_ye, ye, n*sizeof(DATA_TYPE));
+#else 
+    for (i=0; i < n; i++)
+    {
+        test_xe[i] = xe[i];
+        test_ye[i] = ye[i];
+    }
+#endif
+    errs_x = 0;
+    errs_y = 0;
+    for( i = 0; i < n; ++i ){
+        if (test_xe[i] != xe[i])
+            errs_x +=1;
+        if (test_ye[i] != ye[i])
+            errs_y +=1;
+    }
+    printf("Verifying initial input: %d %d \n", errs_x, errs_y);
+
+
+    /* compute on the GPU */
+    printf(" --> Entering GPU .... \n");
+    
+    #pragma hmpp gravity callsite
+    gravity_wb( n, n*3, n*6, xe, ye, sv, se, sc, be, bc, vc, normals, a, el, g);
+    
+    /* compare results */
+    printf(" --> Entering CPU .... \n");
+    errs_x = 0;
+    errs_y = 0;
+    gravity_wb_orig( xe, ye, sv, se, sc, be, bc, vc, normals, a, el, 
+            test_xe, test_ye, n, g);
+    //gravity_wb( n, n*3, n*6, test_xe, test_ye, sv, se, sc, be, bc, vc, normals, a, el, g);
+
+    
+    
+    printf( "%d  %derrors found\n", errs_x, errs_y );
+}
+#else
+#pragma hmpp test_call codelet, target=CUDA args[*].transfer=atcall
+void double_plus(int n, double a[n], double b[n], double c[n])
+{   
+    int i;
+    for (i=0; i<n; i++)
+        c[i] = (a[n] + b[n]) * 2;
+}
+
+
+void test_call()
+{
+    double * a, *b, *c, *c_test;
+    int n = 32, i;
+
+    a = (double *) malloc(n * sizeof(double));
+    b = (double *) malloc(n * sizeof(double));
+    c = (double *) malloc(n * sizeof(double));
+    c_test = (double *) malloc(n * sizeof(double));
+
+    #pragma hmpp test_call callsite
+    double_plus(n, a, b, c);
+
+    double_plus(n, a, b, c_test);
+
+    for (i=0; i < n ; i++)
+    {
+        if (c[i] != c_test[i])
+            printf("  -> %d, %lf %lf %lf %lf\n", i, a[i], b[i], c[i], c_test[i]);
+    }
+
 }
 #endif
