@@ -13,7 +13,6 @@ using namespace std;
 
 #include "gravity.h"
 
-//#define CALL_TEST
 
 int errs_x=0, errs_y=0;
 
