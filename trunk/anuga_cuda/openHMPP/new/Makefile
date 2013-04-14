@@ -15,14 +15,20 @@ HMPP_ENV_VAR = HMPPRT_LOG_LEVEL=info HMPPRT_NO_FALLBACK=0
 
 
 
-hmpp_python_glue.so : hmpp_python_glue.o gravity.o
+hmpp_python_glue.so : hmpp_python_glue.o evolve.o gravity.o compute_fluxes.o
 	capsmc ${HMPP_FLAGS13} ${CC} -shared $^ -o $@ ${LIBS}
 
-gravity.o : gravity.c
+%.o : %.c
 	capsmc ${HMPP_FLAGS13} ${CC} ${CXXFLAGS} -c $^ -o $@
 
-%.o : %.c   
+#gravity.o : gravity.c
+#	capsmc ${HMPP_FLAGS13} ${CC} ${CXXFLAGS} -c $^ -o $@
+
+hmpp_python_glue.o : hmpp_python_glue.c   
 	${CC} ${CXXFLAGS} -c $^ -o $@
+
+#%.o : %.c   
+#	${CC} ${CXXFLAGS} -c $^ -o $@
 
 clean : 
 	rm -f *.o *.so *.hmc *.cu

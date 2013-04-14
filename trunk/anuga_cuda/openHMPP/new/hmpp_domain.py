@@ -1,5 +1,19 @@
 # -*- coding: utf-8 -*-
 
+
+import ctypes
+import sys
+
+
+# This is used to fix the dlopen() issues for python
+# and make the reference links (like OpenHMPP global)
+flags = sys.getdlopenflags()
+sys.setdlopenflags(flags | ctypes.RTLD_GLOBAL)
+
+from hmpp_python_glue import hmpp_python_test
+sys.setdlopenflags(flags)
+
+
 from anuga import Domain
 
 import numpy as num
@@ -42,7 +56,6 @@ class HMPP_domain(Domain):
                         number_of_full_nodes=number_of_full_nodes,
                         number_of_full_triangles=number_of_full_triangles,
                         geo_reference=geo_reference) #jj added this
-
 
 
 

@@ -1,20 +1,22 @@
-#ifdef USING_CPP
-#include <iostream>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-using namespace std;
 
-#else
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#endif
+// OpenHMPP ANUGA grvity function
+//
+// Zhe Weng 2013
 
-#include "gravity.h"
+//#ifdef USING_CPP
+//#include <iostream>
+//#include <cstdio>
+//#include <cstdlib>
+//#include <cmath>
+//using namespace std;
+//
+//#else
+//#include <stdio.h>
+//#include <math.h>
+//#include <stdlib.h>
+//#endif
 
-
-int errs_x=0, errs_y=0;
+#include "hmpp_fun.h"
 
 
 int check_tolerance( DATA_TYPE a, DATA_TYPE b)
@@ -143,6 +145,8 @@ void gravity_wb_orig(
         )
 {
     int i, k, k3, k6;
+    // For testing purpose
+    int errs_x=0, errs_y=0;
 
     DATA_TYPE w0, w1, w2, 
            x0, y0, x1, y1, x2, y2,
@@ -253,7 +257,6 @@ void gravity_call(
 
         DATA_TYPE g )
 {
-
     test_call();
     /*
     #pragma hmpp gravity callsite
@@ -437,6 +440,7 @@ void test_call(){
     int n;   /* vector length */
     DATA_TYPE g = 9.8;
     int i;
+    int errs_x =0, errs_y =0;
     
     DATA_TYPE * xe, //xmom_explicit_update, 
           * ye; //ymom_explicit_update;
@@ -550,8 +554,6 @@ void test_call(){
         test_ye[i] = ye[i];
     }
 #endif
-    errs_x = 0;
-    errs_y = 0;
     for( i = 0; i < n; ++i ){
         if (test_xe[i] != xe[i])
             errs_x +=1;
