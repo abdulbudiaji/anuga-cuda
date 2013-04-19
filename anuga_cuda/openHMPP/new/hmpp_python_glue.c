@@ -26,16 +26,17 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
     PyObject *domain;
 
 
-    double yieldstep, finaltime, duration;
+    double yieldstep, finaltime, duration, epsilon;
     int skip_initial_step;
 
 
     // Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "Odddb", 
+    if (!PyArg_ParseTuple(args, "Oddddb", 
                 &domain,
                 &yieldstep, 
                 &finaltime, 
                 &duration,
+                &epsilon,
                 &skip_initial_step 
                 )) 
     {
@@ -55,7 +56,7 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
     // Start evolve procedure
     //-------------------------------
 
-    evolve(D, yieldstep, finaltime, duration, skip_initial_step);
+    evolve(D, yieldstep, finaltime, duration, epsilon, skip_initial_step);
     return Py_BuildValue("");
 }
 

@@ -61,18 +61,22 @@ class HMPP_domain(Domain):
 
     def evolve(self,
                 yieldstep=0.0,
-                finaltime=0.0,
+                finaltime=1.0,
                 duration=0.0,
                 skip_initial_step=False):
         
-        print self.number_of_elements
+
+        if self.store is True and self.get_time() == self.get_starttime():
+            self.initialise_storage()
 
         from hmpp_python_glue import hmpp_evolve
+        from anuga.config import epsilon
 
         hmpp_evolve(self,
                 yieldstep,
                 finaltime,
                 duration,
+                epsilon,
                 skip_initial_step)
 
 

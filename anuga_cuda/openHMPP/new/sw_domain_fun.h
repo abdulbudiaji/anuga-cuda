@@ -84,9 +84,12 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->g                    = get_python_double(domain, "g");
     D->optimise_dry_cells   = get_python_integer(domain, "optimise_dry_cells");
     D->evolve_max_timestep  = get_python_double(domain, "evolve_max_timestep");
+    D->extrapolate_velocity_second_order  = get_python_integer(domain, "extrapolate_velocity_second_order");
     D->minimum_allowed_height = get_python_double(domain, "minimum_allowed_height");
 
-    D->extrapolate_velocity_second_order  = get_python_integer(domain, "extrapolate_velocity_second_order");
+    
+    D->CFL                  = get_python_double(domain, "CFL");
+    D->flux_timestep        = get_python_double(domain, "flux_timestep");
 
     D->beta_w      = get_python_double(domain, "beta_w");;
     D->beta_w_dry  = get_python_double(domain, "beta_w_dry");
@@ -129,7 +132,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     max_speed = get_consecutive_array(domain, "max_speed");
     D->max_speed = (double *) max_speed->data;
 
-    SAFE_MALLOC( D->timestep, D->number_of_elements, double);
+    SAFE_MALLOC( D->timestep_array, D->number_of_elements, double);
 
 
 
@@ -147,15 +150,12 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     number_of_boundaries = get_consecutive_array(domain, "number_of_boundaries");
     D->number_of_boundaries = (long *) number_of_boundaries->data;
 
+
+
     // Some others
-    //min_bed_edge_values = get_consecutive_array(domain, "min_bed_edge_values");
-    //D->min_bed_edge_values = (double *) min_bed_edge_values->data;
-
-    //max_bed_edge_values = get_consecutive_array(domain, "max_bed_edge_values");
-    //D->max_bed_edge_values = (double *) max_bed_edge_values->data;
-
-    //count_wet_neighbours = get_consecutive_array(domain, "count_wet_neighbours");
-    //D->count_wet_neighbours = (int *) count_wet_neighbours->data;
+    SAFE_MALLOC( D->min_bed_edge_values, D->number_of_elements, double);
+    SAFE_MALLOC( D->max_bed_edge_values, D->number_of_elements, double);
+    SAFE_MALLOC( D->count_wet_neighbours, D->number_of_elements, int);
 
     
 

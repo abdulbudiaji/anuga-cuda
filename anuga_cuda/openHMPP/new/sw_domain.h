@@ -17,8 +17,41 @@ struct domain {
     double  g;
     long    optimise_dry_cells;
     double  evolve_max_timestep;
+    double  evolve_min_timestep;
     long    extrapolate_velocity_second_order;
     double  minimum_allowed_height;
+    double  time;
+    double  starttime;
+    double  finaltime;
+    double  yieldtime;
+    double  timestep;
+
+    int     smallsteps;
+    int     max_smallsteps;
+    int     number_of_steps;
+    int     number_of_first_order_steps;
+    int     timestepping_method;
+    int     _order_;
+    int     default_order;
+    int     use_sloped_mannings;
+    int     use_centroid_velocities;
+    int     use_edge_limiter;
+
+    int     flow_algorithm;
+    int     compute_fluxes_method;
+
+    long*   boundary_cells;
+    long*   boundary_edges;
+
+
+    double CFL;
+    double flux_timestep;
+    double recorded_max_timestep;
+    double recorded_min_timestep;
+    double maximum_allowed_speed;
+    double optimised_gradient_limiter;
+    double alpha_balance;
+    double tight_slope_limiters;
 
     double beta_w;
     double beta_w_dry;
@@ -27,10 +60,12 @@ struct domain {
     double beta_vh;
     double beta_vh_dry;
 
-    // 
-    char * compute_fluxes_method;
+    double stage_beta;
+    double xmom_beta;
+    double ymom_beta;
 
-    // Changing values in these arrays will change the values in the python object
+    
+    // long or int ???
     long*   neighbours;
     long*   neighbour_edges;
     long*   surrogate_neighbours;
@@ -44,7 +79,7 @@ struct domain {
     long*   tri_full_flag;
     long*   already_computed_flux;
     double* max_speed;
-    double* timestep;
+    double* timestep_array;
 
     double* vertex_coordinates;
     double* edge_coordinates;
