@@ -153,7 +153,9 @@ int _flux_function_central(
         double *max_speed) 
 #endif
 {
+#ifdef USING_ORIGINAL_CUDA
     int i;
+#endif
 
     double w_left, h_left, uh_left, vh_left, u_left;
     double w_right, h_right, uh_right, vh_right, u_right;
@@ -249,12 +251,12 @@ int _flux_function_central(
     //soundspeed_left  = fast_squareroot_approximation(g*h_left);
     //soundspeed_right = fast_squareroot_approximation(g*h_right);
 
-    s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+    s_max = fmax(u_left + soundspeed_left, u_right + soundspeed_right);
     if (s_max < 0.0) {
         s_max = 0.0;
     }
 
-    s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+    s_min = fmin(u_left - soundspeed_left, u_right - soundspeed_right);
     if (s_min > 0.0) {
         s_min = 0.0;
     }
@@ -297,7 +299,7 @@ int _flux_function_central(
 #endif
 
         // Maximal wavespeed
-        *max_speed = max(fabs(s_max), fabs(s_min));
+        *max_speed = fmax(fabs(s_max), fabs(s_min));
 
         // Rotate back
         //_rotate(edgeflux, n1, -n2);
@@ -334,13 +336,13 @@ void compute_fluxes_central_structure_CUDA(
         int N2,
 
         double timestep[N],
-        int neighbours[N3],
-        int neighbour_edges[N3],
+        long neighbours[N3],
+        long neighbour_edges[N3],
         double normals[N6],
         double edgelengths[N3],
         double radii[N],
         double areas[N],
-        int tri_full_flag[N],
+        long tri_full_flag[N],
         double stage_edge_values[N3],
         double xmom_edge_values[N3],
         double ymom_edge_values[N3],
@@ -479,15 +481,15 @@ void compute_fluxes_central_structure_CUDA(
             if (tri_full_flag[k] == 1) {
                 //if (max_speed > elements[Depsilon]) {
                 if ( max_speed > epsilon) {
-                    timestep[k] = min(timestep[k], radii[k] / max_speed);
+                    timestep[k] = fmin(timestep[k], radii[k] / max_speed);
                     if (n >= 0) {
-                        timestep[k] = min(timestep[k], radii[n] / max_speed);
+                        timestep[k] = fmin(timestep[k], radii[n] / max_speed);
                     }
                 }
             }
 
             if (n < 0 ||  n > k){
-                max_speed_total = max(max_speed_total, max_speed);
+                max_speed_total = fmax(max_speed_total, max_speed);
             }
         } // End edge i (and neighbour n)
 
@@ -563,7 +565,7 @@ void compute_fluxes_central_structure_cuda_single(
         double length, inv_area;
 
 
-        int i, j, m, ni;
+        int i, m, ni;
         int ki, nm;
 
         max_speed_total = 0;
@@ -783,7 +785,7 @@ void compute_fluxes_central_structure_cuda_single(
                 }
             }
             if (ni < 0 ||  ni > k){
-                max_speed_total = max(max_speed_total, max_speed);
+                max_speed_total = fmax(max_speed_total, max_speed);
             }
         }
 
