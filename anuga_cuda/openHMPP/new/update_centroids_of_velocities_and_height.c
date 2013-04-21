@@ -1,21 +1,24 @@
+#include "hmpp_fun.h"
+
+
 void _update_centroids_of_velocities_and_height(
         int N_c,
         int N_b,
-        double * w_C, // stage_centroid_values
-        double * uh_C,// xmomentum_centroid_values
-        double * vh_C,// ymomentum_centroid_values
-        double * h_C, // height_centroid_values
-        double * z_C, // elevation_centroid_values
-        double * u_C, // xvelocity_centroid_values
-        double * v_C, // yvelocity_centroid_values
+        double w_C[N_c], // stage_centroid_values
+        double uh_C[N_c],// xmomentum_centroid_values
+        double vh_C[N_c],// ymomentum_centroid_values
+        double h_C[N_c], // height_centroid_values
+        double z_C[N_c], // elevation_centroid_values
+        double u_C[N_c], // xvelocity_centroid_values
+        double v_C[N_c], // yvelocity_centroid_values
 
-        double * w_B, // stage_boundary_values
-        double * uh_B,// xmomentum_boundary_values
-        double * vh_B,// ymomentum_boundary_values
-        double * h_B, // height_boundary_values
-        double * z_B, // elevation_boundary_values
-        double * u_B, // xvelocity_boundary_values
-        double * v_B // yvelocity_boundary_values
+        double w_B[N_b], // stage_boundary_values
+        double uh_B[N_b],// xmomentum_boundary_values
+        double vh_B[N_b],// ymomentum_boundary_values
+        double h_B[N_b], // height_boundary_values
+        double z_B[N_b], // elevation_boundary_values
+        double u_B[N_b], // xvelocity_boundary_values
+        double v_B[N_b] // yvelocity_boundary_values
         )
 {
     int k;

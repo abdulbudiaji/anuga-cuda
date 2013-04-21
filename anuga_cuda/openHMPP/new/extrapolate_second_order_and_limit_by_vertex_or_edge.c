@@ -1,6 +1,7 @@
-//#define REARRANGED_DOMAIN
+
 #include "hmpp_fun.h"
 #ifdef USING_SEPARATE_KERNELS
+
 
 void  limit_vertices_by_all_neighbours(
         int N, 

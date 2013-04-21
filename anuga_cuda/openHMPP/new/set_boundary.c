@@ -1,9 +1,13 @@
+#include "hmpp_fun.h"
+
+
 void set_boundary_values_from_edges(
         int N,
-        long * vol_id,
-        long * edge_id,
-        double * boundary_values,
-        double * edge_values)
+        int N3,
+        long vol_id[N],
+        long edge_id[N],
+        double boundary_values[N],
+        double edge_values[N3])
 {
     int k, id;
     
