@@ -341,6 +341,7 @@ void protect_sw(
 #pragma hmpp interpolateVtoE codelet, target=CUDA args[*].transfer=atcall
 void interpolate_from_vertices_to_edges(
         int N,
+        int N3,
         double* vertex_values,
         double* edge_values); 
 

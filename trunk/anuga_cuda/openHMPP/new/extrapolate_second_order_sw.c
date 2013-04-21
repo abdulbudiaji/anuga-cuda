@@ -714,6 +714,7 @@ void extrapolate_second_order_sw_true (
         }
         //}
     }
+}
 
 
 
@@ -1261,7 +1262,3 @@ void extrapolate_second_order_sw_false (
     }
 }
 
-
-int main()
-{
-}
