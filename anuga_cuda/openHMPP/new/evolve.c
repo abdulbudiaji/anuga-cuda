@@ -641,6 +641,7 @@ int distribute_using_vertex_limiter(struct domain D)
     #pragma hmpp balance callsite 
     balance_deep_and_shallow(
            D.number_of_elements,
+           D.number_of_elements*3,
            D.H0,
            D.alpha_balance,
            D.tight_slope_limiters,

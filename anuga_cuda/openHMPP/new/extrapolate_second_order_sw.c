@@ -7,7 +7,7 @@
 #endif
 
 
-int limit_gradient(double *dqv, double qmin, double qmax, double beta_w) 
+inline int limit_gradient(double *dqv, double qmin, double qmax, double beta_w) 
 {
     int i;
     double r = 1000.0, r0 = 1.0, phi = 1.0;
@@ -329,7 +329,7 @@ void extrapolate_second_order_sw_true (
                 // Check if linear reconstruction is necessary for triangle k
                 // This check will exclude dry cells.
 
-                hmax = max(h0, max(h1, h2));
+                hmax = fmax(h0, fmax(h1, h2));
                 if (hmax < epsilon) {
                     // continue;
                     break;
@@ -681,9 +681,9 @@ void extrapolate_second_order_sw_true (
         {
             k3 = 3 * k;
 #ifndef REARRANGED_DOMAIN
-            dv0 = max(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
-            dv1 = max(stage_vertex_values[k3+1] - bed_vertex_values[k3+1], 0.);
-            dv2 = max(stage_vertex_values[k3+2] - bed_vertex_values[k3+2], 0.);
+            dv0 = fmax(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
+            dv1 = fmax(stage_vertex_values[k3+1] - bed_vertex_values[k3+1], 0.);
+            dv2 = fmax(stage_vertex_values[k3+2] - bed_vertex_values[k3+2], 0.);
 
             //Correct centroid and vertex values
             //xmom_centroid_values[k] = xmom_centroid_store[k];
@@ -906,7 +906,7 @@ void extrapolate_second_order_sw_false (
             h0 = stage_centroid_values[k0] - bed_centroid_values[k0];
             h1 = stage_centroid_values[k1] - bed_centroid_values[k1];
             h2 = stage_centroid_values[k2] - bed_centroid_values[k2];
-            hmin = min(min(h0, min(h1, h2)), hc);
+            hmin = fmin( fmin(h0, fmin(h1, h2)), hc);
             //hfactor = hc/(hc + 1.0);
 
             hfactor = 0.0;
@@ -918,7 +918,7 @@ void extrapolate_second_order_sw_false (
                 // Check if linear reconstruction is necessary for triangle k
                 // This check will exclude dry cells.
 
-                hmax = max(h0, max(h1, h2));
+                hmax = fmax(h0, fmax(h1, h2));
                 if (hmax < epsilon) {
                     // continue;
                     break;
@@ -1259,4 +1259,9 @@ void extrapolate_second_order_sw_false (
 
         } // else [number_of_boundaries==2]
     }
+}
+
+
+int main()
+{
 }

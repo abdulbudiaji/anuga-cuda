@@ -111,10 +111,6 @@ void gravity_wb(
         sidex_1 = hh1*hh1*edgelengths[k3+1] * normals[k6+2];
         sidex_2 = hh2*hh2*edgelengths[k3+2] * normals[k6+4];
         xmom_explicit_update[k] += 0.5*g*(sidex_0 + sidex_1 + sidex_2)/area;
-        // For testing purpose
-        //xmom_explicit_update[k] = sidex_0;
-        //ymom_explicit_update[k] = sidex_1;
-
 
 
         sidey_0 = hh0*hh0*edgelengths[k3] * normals[k6+1];
