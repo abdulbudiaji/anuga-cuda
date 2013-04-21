@@ -1,5 +1,6 @@
 #include "hmpp_fun.h"
 
+
 void balance_deep_and_shallow(
         int N,
         int N3,
@@ -69,9 +70,9 @@ void balance_deep_and_shallow(
         hv[1] = wv[k3 + 1] - zv[k3 + 1];
         hv[2] = wv[k3 + 2] - zv[k3 + 2];
 #else
-        hv0 = wv[k3] - zv[k3];
-        hv1 = wv[k3 + 1] - zv[k3 + 1];
-        hv2 = wv[k3 + 2] - zv[k3 + 2];
+        hv0 = wv[k*3] - zv[k*3];
+        hv1 = wv[k*3 + 1] - zv[k*3 + 1];
+        hv2 = wv[k*3 + 2] - zv[k*3 + 2];
 #endif
 #else   
 #ifdef USING_ORIGINAL_FUNCTION
@@ -243,7 +244,7 @@ void balance_deep_and_shallow(
             //for (i = 0; i < 3; i++) {
             // i = 0
 #ifndef REARRANGED_DOMAIN
-//            wv[k3] = zv[k3] + (1 - alpha) * hc_k + alpha * hv0;
+            wv[k*3] = zv[k*3] + (1 - alpha) * hc_k + alpha * hv0;
 #else   
             wv[k] = zv[k] + (1 - alpha) * hc_k + alpha * hv0;
 #endif
@@ -256,9 +257,9 @@ void balance_deep_and_shallow(
                     vc = 0.0;
                 }
 #ifndef REARRANGED_DOMAIN
-                hv0 = wv[k3] - zv[k3]; 
-                xmomv[k3] = uc * hv0;
-                ymomv[k3] = vc * hv0;
+                hv0 = wv[k*3] - zv[k*3]; 
+                xmomv[k*3] = uc * hv0;
+                ymomv[k*3] = vc * hv0;
 #else   
                 hv0 = wv[k] - zv[k]; 
                 xmomv[k] = uc * hv0;
@@ -266,17 +267,16 @@ void balance_deep_and_shallow(
 #endif
             } else {
 #ifndef REARRANGED_DOMAIN
-//                xmomv[k3] = (1 - alpha) * xmomc[k] + alpha *xmomv[k3];
-//                ymomv[k3] = (1 - alpha) * ymomc[k] + alpha *ymomv[k3];
+                xmomv[k*3] = (1 - alpha) * xmomc[k] + alpha *xmomv[k*3];
+                ymomv[k*3] = (1 - alpha) * ymomc[k] + alpha *ymomv[k*3];
 #else   
                 xmomv[k] = (1-alpha) * xmomc[k] + alpha *xmomv[k];
                 ymomv[k] = (1-alpha) * ymomc[k] + alpha *ymomv[k];
 #endif
             }
-/*
             // i = 1
 #ifndef REARRANGED_DOMAIN
-            wv[k3 + 1] = zv[k3 + 1] + (1 - alpha) * hc_k + alpha * hv1;
+            wv[k*3 + 1] = zv[k*3 + 1] + (1 - alpha) * hc_k + alpha * hv1;
 #else   
             wv[k + N] = zv[k + N] + (1 - alpha) * hc_k + alpha * hv1;
 #endif
@@ -289,9 +289,9 @@ void balance_deep_and_shallow(
                     vc = 0.0;
                 }
 #ifndef REARRANGED_DOMAIN
-                hv1 = wv[k3 + 1] - zv[k3 + 1]; 
-                xmomv[k3 + 1] = uc * hv1;
-                ymomv[k3 + 1] = vc * hv1;
+                hv1 = wv[k*3 + 1] - zv[k*3 + 1]; 
+                xmomv[k*3 + 1] = uc * hv1;
+                ymomv[k*3 + 1] = vc * hv1;
 #else   
                 hv1 = wv[k + N] - zv[k + N]; 
                 xmomv[k + N] = uc * hv1;
@@ -300,8 +300,8 @@ void balance_deep_and_shallow(
 
             } else {
 #ifndef REARRANGED_DOMAIN
-                xmomv[k3 + 1] = (1 - alpha) * xmomc[k] + alpha *xmomv[k3 + 1];
-                ymomv[k3 + 1] = (1 - alpha) * ymomc[k] + alpha *ymomv[k3 + 1];
+                xmomv[k*3 + 1] = (1 - alpha) * xmomc[k] + alpha *xmomv[k*3 + 1];
+                ymomv[k*3 + 1] = (1 - alpha) * ymomc[k] + alpha *ymomv[k*3 + 1];
 #else   
                 xmomv[k + N] = (1-alpha) * xmomc[k] + alpha *xmomv[k + N];
                 ymomv[k + N] = (1-alpha) * ymomc[k] + alpha *ymomv[k + N];
@@ -309,7 +309,7 @@ void balance_deep_and_shallow(
             }
             // i = 2
 #ifndef REARRANGED_DOMAIN
-            wv[k3 + 2] = zv[k3 + 2] + (1 - alpha) * hc_k + alpha * hv2;
+            wv[k*3 + 2] = zv[k*3 + 2] + (1 - alpha) * hc_k + alpha * hv2;
 #else   
             wv[k + 2*N] = zv[k + 2*N] + (1 - alpha) * hc_k + alpha * hv2;
 #endif
@@ -332,9 +332,9 @@ void balance_deep_and_shallow(
                 // controlled speed
                 // Recompute (balanced) vertex depth
 #ifndef REARRANGED_DOMAIN
-                hv2 = wv[k3 + 2] - zv[k3 + 2]; 
-                xmomv[k3 + 2] = uc * hv2;
-                ymomv[k3 + 2] = vc * hv2;
+                hv2 = wv[k*3 + 2] - zv[k*3 + 2]; 
+                xmomv[k*3 + 2] = uc * hv2;
+                ymomv[k*3 + 2] = vc * hv2;
 #else   
                 hv2 = wv[k + 2*N] - zv[k + 2*N]; 
                 xmomv[k + 2*N] = uc * hv2;
@@ -354,14 +354,13 @@ void balance_deep_and_shallow(
                 // values.
 
 #ifndef REARRANGED_DOMAIN
-                xmomv[k3 + 2] = (1 - alpha) * xmomc[k] + alpha *xmomv[k3 + 2];
-                ymomv[k3 + 2] = (1 - alpha) * ymomc[k] + alpha *ymomv[k3 + 2];
+                xmomv[k*3 + 2] = (1 - alpha) * xmomc[k] + alpha *xmomv[k*3 + 2];
+                ymomv[k*3 + 2] = (1 - alpha) * ymomc[k] + alpha *ymomv[k*3 + 2];
 #else   
                 xmomv[k + 2*N] = (1-alpha) * xmomc[k] + alpha *xmomv[k + 2*N];
                 ymomv[k + 2*N] = (1-alpha) * ymomc[k] + alpha *ymomv[k + 2*N];
 #endif
             }
-*/
 #endif // USING_ORIGINAL_FUNCTION
             //} //for (i = 0; i < 3; i++) 
         }// if (alpha < 1) {

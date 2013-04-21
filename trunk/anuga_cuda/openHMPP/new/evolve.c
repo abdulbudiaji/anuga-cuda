@@ -437,6 +437,7 @@ int update_other_quantities( struct domain D )
     // height
     extrapolate_first_order(
             D.number_of_elements,
+            D.number_of_elements * 3,
             D.height_centroid_values,
             D.height_edge_values,
             D.height_vertex_values
@@ -444,6 +445,7 @@ int update_other_quantities( struct domain D )
     // xvelocity
     extrapolate_first_order(
             D.number_of_elements,
+            D.number_of_elements * 3,
             D.xvelocity_centroid_values,
             D.xvelocity_edge_values,
             D.xvelocity_vertex_values
@@ -451,6 +453,7 @@ int update_other_quantities( struct domain D )
     // yvelocity
     extrapolate_first_order(
             D.number_of_elements,
+            D.number_of_elements * 3,
             D.yvelocity_centroid_values,
             D.yvelocity_edge_values,
             D.yvelocity_vertex_values
@@ -518,6 +521,7 @@ int distribute_using_vertex_limiter(struct domain D)
             // stage
             extrapolate_first_order(
                     D.number_of_elements,
+                    D.number_of_elements * 3,
                     D.stage_centroid_values,
                     D.stage_edge_values,
                     D.stage_vertex_values
@@ -525,6 +529,7 @@ int distribute_using_vertex_limiter(struct domain D)
             // xmomentum
             extrapolate_first_order(
                     D.number_of_elements,
+                    D.number_of_elements * 3,
                     D.xmom_centroid_values,
                     D.xmom_edge_values,
                     D.xmom_vertex_values
@@ -532,6 +537,7 @@ int distribute_using_vertex_limiter(struct domain D)
             // ymomentum
             extrapolate_first_order(
                     D.number_of_elements,
+                    D.number_of_elements * 3,
                     D.ymom_centroid_values,
                     D.ymom_edge_values,
                     D.ymom_vertex_values
@@ -554,6 +560,7 @@ int distribute_using_vertex_limiter(struct domain D)
             // stage
             extrapolate_first_order(
                     D.number_of_elements,
+                    D.number_of_elements * 3,
                     D.stage_centroid_values,
                     D.stage_edge_values,
                     D.stage_vertex_values
@@ -561,6 +568,7 @@ int distribute_using_vertex_limiter(struct domain D)
             // xmomentum
             extrapolate_first_order(
                     D.number_of_elements,
+                    D.number_of_elements * 3,
                     D.xmom_centroid_values,
                     D.xmom_edge_values,
                     D.xmom_vertex_values
@@ -568,6 +576,7 @@ int distribute_using_vertex_limiter(struct domain D)
             // ymomentum
             extrapolate_first_order(
                     D.number_of_elements,
+                    D.number_of_elements * 3,
                     D.ymom_centroid_values,
                     D.ymom_edge_values,
                     D.ymom_vertex_values
