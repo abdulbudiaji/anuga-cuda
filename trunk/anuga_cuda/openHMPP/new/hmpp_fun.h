@@ -30,12 +30,14 @@ using namespace std;
 #include "sw_domain.h"
 
 
+
 int check_tolerance(DATA_TYPE a,DATA_TYPE b);
 
 
 int evolve(struct domain D, double yieldstep, 
             double finaltime, double duration,
             double epsilon, int skip_initial_step);
+
 
 
 #pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall
@@ -181,6 +183,7 @@ void test_call();
 #pragma hmpp extraFstOrder codelet, target=CUDA args[*].transfer=atcall
 void extrapolate_first_order(
         int N,
+        int N3,
         double * centroid_values,
         double * edge_values,
         double * vertex_values);
@@ -274,6 +277,7 @@ void extrapolate_second_order_and_limit_by_edge(
 #pragma hmpp balance codelet, target=CUDA args[*].transfer=atcall
 void balance_deep_and_shallow(
         int N,
+        int N3,
         double H0,
         double alpha_balance,
         int tight_slope_limiters,
