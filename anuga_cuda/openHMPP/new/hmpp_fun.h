@@ -236,9 +236,12 @@ void extrapolate_second_order_edge_sw(
 
 
 
-#pragma hmpp extraSndOrderLmtV codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp extraSndOrderLmtV codelet, target=CUDA args[*].transfer=atcall
 void extrapolate_second_order_and_limit_by_vertex(
         int N,
+        int N2,
+        int N3,
+        int N6,
         double beta,
         double * domain_centroid_coordinates,
         double * domain_vertex_coordinates,
@@ -255,9 +258,12 @@ void extrapolate_second_order_and_limit_by_vertex(
 
 
 
-#pragma hmpp extraSndOrderLmtE codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp extraSndOrderLmtE codelet, target=CUDA args[*].transfer=atcall
 void extrapolate_second_order_and_limit_by_edge(
         int N,
+        int N2,
+        int N3,
+        int N6,
         double beta,
         double * domain_centroid_coordinates,
         double * domain_vertex_coordinates,
