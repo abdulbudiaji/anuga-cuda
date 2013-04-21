@@ -5,9 +5,9 @@
 void update(
         int N,
         double timestep,
-        double * centroid_values,
-        double * explicit_update,
-        double * semi_implicit_update)
+        double centroid_values[N],
+        double explicit_update[N],
+        double semi_implicit_update[N])
 {
     int k;
 
@@ -48,8 +48,3 @@ void update(
 }
 
 
-#ifdef USING_MAIN
-int main()
-{
-}
-#endif

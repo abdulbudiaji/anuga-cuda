@@ -2,16 +2,17 @@
 
 void manning_friction_flat(
         int N,
+        int N3,
         double g, 
         double eps, // minimum_allowed_height 
 
-        double* w,  // stage_centroid_values
-        double* zv, // elevation_vertex_values
-        double* uh, // xmom_centroid_values
-        double* vh, // ymom_centroid_values
-        double* eta,// friction_centroid_values
-        double* xmom,//xmom_semi_implicit_update 
-        double* ymom)//ymom_semi_implicit_update 
+        double w[N],  // stage_centroid_values
+        double zv[N3], // elevation_vertex_values
+        double uh[N], // xmom_centroid_values
+        double vh[N], // ymom_centroid_values
+        double eta[N],// friction_centroid_values
+        double xmom[N],//xmom_semi_implicit_update 
+        double ymom[N])//ymom_semi_implicit_update 
 {
     int k;
 #ifndef REARRANGED_DOMAIN
@@ -54,17 +55,19 @@ void manning_friction_flat(
 
 void manning_friction_sloped(
         int N,
+        int N3,
+        int N6,
         double g, 
         double eps, // minimum_allowed_height
 
-        double* x,  // vertex_coordinates
-        double* w,  // stage_centroid_values
-        double* zv, // elevation_vertex_values
-        double* uh, // xmom_centroid_values
-        double* vh, // ymom_centroid_values
-        double* eta,// friction_centroid_values
-        double* xmom_update,    // xmom_semi_implicit_update
-        double* ymom_update)    // ymom_semi_implicit_update
+        double x[N6],  // vertex_coordinates
+        double w[N],  // stage_centroid_values
+        double zv[N3], // elevation_vertex_values
+        double uh[N], // xmom_centroid_values
+        double vh[N], // ymom_centroid_values
+        double eta[N],// friction_centroid_values
+        double xmom_update[N],    // xmom_semi_implicit_update
+        double ymom_update[N])    // ymom_semi_implicit_update
 {
     int k;
 #ifndef REARRANGED_DOMAIN

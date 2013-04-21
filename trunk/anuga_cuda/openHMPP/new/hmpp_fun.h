@@ -298,6 +298,7 @@ void balance_deep_and_shallow(
 #pragma hmpp setBoundaryE codelet, target=CUDA args[*].transfer=atcall
 void set_boundary_values_from_edges(
         int N,
+        int N3,
         long * vol_id,
         long * edge_id,
         double * boundary_values,
@@ -373,6 +374,7 @@ void _update_centroids_of_velocities_and_height(
 #pragma hmpp manFrictionFlat codelet, target=CUDA args[*].transfer=atcall
 void manning_friction_flat(
         int N,
+        int N3,
         double g, 
         double eps, // minimum_allowed_height 
 
@@ -390,6 +392,8 @@ void manning_friction_flat(
 #pragma hmpp manFrictionSloped codelet, target=CUDA args[*].transfer=atcall
 void manning_friction_sloped(
         int N,
+        int N3,
+        int N6,
         double g, 
         double eps, // minimum_allowed_height
 
