@@ -11,7 +11,9 @@ inline int limit_gradient(
         double *dqv0, 
         double *dqv1, 
         double *dqv2, 
-        double qmin, double qmax, double beta_w) 
+        double qmin, 
+        double qmax, 
+        double beta_w) 
 {
     int i;
     double r = 1000.0, r0 = 1.0, phi = 1.0;
@@ -63,8 +65,12 @@ inline int limit_gradient(
     return 0;
 }   
 
-inline int find_qmin_and_qmax(double dq0, double dq1, double dq2,
-        double *qmin, double *qmax) 
+inline int find_qmin_and_qmax(
+        double dq0, 
+        double dq1, 
+        double dq2,
+        double *qmin, 
+        double *qmax) 
 {
     if (dq0 >= 0.0) {
         if (dq1 >= dq2) {
@@ -175,7 +181,6 @@ void extrapolate_second_order_sw_true (
     int k0, k1, k2;
     double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2;
     double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
-    double qmin, qmax, hmin, hmax;
     //double dqv[3];
     double dqv0, dqv1, dqv2;
     double hc, h0, h1, h2, beta_tmp, hfactor;
@@ -202,6 +207,7 @@ void extrapolate_second_order_sw_true (
     // Begin extrapolation routine
     for (k=0; k<N; k++) 
     {
+        double qmin, qmax, hmin, hmax;
         if ( number_of_boundaries[k] == 3 )
         {
 #ifndef REARRANGED_DOMAIN
@@ -400,7 +406,6 @@ void extrapolate_second_order_sw_true (
                         // Now we want to find min and max of the centroid and the
                         // vertices of the auxiliary triangle and compute jumps
                         // from the centroid to the min and max
-        /*
                         find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
 
                         // Playing with dry wet interface
@@ -523,7 +528,6 @@ void extrapolate_second_order_sw_true (
                         ymom_vertex_values[k + 2*N] = ymom_centroid_values[k] + dqv2;
 #endif
                         //}
-        */
                     }//if(!optimise_dry_cells ||fmax(h0,fmax(h1,h2))>=epsilon)
                 } //if (area2 <= 0) {
             }// End number_of_boundaries <=1
@@ -727,7 +731,6 @@ void extrapolate_second_order_sw_true (
     // Convert back from velocity to momentum
     //if (extrapolate_velocity_second_order == 1) 
     //{
-/*
     for (k = 0; k < N; k++) 
     {
 #ifndef REARRANGED_DOMAIN
@@ -762,7 +765,6 @@ void extrapolate_second_order_sw_true (
         ymom_vertex_values[k+2*N] = ymom_vertex_values[k+2*N] * dv2;
 #endif
     }
-*/
     //}
 }
 
