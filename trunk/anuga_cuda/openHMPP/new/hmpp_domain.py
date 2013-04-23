@@ -68,6 +68,7 @@ class HMPP_domain(Domain):
                 duration=0.0,
                 skip_initial_step=False):
         
+        print yieldstep, finaltime, duration, skip_initial_step
 
         if self.store is True and self.get_time() == self.get_starttime():
             self.initialise_storage()
@@ -126,7 +127,11 @@ class HMPP_domain(Domain):
                     )
 
             yield_step = 1
-            print tmp_timestep
+            print " Python: tmp_timestep %lf " % tmp_timestep
+
+            cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
+            if 'q' in cmd or 'Q' in cmd:
+                break
             if tmp_timestep >= finaltime - epsilon: 
                 print " Evolve finish"
                 break

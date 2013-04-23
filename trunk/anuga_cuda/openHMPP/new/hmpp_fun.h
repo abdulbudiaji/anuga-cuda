@@ -2,9 +2,13 @@
 #define USING_DOUBLE
 // When porting to Xe
 //#define ON_XE
-// Putting directives along with the implementation, instead of with declearation
+// Putting directives along with the implementation
 //#define USING_LOCAL_DIRECTIVES
 #define USING_GLOBAL_DIRECTIVES
+// Do not back and force between Python and C
+#define EVOLVE_ALL_IN_C
+
+
 
 #ifdef USING_CPP
 #include <iostream>
@@ -39,7 +43,7 @@ using namespace std;
 int check_tolerance(DATA_TYPE a,DATA_TYPE b);
 
 
-int evolve(struct domain D, double yieldstep, 
+double evolve(struct domain * D, double yieldstep, 
             double finaltime, double duration,
             double epsilon, int skip_initial_step,
             int step);
