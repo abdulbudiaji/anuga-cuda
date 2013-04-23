@@ -30,7 +30,6 @@ struct domain {
     int     max_smallsteps;
     int     number_of_steps;
     int     number_of_first_order_steps;
-    int     timestepping_method;
     int     _order_;
     int     default_order;
     int     use_sloped_mannings;
@@ -39,6 +38,7 @@ struct domain {
 
     int     flow_algorithm;
     int     compute_fluxes_method;
+    int     timestepping_method;
 
     long*   boundary_cells;
     long*   boundary_edges;
@@ -202,3 +202,5 @@ struct edge {
     double v2;
     
 };
+
+

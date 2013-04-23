@@ -84,12 +84,22 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->g                    = get_python_double(domain, "g");
     D->optimise_dry_cells   = get_python_integer(domain, "optimise_dry_cells");
     D->evolve_max_timestep  = get_python_double(domain, "evolve_max_timestep");
+    D->evolve_min_timestep  = get_python_double(domain, "evolve_min_timestep");
     D->extrapolate_velocity_second_order  = get_python_integer(domain, "extrapolate_velocity_second_order");
     D->minimum_allowed_height = get_python_double(domain, "minimum_allowed_height");
 
-    
+    D->_order_              = get_python_integer(domain, "_order_");
+    D->default_order        = get_python_integer(domain, "default_order");
+    D->use_sloped_mannings  = get_python_integer(domain, "use_sloped_mannings");
+    D->use_centroid_velocities  = get_python_integer(domain, "use_centroid_velocities");
+    D->use_edge_limiter  = get_python_integer(domain, "use_edge_limiter");
     D->CFL                  = get_python_double(domain, "CFL");
     D->flux_timestep        = get_python_double(domain, "flux_timestep");
+    D->maximum_allowed_speed= get_python_double(domain, "maximum_allowed_speed");
+    D->optimised_gradient_limiter   = get_python_double(domain, "optimised_gradient_limiter");
+    D->alpha_balance        = get_python_double(domain, "alpha_balance");
+    D->tight_slope_limiters = get_python_double(domain, "tight_slope_limiters");
+
 
     D->beta_w      = get_python_double(domain, "beta_w");;
     D->beta_w_dry  = get_python_double(domain, "beta_w_dry");
@@ -165,6 +175,12 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     boundary = get_consecutive_array( stage, "boundary_values");
     // Number of boundary elements
     D->number_of_boundary_elements = boundary->dimensions[0];
+    
+    D->stage_beta   = get_python_double(stage, "beta");
+    stage = PyDict_GetItemString(quantities,   "xmomentum");
+    D->xmom_beta   = get_python_double(stage, "beta");
+    stage = PyDict_GetItemString(quantities,   "ymomentum");
+    D->ymom_beta   = get_python_double(stage, "beta");
 
 
     // Edge values    
@@ -185,6 +201,7 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->height_centroid_values   = get_python_array_data_from_dict(quantities, "height",     "centroid_values");
     D->xvelocity_centroid_values= get_python_array_data_from_dict(quantities, "xvelocity",  "centroid_values");
     D->yvelocity_centroid_values= get_python_array_data_from_dict(quantities, "yvelocity",  "centroid_values");
+    D->friction_centroid_values = get_python_array_data_from_dict(quantities, "friction", "centroid_values");
     // Store values
     //D->stage_centroid_store    = get_python_array_data_from_dict(quantities, "stage",      "centroid_store");
     //D->xmom_centroid_store     = get_python_array_data_from_dict(quantities, "xmomentum",  "centroid_store");
@@ -270,8 +287,28 @@ int print_domain_struct(struct domain *D) {
     printf("D->g                      %g \n", D->g);
     printf("D->optimise_dry_cells     %ld \n", D->optimise_dry_cells);
     printf("D->evolve_max_timestep    %g \n", D->evolve_max_timestep);
-    printf("D->minimum_allowed_height %g \n", D->minimum_allowed_height);
+    printf("D->evolve_min_timestep    %g \n", D->evolve_min_timestep);
     printf("D->extrapolate_velocity_second_order %ld \n", D->extrapolate_velocity_second_order);
+    printf("D->minimum_allowed_height %g \n", D->minimum_allowed_height);
+
+
+    printf("D->_order_                %d \n", D->_order_);
+    printf("D->default_order          %d \n", D->default_order);
+    printf("D->use_sloped_mannings    %d \n", D->use_sloped_mannings);
+    printf("D->use_centroid_velocities  %d \n", D->use_centroid_velocities);
+    printf("D->use_edge_limiter         %d \n", D->use_edge_limiter);
+
+    printf("D->flow_algorithm           %d \n", D->flow_algorithm);
+    printf("D->compute_fluxes_method    %d \n", D->compute_fluxes_method);
+    printf("D->timestepping_method      %d \n", D->timestepping_method);
+
+    printf("D->CFL                      %g \n", D->CFL);
+    printf("D->maximum_allowed_speed    %g \n", D->maximum_allowed_speed);
+    printf("D->optimised_gradient_limiter   %g \n", D->optimised_gradient_limiter);
+    printf("D->alpha_balance            %g \n", D->alpha_balance);
+    printf("D->tight_slope_limiters     %g \n", D->tight_slope_limiters);
+
+
     printf("D->beta_w                 %g \n", D->beta_w);
     printf("D->beta_w_dry             %g \n", D->beta_w_dry);
     printf("D->beta_uh                %g \n", D->beta_uh);
@@ -280,40 +317,45 @@ int print_domain_struct(struct domain *D) {
     printf("D->beta_vh_dry            %g \n", D->beta_vh_dry);
 
 
+    printf("D->stage_beta                     %g \n", D->stage_beta);
+    printf("D->xmom_beta                     %g \n", D->xmom_beta);
+    printf("D->ymom_beta                     %g \n", D->ymom_beta);
 
-    printf("D->neighbours             %p \n", D->neighbours);
-    printf("D->surrogate_neighbours   %p \n", D->surrogate_neighbours);
-    printf("D->neighbour_edges        %p \n", D->neighbour_edges);
-    printf("D->normals                %p \n", D->normals);
-    printf("D->edgelengths            %p \n", D->edgelengths);
-    printf("D->radii                  %p \n", D->radii);
-    printf("D->areas                  %p \n", D->areas);
-    printf("D->tri_full_flag          %p \n", D->tri_full_flag);
-    printf("D->already_computed_flux  %p \n", D->already_computed_flux);
-    printf("D->vertex_coordinates     %p \n", D->vertex_coordinates);
-    printf("D->edge_coordinates       %p \n", D->edge_coordinates);
-    printf("D->centroid_coordinates   %p \n", D->centroid_coordinates);
-    printf("D->max_speed              %p \n", D->max_speed);
-    printf("D->number_of_boundaries   %p \n", D->number_of_boundaries);
-    printf("D->stage_edge_values      %p \n", D->stage_edge_values);
-    printf("D->xmom_edge_values       %p \n", D->xmom_edge_values);
-    printf("D->ymom_edge_values       %p \n", D->ymom_edge_values);
-    printf("D->bed_edge_values        %p \n", D->bed_edge_values);
-    printf("D->stage_centroid_values  %p \n", D->stage_centroid_values);
-    printf("D->xmom_centroid_values   %p \n", D->xmom_centroid_values);
-    printf("D->ymom_centroid_values   %p \n", D->ymom_centroid_values);
-    printf("D->bed_centroid_values    %p \n", D->bed_centroid_values);
-    printf("D->stage_vertex_values    %p \n", D->stage_vertex_values);
-    printf("D->xmom_vertex_values     %p \n", D->xmom_vertex_values);
-    printf("D->ymom_vertex_values     %p \n", D->ymom_vertex_values);
-    printf("D->bed_vertex_values      %p \n", D->bed_vertex_values);
-    printf("D->stage_boundary_values  %p \n", D->stage_boundary_values);
-    printf("D->xmom_boundary_values   %p \n", D->xmom_boundary_values);
-    printf("D->ymom_boundary_values   %p \n", D->ymom_boundary_values);
-    printf("D->bed_boundary_values    %p \n", D->bed_boundary_values);
-    printf("D->stage_explicit_update  %p \n", D->stage_explicit_update);
-    printf("D->xmom_explicit_update   %p \n", D->xmom_explicit_update);
-    printf("D->ymom_explicit_update   %p \n", D->ymom_explicit_update);
+
+
+    //printf("D->neighbours             %p \n", D->neighbours);
+    //printf("D->surrogate_neighbours   %p \n", D->surrogate_neighbours);
+    //printf("D->neighbour_edges        %p \n", D->neighbour_edges);
+    //printf("D->normals                %p \n", D->normals);
+    //printf("D->edgelengths            %p \n", D->edgelengths);
+    //printf("D->radii                  %p \n", D->radii);
+    //printf("D->areas                  %p \n", D->areas);
+    //printf("D->tri_full_flag          %p \n", D->tri_full_flag);
+    //printf("D->already_computed_flux  %p \n", D->already_computed_flux);
+    //printf("D->vertex_coordinates     %p \n", D->vertex_coordinates);
+    //printf("D->edge_coordinates       %p \n", D->edge_coordinates);
+    //printf("D->centroid_coordinates   %p \n", D->centroid_coordinates);
+    //printf("D->max_speed              %p \n", D->max_speed);
+    //printf("D->number_of_boundaries   %p \n", D->number_of_boundaries);
+    //printf("D->stage_edge_values      %p \n", D->stage_edge_values);
+    //printf("D->xmom_edge_values       %p \n", D->xmom_edge_values);
+    //printf("D->ymom_edge_values       %p \n", D->ymom_edge_values);
+    //printf("D->bed_edge_values        %p \n", D->bed_edge_values);
+    //printf("D->stage_centroid_values  %p \n", D->stage_centroid_values);
+    //printf("D->xmom_centroid_values   %p \n", D->xmom_centroid_values);
+    //printf("D->ymom_centroid_values   %p \n", D->ymom_centroid_values);
+    //printf("D->bed_centroid_values    %p \n", D->bed_centroid_values);
+    //printf("D->stage_vertex_values    %p \n", D->stage_vertex_values);
+    //printf("D->xmom_vertex_values     %p \n", D->xmom_vertex_values);
+    //printf("D->ymom_vertex_values     %p \n", D->ymom_vertex_values);
+    //printf("D->bed_vertex_values      %p \n", D->bed_vertex_values);
+    //printf("D->stage_boundary_values  %p \n", D->stage_boundary_values);
+    //printf("D->xmom_boundary_values   %p \n", D->xmom_boundary_values);
+    //printf("D->ymom_boundary_values   %p \n", D->ymom_boundary_values);
+    //printf("D->bed_boundary_values    %p \n", D->bed_boundary_values);
+    //printf("D->stage_explicit_update  %p \n", D->stage_explicit_update);
+    //printf("D->xmom_explicit_update   %p \n", D->xmom_explicit_update);
+    //printf("D->ymom_explicit_update   %p \n", D->ymom_explicit_update);
 
 
     return 0;

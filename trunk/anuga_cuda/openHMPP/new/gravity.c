@@ -3,20 +3,28 @@
 //
 // Zhe Weng 2013
 
-//#ifdef USING_CPP
-//#include <iostream>
-//#include <cstdio>
-//#include <cstdlib>
-//#include <cmath>
-//using namespace std;
-//
-//#else
-//#include <stdio.h>
-//#include <math.h>
-//#include <stdlib.h>
-//#endif
+//#define ISOLATING_TEST
 
+#ifndef ISOLATING_TEST
 #include "hmpp_fun.h"
+#else // ISOLATING_TEST
+#define DATA_TYPE double 
+#define TOLERANCE 1e-11
+#ifdef USING_CPP
+#include <iostream>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
+using namespace std;
+
+#else // USING_CPP
+#include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
+#endif
+
+int errs_x =0, errs_y =0;
+#endif
 
 
 int check_tolerance( DATA_TYPE a, DATA_TYPE b)
@@ -35,7 +43,9 @@ int check_tolerance( DATA_TYPE a, DATA_TYPE b)
 }
         
 
-
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall
+#endif
 void gravity_wb( 
         int n, int n3, int n6, 
         DATA_TYPE xmom_explicit_update[n], 

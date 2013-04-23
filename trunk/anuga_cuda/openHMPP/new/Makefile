@@ -27,9 +27,11 @@ hmpp_python_glue.so : hmpp_python_glue.o evolve.o gravity.o compute_fluxes.o ext
 #	capsmc ${HMPP_FLAGS13} ${CC} ${CXXFLAGS} -c $^ -o $@
 
 
-hmpp_python_glue.o : hmpp_python_glue.c   
+hmpp_python_glue.o : hmpp_python_glue.c sw_domain_fun.o
 	${CC} ${CXXFLAGS} -c $^ -o $@
 
+sw_domain_fun.o : sw_domain_fun.h  
+	${CC} ${CXXFLAGS} -c $^ -o $@
 
 #%.o : %.c   
 #	${CC} ${CXXFLAGS} -c $^ -o $@

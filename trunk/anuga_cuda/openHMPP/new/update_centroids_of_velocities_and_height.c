@@ -1,6 +1,10 @@
 #include "hmpp_fun.h"
 
 
+
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp updateCentroidVH codelet, target=CUDA args[*].transfer=atcall
+#endif
 void _update_centroids_of_velocities_and_height(
         int N_c,
         int N_b,

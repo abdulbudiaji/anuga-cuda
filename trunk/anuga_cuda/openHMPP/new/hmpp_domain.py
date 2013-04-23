@@ -5,6 +5,9 @@ import ctypes
 import sys
 
 
+import numpy
+
+
 # This is used to fix the dlopen() issues for python
 # and make the reference links (like OpenHMPP global)
 flags = sys.getdlopenflags()
@@ -72,12 +75,59 @@ class HMPP_domain(Domain):
         from hmpp_python_glue import hmpp_evolve
         from anuga.config import epsilon
 
-        hmpp_evolve(self,
-                yieldstep,
-                finaltime,
-                duration,
-                epsilon,
-                skip_initial_step)
+        if self.timestepping_method == 'euler':
+            timestepping_method = 1
+        elif self.timestepping_method == 'rk2':
+            timestepping_method = 2
+        elif self.timestepping_method == 'rk3':
+            timestepping_method = 3
+        else:
+            timestepping_method = 4
+        print " The timestepping_method is '%s' %d" % (self.timestepping_method, timestepping_method)
 
 
+        if self.flow_algorithm == 'tsunami':
+            flow_algorithm = 1
+        elif self.flow_algorithm == 'yusuke':
+            flow_algorithm = 2
+        else:
+            flow_algorithm = 3
+        print " The flow_algorithm us '%s' %d" % (self.flow_algorithm, flow_algorithm)
+       
+
+        if self.compute_fluxes_method == 'original':
+            compute_fluxes_method = 0
+        elif self.compute_fluxes_method == 'wb_1':
+            compute_fluxes_method = 1
+        elif self.compute_fluxes_method == 'wb_2':
+            compute_fluxes_method = 2
+        elif self.compute_fluxes_method == 'wb_3':
+            compute_fluxes_method = 3
+        elif self.compute_fluxes_method == 'tsunami':
+            compute_fluxes_method = 4
+        else:
+            compute_fluxes_method = 5
+        print " The compute_fluxes_method is '%s' %d" % (self.compute_fluxes_method, compute_fluxes_method)
+
+            
+        yield_step = 0
+        while True :
+            tmp_timestep = hmpp_evolve(self,
+                    yieldstep,
+                    finaltime,
+                    duration,
+                    epsilon,
+                    skip_initial_step,
+
+                    numpy.int32( compute_fluxes_method ),
+                    numpy.int32( flow_algorithm ),
+                    numpy.int32( timestepping_method ),
+                    numpy.int32( yield_step)
+                    )
+
+            yield_step = 1
+            print tmp_timestep
+            if tmp_timestep >= finaltime - epsilon: 
+                print " Evolve finish"
+                break
 

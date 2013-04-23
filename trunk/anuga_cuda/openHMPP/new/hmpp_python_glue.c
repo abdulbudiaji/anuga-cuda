@@ -26,38 +26,55 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
     PyObject *domain;
 
 
-    double yieldstep, finaltime, duration, epsilon;
+    int timestepping_method, flow_algorithm, compute_fluxes_method;
     int skip_initial_step;
+    int step;
+    double yieldstep, finaltime, duration, epsilon;
+    double tmp_timestep;
 
 
     // Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "Oddddb", 
+    if (!PyArg_ParseTuple(args, "Oddddiiiii", 
                 &domain,
                 &yieldstep, 
                 &finaltime, 
                 &duration,
                 &epsilon,
-                &skip_initial_step 
+                &skip_initial_step,
+
+                &compute_fluxes_method,
+                &flow_algorithm,
+                &timestepping_method,
+                &step
                 )) 
     {
         report_python_error(AT, "could not parse input arguments");
         return NULL;
     }
 
+
+    printf("%d %d %d %d\n", timestepping_method, flow_algorithm, compute_fluxes_method, step);
+
     struct domain D;
+    
     get_python_domain(&D, domain);
-    print_domain_struct(&D);
+    
+    D.timestepping_method = timestepping_method;
+    D.flow_algorithm = flow_algorithm;
+    D.compute_fluxes_method = compute_fluxes_method;
+    
+    if ( !step )
+        print_domain_struct(&D);
     //fflush(stdout);
 
-    
     
 
     //-------------------------------
     // Start evolve procedure
     //-------------------------------
 
-    evolve(D, yieldstep, finaltime, duration, epsilon, skip_initial_step);
-    return Py_BuildValue("");
+    tmp_timestep = evolve(D, yieldstep, finaltime, duration, epsilon, skip_initial_step, step);
+    return Py_BuildValue("d", tmp_timestep);
 }
 
 
@@ -65,7 +82,7 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
 // For testing the python-hmpp linking 
 PyObject *hmpp_python_test()
 {
-    test_call();
+    test_protect_sw();
     return Py_BuildValue("");
 }
 
