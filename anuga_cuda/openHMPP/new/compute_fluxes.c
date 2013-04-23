@@ -328,7 +328,9 @@ int _flux_function_central(
 /*****************************************/
 
 
-//#pragma hmpp cf_central codelet, target=CUDA args[*].transfer=atcall
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp cf_central codelet, target=CUDA args[*].transfer=atcall
+#endif
 void compute_fluxes_central_structure_CUDA(
         int N,
         int N3,
@@ -504,7 +506,9 @@ void compute_fluxes_central_structure_CUDA(
 
 
 
-//#pragma hmpp cf_central_single codelet, target=CUDA args[*].transfer=atcall
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp cf_central_single codelet, target=CUDA args[*].transfer=atcall
+#endif
 void compute_fluxes_central_structure_cuda_single(
         int N,
         int N3,

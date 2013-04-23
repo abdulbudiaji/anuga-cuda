@@ -1,15 +1,26 @@
-#include "hmpp_fun.h"
+//#define USING_MAIN
 
+#ifndef USING_MAIN
+#include "hmpp_fun.h"
+#else
+#include <math.h>
+#endif
+
+//#ifdef USING_MAIN
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp protectSW codelet, target=CUDA args[*].transfer=atcall
+#endif
 void protect_sw(
         int N,
         int N3,
         double minimum_allowed_height,
         double maximum_allowed_speed,
         double epsilon,
-        double* wc,
-        double* zc,
-        double* xmomc,
-        double* ymomc) 
+
+        double wc[N],
+        double zc[N],
+        double xmomc[N],
+        double ymomc[N]) 
 {
     int k;
     double hc;
@@ -62,73 +73,24 @@ void protect_sw(
 }
 
 
-// Protect against the water elevation falling below the triangle bed
-void  _protect_swb2(
-        int N,
-        double minimum_allowed_height,
-        double maximum_allowed_speed,
-        double epsilon,
-        double* wc,
-        double* wv,
-        double* zc,
-        double* zv,
-        double* xmomc,
-        double* ymomc,
-        double* areas) 
+
+#ifdef USING_MAIN
+int main()
+#else
+void test_protect_sw()
+#endif
 {
-    int k;
-    double hc, bmin, bmax;
-    double mass_error=0.; 
-    // This acts like minimum_allowed height, but scales with the vertical
-    // distance between the bed_centroid_value and the max bed_edge_value of
-    // every triangle.
-    double minimum_relative_height=0.1; 
-    //int mass_added=0;
+    int N=4;
+    double minimum_allowed_height=0.001, 
+            maximum_allowed_speed=0, 
+            epsilon=1e-12;
 
+    double  wc[]={1,2,3,4}, 
+            zc[]={1,2,3,4}, 
+            xmomc[]={1,2,3,4}, 
+            ymomc[]={1,2,3,4};
 
-    // Protect against inifintesimal and negative heights  
-    //if (maximum_allowed_speed < epsilon) {
-    for (k=0; k<N; k++) {
-        hc = wc[k] - zc[k];
-        // Definine the maximum bed edge value on triangle k.
-        bmax = 0.5*fmax((zv[3*k]+zv[3*k+1]),fmax((zv[3*k+1]+zv[3*k+2]),(zv[3*k+2]+zv[3*k])));
-
-        if (hc < fmax(minimum_relative_height*(bmax-zc[k]), minimum_allowed_height)) {
-
-            // Set momentum to zero and ensure h is non negative
-            // NOTE: THIS IS IMPORTANT -- WE ARE SETTING MOMENTUM TO ZERO
-            //if(hc<=epsilon){
-            xmomc[k] = 0.0;
-            ymomc[k] = 0.0;
-            //}
-
-            if (hc <= 0.0){
-                // Definine the minimum bed edge value on triangle k.
-                // Setting = minimum edge value can lead to mass conservation problems
-                //bmin = 0.5*min((zv[3*k]+zv[3*k+1]),min((zv[3*k+1]+zv[3*k+2]),(zv[3*k+2]+zv[3*k])));
-                //bmin =0.5*bmin + 0.5*min(zv[3*k],min(zv[3*k+1],zv[3*k+2]));
-                // Setting = minimum vertex value seems better, but might tend to be less smooth 
-                bmin = fmin(zv[3*k], fmin(zv[3*k+1],zv[3*k+2])) -minimum_allowed_height;
-                //bmin=zc[k]-minimum_allowed_height;
-                // Minimum allowed stage = bmin
-                // WARNING: ADDING MASS if wc[k]<bmin
-                if(wc[k]<bmin){
-                    mass_error+=(bmin-wc[k])*areas[k];
-                    //mass_added=1; //Flag to warn of added mass                
-                    //printf("Adding mass to dry cell %d %f %f %f %f %f \n", k, zv[3*k], zv[3*k+1], zv[3*k+2], wc[k]- bmin, mass_error);
-
-                    wc[k] = fmax(wc[k], bmin); 
-
-
-                    // Set vertex values as well. Seems that this shouldn't be
-                    // needed. However from memory this is important at the first
-                    // time step, for 'dry' areas where the designated stage is
-                    // less than the bed centroid value
-                    wv[3*k] = fmax(wv[3*k], bmin);
-                    wv[3*k+1] = fmax(wv[3*k+1], bmin);
-                    wv[3*k+2] = fmax(wv[3*k+2], bmin);
-                }
-            }
-        }
-    }
+    #pragma hmpp protectSW callsite
+    protect_sw(N, N*3, minimum_allowed_height,
+            maximum_allowed_speed, epsilon, wc, zc, xmomc, ymomc);
 }

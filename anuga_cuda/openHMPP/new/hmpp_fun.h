@@ -1,5 +1,10 @@
+// Using double floating variable
 #define USING_DOUBLE
-#define ON_XE
+// When porting to Xe
+//#define ON_XE
+// Putting directives along with the implementation, instead of with declearation
+//#define USING_LOCAL_DIRECTIVES
+#define USING_GLOBAL_DIRECTIVES
 
 #ifdef USING_CPP
 #include <iostream>
@@ -36,11 +41,13 @@ int check_tolerance(DATA_TYPE a,DATA_TYPE b);
 
 int evolve(struct domain D, double yieldstep, 
             double finaltime, double duration,
-            double epsilon, int skip_initial_step);
+            double epsilon, int skip_initial_step,
+            int step);
 
 
-
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall
+#endif
 void gravity_wb( 
         int n, int n3, int n6, 
         DATA_TYPE xmom_explicit_update[n], 
@@ -63,7 +70,9 @@ void gravity_wb(
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp cf_central codelet, target=CUDA args[*].transfer=atcall
+#endif
 void compute_fluxes_central_structure_CUDA(
         int N,
         int N3,
@@ -99,7 +108,9 @@ void compute_fluxes_central_structure_CUDA(
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp cf_central_single codelet, target=CUDA args[*].transfer=atcall
+#endif
 void compute_fluxes_central_structure_cuda_single(
         int N,
         int N3,
@@ -176,21 +187,23 @@ void gravity_call(
 
 
 
-void test_call();
-
-
-
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp extraFstOrder codelet, target=CUDA args[*].transfer=atcall
+#endif
 void extrapolate_first_order(
         int N,
         int N3,
-        double * centroid_values,
-        double * edge_values,
-        double * vertex_values);
+        double centroid_values[N],
+        double edge_values[N3],
+        double vertex_values[N3]
+        );
 
 
 
+// swb2_domain.c
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp extraSndOrderEdge codelet, target=CUDA args[*].transfer=atcall
+#endif
 void extrapolate_second_order_edge_sw(
         int number_of_elements,
         int optimise_dry_cells, 
@@ -204,12 +217,12 @@ void extrapolate_second_order_edge_sw(
         double beta_uh_dry,
         double beta_vh,
         double beta_vh_dry,
-        
+
         long* surrogate_neighbours,
         long* number_of_boundaries,
 
         double* centroid_coordinates,
-        
+
         double* stage_centroid_values,
         double* elevation_centroid_values,
         double* xmom_centroid_values,
@@ -226,13 +239,14 @@ void extrapolate_second_order_edge_sw(
         double* xmom_vertex_values,
         double* ymom_vertex_values,
         double* elevation_vertex_values,
-        
+
         double* stage_centroid_store,
         double* xmom_centroid_store,
         double* ymom_centroid_store,
         double* min_elevation_edgevalue,
         double* max_elevation_edgevalue,
-        int* count_wet_neighbours);
+        int* count_wet_neighbours
+        );
 
 
 
@@ -280,7 +294,9 @@ void extrapolate_second_order_and_limit_by_edge(
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp balance codelet, target=CUDA args[*].transfer=atcall
+#endif
 void balance_deep_and_shallow(
         int N,
         int N3,
@@ -288,31 +304,37 @@ void balance_deep_and_shallow(
         double alpha_balance,
         int tight_slope_limiters,
         int use_centroid_velocities,
-        double* wc,     // stage_centroid_values
-        double* zc,     // elevation_centroid_values
-        double* wv,     // stage_vertex_values
-        double* zv,     // elevation_vertex_values
-        //double* hvbar, // Retire this
-        double* xmomc,  // xmom_centroid_values
-        double* ymomc,  // ymom_centroid_values
-        double* xmomv,  // xmom_vertex_values
-        double* ymomv   // ymom_vertex_values
+
+        double wc[N],   // stage_centroid_values
+        double zc[N],   // elevation_centroid_values
+        double wv[N3],  // stage_vertex_values
+        double zv[N3],  // elevation_vertex_values
+        //double* hvbar,// Retire this
+        double xmomc[N],  // xmom_centroid_values
+        double ymomc[N],  // ymom_centroid_values
+        double xmomv[N3],  // xmom_vertex_values
+        double ymomv[N3]   // ymom_vertex_values
         ); 
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp setBoundaryE codelet, target=CUDA args[*].transfer=atcall
+#endif
 void set_boundary_values_from_edges(
-        int N,
+        int Nb,
         int N3,
-        long * vol_id,
-        long * edge_id,
-        double * boundary_values,
-        double * edge_values);
+        long vol_id[Nb],
+        long edge_id[Nb],
+        double boundary_values[Nb],
+        double edge_values[N3]
+        );
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp protectSWB2 codelet, target=CUDA args[*].transfer=atcall
+#endif
 void protect_swb2(
         long N,
         long N3,
@@ -331,71 +353,83 @@ void protect_swb2(
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp protectSW codelet, target=CUDA args[*].transfer=atcall
+#endif
 void protect_sw(
         int N,
         int N3,
         double minimum_allowed_height,
         double maximum_allowed_speed,
         double epsilon,
-        double* wc,
-        double* zc,
-        double* xmomc,
-        double* ymomc);
+
+        double wc[N],
+        double zc[N],
+        double xmomc[N],
+        double ymomc[N]);
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp interpolateVtoE codelet, target=CUDA args[*].transfer=atcall
+#endif
 void interpolate_from_vertices_to_edges(
         int N,
         int N3,
-        double* vertex_values,
-        double* edge_values); 
+        double vertex_values[N3],
+        double edge_values[N3]
+        ); 
 
 
         
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp updateCentroidVH codelet, target=CUDA args[*].transfer=atcall
+#endif
 void _update_centroids_of_velocities_and_height(
         int N_c,
         int N_b,
-        double * w_C, // stage_centroid_values
-        double * uh_C,// xmomentum_centroid_values
-        double * vh_C,// ymomentum_centroid_values
-        double * h_C, // height_centroid_values
-        double * z_C, // elevation_centroid_values
-        double * u_C, // xvelocity_centroid_values
-        double * v_C, // yvelocity_centroid_values
+        double w_C[N_c], // stage_centroid_values
+        double uh_C[N_c],// xmomentum_centroid_values
+        double vh_C[N_c],// ymomentum_centroid_values
+        double h_C[N_c], // height_centroid_values
+        double z_C[N_c], // elevation_centroid_values
+        double u_C[N_c], // xvelocity_centroid_values
+        double v_C[N_c], // yvelocity_centroid_values
 
-        double * w_B, // stage_boundary_values
-        double * uh_B,// xmomentum_boundary_values
-        double * vh_B,// ymomentum_boundary_values
-        double * h_B, // height_boundary_values
-        double * z_B, // elevation_boundary_values
-        double * u_B, // xvelocity_boundary_values
-        double * v_B // yvelocity_boundary_values
+        double w_B[N_b], // stage_boundary_values
+        double uh_B[N_b],// xmomentum_boundary_values
+        double vh_B[N_b],// ymomentum_boundary_values
+        double h_B[N_b], // height_boundary_values
+        double z_B[N_b], // elevation_boundary_values
+        double u_B[N_b], // xvelocity_boundary_values
+        double v_B[N_b] // yvelocity_boundary_values
         );
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp manFrictionFlat codelet, target=CUDA args[*].transfer=atcall
+#endif
 void manning_friction_flat(
         int N,
         int N3,
         double g, 
         double eps, // minimum_allowed_height 
 
-        double* w,  // stage_centroid_values
-        double* zv, // elevation_vertex_values
-        double* uh, // xmom_centroid_values
-        double* vh, // ymom_centroid_values
-        double* eta,// friction_centroid_values
-        double* xmom,//xmom_semi_implicit_update 
-        double* ymom//ymom_semi_implicit_update 
+        double w[N],  // stage_centroid_values
+        double zv[N3], // elevation_vertex_values
+        double uh[N], // xmom_centroid_values
+        double vh[N], // ymom_centroid_values
+        double eta[N],// friction_centroid_values
+        double xmom[N],//xmom_semi_implicit_update 
+        double ymom[N]//ymom_semi_implicit_update 
         );
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp manFrictionSloped codelet, target=CUDA args[*].transfer=atcall
+#endif
 void manning_friction_sloped(
         int N,
         int N3,
@@ -403,35 +437,41 @@ void manning_friction_sloped(
         double g, 
         double eps, // minimum_allowed_height
 
-        double* x,  // vertex_coordinates
-        double* w,  // stage_centroid_values
-        double* zv, // elevation_vertex_values
-        double* uh, // xmom_centroid_values
-        double* vh, // ymom_centroid_values
-        double* eta,// friction_centroid_values
-        double* xmom_update,    // xmom_semi_implicit_update
-        double* ymom_update    // ymom_semi_implicit_update
+        double x[N6],  // vertex_coordinates
+        double w[N],  // stage_centroid_values
+        double zv[N3], // elevation_vertex_values
+        double uh[N], // xmom_centroid_values
+        double vh[N], // ymom_centroid_values
+        double eta[N],// friction_centroid_values
+        double xmom_update[N],    // xmom_semi_implicit_update
+        double ymom_update[N]    // ymom_semi_implicit_update
         );
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp extraSndVelocity codelet, target=CUDA args[*].transfer=atcall
+#endif
 void extrapolate_second_order_velocity_true(
             int N,
             double minimum_allowed_height,
-            double * stage_centroid_values,
-            double * bed_centroid_values,
-            double * xmom_centroid_values,
-            double * xmom_centroid_store,
-            double * ymom_centroid_values,
-            double * ymom_centroid_store
+            double stage_centroid_values[N],
+            double bed_centroid_values[N],
+            double xmom_centroid_values[N],
+            double xmom_centroid_store[N],
+            double ymom_centroid_values[N],
+            double ymom_centroid_store[N]
             );
 
 
             
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp extraSndOrderSWT codelet, target=CUDA args[*].transfer=atcall
+#endif
 void extrapolate_second_order_sw_true (
         int N,
+        int N3,
+        int N6,
         double epsilon,
         double minimum_allowed_height,
         double beta_w,
@@ -442,28 +482,32 @@ void extrapolate_second_order_sw_true (
         double beta_vh_dry,
         int optimise_dry_cells,
 
-        long* surrogate_neighbours,
-        long* number_of_boundaries,
-        double* centroid_coordinates,
+        long surrogate_neighbours[N3],
+        long number_of_boundaries[N],
+        double centroid_coordinates[N3],
 
-        double* stage_centroid_values,
-        double* bed_centroid_values,
-        double* xmom_centroid_values,
-        double* ymom_centroid_values,
+        double stage_centroid_values[N],
+        double bed_centroid_values[N],
+        double xmom_centroid_values[N],
+        double ymom_centroid_values[N],
 
-        double* vertex_coordinates,
+        double vertex_coordinates[N6],
         
-        double* stage_vertex_values,
-        double* bed_vertex_values,
-        double* xmom_vertex_values,
-        double* ymom_vertex_values
+        double stage_vertex_values[N3],
+        double bed_vertex_values[N3],
+        double xmom_vertex_values[N3],
+        double ymom_vertex_values[N3]
         );
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp extraSndOrderSWF codelet, target=CUDA args[*].transfer=atcall
+#endif
 void extrapolate_second_order_sw_false (
         int N,
+        int N3,
+        int N6,
         double epsilon,
         double minimum_allowed_height,
         double beta_w,
@@ -474,42 +518,83 @@ void extrapolate_second_order_sw_false (
         double beta_vh_dry,
         int optimise_dry_cells,
 
-        long* surrogate_neighbours,
-        long* number_of_boundaries,
+        long surrogate_neighbours[N3],
+        long number_of_boundaries[N],
+        double centroid_coordinates[N3],
 
-        double* centroid_coordinates,
-        
-        double* stage_centroid_values,
-        double* bed_centroid_values,
-        double* xmom_centroid_values,
-        double* ymom_centroid_values,
-        
-        double* vertex_coordinates,
+        double stage_centroid_values[N],
+        double bed_centroid_values[N],
+        double xmom_centroid_values[N],
+        double ymom_centroid_values[N],
 
-        double* stage_vertex_values,
-        double* bed_vertex_values,
-        double* xmom_vertex_values,
-        double* ymom_vertex_values
+        double vertex_coordinates[N6],
+        
+        double stage_vertex_values[N3],
+        double bed_vertex_values[N3],
+        double xmom_vertex_values[N3],
+        double ymom_vertex_values[N3]
         );
 
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp update codelet, target=CUDA args[*].transfer=atcall
+#endif
 void update(
         int N,
         double timestep,
-        double * centroid_values,
-        double * explicit_update,
-        double * semi_implicit_update
+        double centroid_values[N],
+        double explicit_update[N],
+        double semi_implicit_update[N]
         );
     
 
 
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp saxpyCen codelet, target=CUDA args[*].transfer=atcall
+#endif
 void saxpy_centroid_values(
         int N,
         double a,
         double b,
-        double * centroid_values,
-        double * centroid_backup_values
+        double centroid_values[N],
+        double centroid_backup_values[N]
         );
+
+
+
+// swb2
+int _find_qmin_and_qmax(double dq0, double dq1, double dq2, 
+               double *qmin, double *qmax);
+
+
+int _limit_gradient(double *dqv, double qmin, double qmax, double beta_w);
+
+
+
+// extrapolate_second_order_sw
+int limit_gradient(
+        double *dqv0, 
+        double *dqv1, 
+        double *dqv2, 
+        double qmin, 
+        double qmax, 
+        double beta_w); 
+
+
+
+int find_qmin_and_qmax(
+        double dq0, 
+        double dq1, 
+        double dq2,
+        double *qmin, 
+        double *qmax); 
+
+
+
+void test_call();
+// protect_sw.c
+void test_protect_sw();
+
+
+

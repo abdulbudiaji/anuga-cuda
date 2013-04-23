@@ -1,6 +1,10 @@
 #include "hmpp_fun.h"
 
 
+
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp saxpyCen codelet, target=CUDA args[*].transfer=atcall
+#endif
 void saxpy_centroid_values(
         int N,
         double a,

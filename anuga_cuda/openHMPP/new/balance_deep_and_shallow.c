@@ -1,6 +1,9 @@
 #include "hmpp_fun.h"
 
 
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp balance codelet, target=CUDA args[*].transfer=atcall
+#endif
 void balance_deep_and_shallow(
         int N,
         int N3,
@@ -8,6 +11,7 @@ void balance_deep_and_shallow(
         double alpha_balance,
         int tight_slope_limiters,
         int use_centroid_velocities,
+
         double wc[N],   // stage_centroid_values
         double zc[N],   // elevation_centroid_values
         double wv[N3],  // stage_vertex_values

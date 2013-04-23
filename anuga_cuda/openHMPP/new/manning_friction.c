@@ -1,5 +1,10 @@
 #include <hmpp_fun.h>
 
+
+
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp manFrictionFlat codelet, target=CUDA args[*].transfer=atcall
+#endif
 void manning_friction_flat(
         int N,
         int N3,
@@ -53,6 +58,9 @@ void manning_friction_flat(
 
 
 
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp manFrictionSloped codelet, target=CUDA args[*].transfer=atcall
+#endif
 void manning_friction_sloped(
         int N,
         int N3,

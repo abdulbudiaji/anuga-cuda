@@ -1,6 +1,10 @@
 #include "hmpp_fun.h"
 
 
+
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp interpolateVtoE codelet, target=CUDA args[*].transfer=atcall
+#endif
 void interpolate_from_vertices_to_edges(
         int N,
         int N3,

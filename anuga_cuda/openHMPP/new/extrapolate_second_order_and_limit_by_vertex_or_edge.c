@@ -343,9 +343,9 @@ void _limit_vertices_by_all_neighbours(
 
         //for (i=0; i<3; i++) {
 #ifndef REARRANGED_DOMAIN
-            n = neighbours[k*3+i];
+            n = neighbours[k*3];
 #else
-            n = neighbours[k+i*N];
+            n = neighbours[k+];
 #endif
             if (n >= 0) {
                 qn = centroid_values[n]; //Neighbour's centroid value
@@ -354,9 +354,9 @@ void _limit_vertices_by_all_neighbours(
                 qmax = fmax(qmax, qn);
             }
 #ifndef REARRANGED_DOMAIN
-            n = neighbours[k*3+i];
+            n = neighbours[k*3+1];
 #else
-            n = neighbours[k+i*N];
+            n = neighbours[k+N];
 #endif
             if (n >= 0) {
                 qn = centroid_values[n]; //Neighbour's centroid value
@@ -365,9 +365,9 @@ void _limit_vertices_by_all_neighbours(
                 qmax = fmax(qmax, qn);
             }
 #ifndef REARRANGED_DOMAIN
-            n = neighbours[k*3+i];
+            n = neighbours[k*3+2];
 #else
-            n = neighbours[k+i*N];
+            n = neighbours[k+2*N];
 #endif
             if (n >= 0) {
                 qn = centroid_values[n]; //Neighbour's centroid value
@@ -779,6 +779,7 @@ void extrapolate_second_order_and_limit_by_vertex(
         double quantity_y_gradient[N]
         )
 {
+    #pragma hmpp cptGradients callsite
     _compute_gradients(
             N,
             N2,
@@ -790,6 +791,7 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_x_gradient,
             quantity_y_gradient);
 
+    #pragma hmpp extraFromGradient callsite
     _extrapolate_from_gradient(
             N,
             N2,
@@ -803,6 +805,7 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_x_gradient,
             quantity_y_gradient);
 
+    #pragma hmpp lmtVByNeigh callsite
     _limit_vertices_by_all_neighbours(
             N,
             N3,
@@ -837,6 +840,7 @@ void extrapolate_second_order_and_limit_by_edge(
         double quantity_y_gradient[N]
         )
 {
+    #pragma hmpp cptGradients callsite
     _compute_gradients(
             N,
             N2,
@@ -848,6 +852,7 @@ void extrapolate_second_order_and_limit_by_edge(
             quantity_x_gradient,
             quantity_y_gradient);
 
+    #pragma hmpp extraFromGradient callsite
     _extrapolate_from_gradient(
             N,
             N2,
@@ -861,6 +866,7 @@ void extrapolate_second_order_and_limit_by_edge(
             quantity_x_gradient,
             quantity_y_gradient);
 
+    #pragma hmpp lmtEByNeigh callsite
     _limit_edges_by_all_neighbours(
             N,
             N3,

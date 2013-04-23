@@ -5,6 +5,14 @@
 #include <hmpp_fun.h>
 
 
+#define DEBUG
+
+#ifdef DEBUG
+#define DEBUG_LOG(a) printf(a)
+#else
+#define DEBUG_LOG(a) 
+#endif
+
 
 int apply_fractional_steps( struct domain D)
 {   return 0;}
@@ -26,6 +34,7 @@ int update_boundary(struct domain D)
 
 int update_timestep(struct domain D, double yieldstep, double finaltime)
 {
+    DEBUG_LOG(" -> update_timestep \n");
     double timestep;
 
     apply_protection_against_isolated_degenerate_timesteps(D);
@@ -62,6 +71,7 @@ int update_timestep(struct domain D, double yieldstep, double finaltime)
         timestep = D.yieldtime - D.time;
 
     D.timestep = timestep;
+    DEBUG_LOG("    --> update_timestep\n");
     return 0;
 }
 
@@ -76,6 +86,7 @@ int cmp(const void *a, const void *b)
 
 double compute_fluxes(struct domain D)
 {
+    DEBUG_LOG(" -> compute_fluxes ");
     int i;
     switch ( D.compute_fluxes_method )
     {
@@ -165,6 +176,7 @@ double compute_fluxes(struct domain D)
             D.flux_timestep = D.timestep_array[i];
     }
 
+    DEBUG_LOG("    -->\n");
     return D.flux_timestep;
 }
 
@@ -172,10 +184,14 @@ double compute_fluxes(struct domain D)
 
 int manning_friction_implicit(struct domain D)
 {
+    DEBUG_LOG(" -> manning_friction_implicit\n");
     if ( D.use_sloped_mannings )
     {
+        #pragma hmpp manFrictionSloped callsite
         manning_friction_sloped(
                 D.number_of_elements,
+                D.number_of_elements * 3,
+                D.number_of_elements * 6,
                 D.g,
                 D.minimum_allowed_height,
 
@@ -191,8 +207,10 @@ int manning_friction_implicit(struct domain D)
                 D.ymom_semi_implicit_update
                 );
     } else {
+        #pragma hmpp manFrictionFlat callsite
         manning_friction_flat(
                 D.number_of_elements,
+                D.number_of_elements * 3,
                 D.g,
                 D.minimum_allowed_height,
 
@@ -206,6 +224,7 @@ int manning_friction_implicit(struct domain D)
                 D.ymom_semi_implicit_update
                 );
     }
+    DEBUG_LOG("    --> manning_friction_implicit\n");
     return 0;
 }
 
@@ -213,8 +232,10 @@ int manning_friction_implicit(struct domain D)
 
 int compute_forcing_terms(struct domain D)
 {
+    DEBUG_LOG(" -> compute_forcing_terms \n");
     // FIXME:
     manning_friction_implicit(D);
+    DEBUG_LOG("    --> compute_forcing_terms\n");
     return 0;
 }
 
@@ -222,9 +243,10 @@ int compute_forcing_terms(struct domain D)
 
 int extrapolate_second_order_sw(struct domain D)
 {
+    DEBUG_LOG(" -> extrapolate_second_order_sw \n");
     if ( D.extrapolate_velocity_second_order )
     {
-        // FIXME: OpenHMPP directives
+        #pragma hmpp extraSndVelocity callsite
         extrapolate_second_order_velocity_true(
                 D.number_of_elements,
                 D.minimum_allowed_height,
@@ -237,9 +259,11 @@ int extrapolate_second_order_sw(struct domain D)
                 D.ymom_centroid_store
                 );
 
-        // FIXME: OpenHMPP directives
+        #pragma hmpp extraSndOrderSWT callsite
         extrapolate_second_order_sw_true(
                 D.number_of_elements,
+                D.number_of_elements * 3,
+                D.number_of_elements * 6,
                 D.epsilon,
                 D.minimum_allowed_height,
                 D.beta_w,
@@ -268,9 +292,11 @@ int extrapolate_second_order_sw(struct domain D)
                 D.ymom_vertex_values
                 );
     } else {
-        // FIXME: OpenHMPP directives
+        #pragma hmpp extraSndOrderSWF callsite
         extrapolate_second_order_sw_false(
                 D.number_of_elements,
+                D.number_of_elements * 3,
+                D.number_of_elements * 6,
                 D.epsilon,
                 D.minimum_allowed_height,
                 D.beta_w,
@@ -288,8 +314,8 @@ int extrapolate_second_order_sw(struct domain D)
                 
                 D.stage_centroid_values,
                 D.bed_centroid_values,
-                D.xmom_centroid_values,
-                D.ymom_centroid_values,
+                D.xmom_centroid_store,
+                D.ymom_centroid_store,
                 
                 D.vertex_coordinates,
 
@@ -299,6 +325,7 @@ int extrapolate_second_order_sw(struct domain D)
                 D.ymom_vertex_values
                 );
     }
+    DEBUG_LOG("    --> extrapolate_second_order_sw\n");
     return 0;
 }
 
@@ -306,8 +333,10 @@ int extrapolate_second_order_sw(struct domain D)
 
 int update_conserved_quantities(struct domain D)
 {
+    DEBUG_LOG(" -> update_conserved_quantities \n");
     //for name in self.conserved_quantities
     // stage
+    #pragma hmpp update callsite
     update(
             D.number_of_elements,
             D.timestep,
@@ -318,6 +347,7 @@ int update_conserved_quantities(struct domain D)
     // FIXME: on device
     memset( D.stage_semi_implicit_update, 0, D.number_of_elements);
     // xmomentum
+    #pragma hmpp update callsite
     update(
             D.number_of_elements,
             D.timestep,
@@ -328,6 +358,7 @@ int update_conserved_quantities(struct domain D)
     // FIXME: on device
     memset( D.xmom_semi_implicit_update, 0, D.number_of_elements);
     // ymomentum
+    #pragma hmpp update callsite
     update(
             D.number_of_elements,
             D.timestep,
@@ -337,6 +368,7 @@ int update_conserved_quantities(struct domain D)
             );
     // FIXME: on device
     memset( D.ymom_semi_implicit_update, 0, D.number_of_elements);
+    DEBUG_LOG("    --> update_conserved_quantities\n");
     return 0;
 }
 
@@ -344,6 +376,7 @@ int update_conserved_quantities(struct domain D)
 
 int backup_conserved_quantities(struct domain D)
 {
+    DEBUG_LOG(" -> backup_conserved_quantities \n");
     // FIXME: on device
     //for name in self.conserved_quantities
     // stage
@@ -352,6 +385,7 @@ int backup_conserved_quantities(struct domain D)
     memcpy(D.xmom_centroid_backup, D.xmom_centroid_values, D.number_of_elements);
     // ymomentum  centroid_
     memcpy(D.ymom_centroid_backup, D.ymom_centroid_values, D.number_of_elements);
+    DEBUG_LOG("    --> backup_conserved_quantities\n");
     return 0;
 }
 
@@ -359,8 +393,10 @@ int backup_conserved_quantities(struct domain D)
 
 int saxpy_conserved_quantities(struct domain D, double a, double b)
 {
+    DEBUG_LOG(" -> saxpy_conserved_quantities \n");
     //for name in self.conserved_quantities
     // stage
+    #pragma hmpp saxpyCen callsite
     saxpy_centroid_values(
             D.number_of_elements,
             a,
@@ -369,6 +405,7 @@ int saxpy_conserved_quantities(struct domain D, double a, double b)
             D.stage_centroid_backup
             );
     // xmomentum
+    #pragma hmpp saxpyCen callsite
     saxpy_centroid_values(
             D.number_of_elements,
             a,
@@ -377,6 +414,7 @@ int saxpy_conserved_quantities(struct domain D, double a, double b)
             D.xmom_centroid_backup
             );
     // ymomentum
+    #pragma hmpp saxpyCen callsite
     saxpy_centroid_values(
             D.number_of_elements,
             a,
@@ -384,6 +422,7 @@ int saxpy_conserved_quantities(struct domain D, double a, double b)
             D.ymom_centroid_values,
             D.ymom_centroid_backup
             );
+    DEBUG_LOG("    --> saxpy_conserved_quantities\n");
     return 0;
 }
 
@@ -391,15 +430,20 @@ int saxpy_conserved_quantities(struct domain D, double a, double b)
 
 int update_centroids_of_velocities_and_height( struct domain D)
 {
+    DEBUG_LOG(" -> update_centroids_of_velocities_and_height \n");
     // elevation
+    #pragma hmpp setBoundaryE callsite
     set_boundary_values_from_edges(
             D.number_of_boundary_elements,
+            D.number_of_elements * 3,
             D.boundary_cells,
             D.boundary_edges,
             D.bed_boundary_values,
             D.bed_edge_values
             );
 
+    DEBUG_LOG("  >> finish set_boundary_values_from_edges\n");
+    #pragma hmpp updateCentroidVH callsite
     _update_centroids_of_velocities_and_height(
             D.number_of_elements,
             D.number_of_boundary_elements,
@@ -420,6 +464,7 @@ int update_centroids_of_velocities_and_height( struct domain D)
             D.xvelocity_boundary_values,
             D.yvelocity_boundary_values
             );
+    DEBUG_LOG("    --> update_centroids_of_velocities_and_height\n");
     return 0;
 }
 
@@ -427,6 +472,7 @@ int update_centroids_of_velocities_and_height( struct domain D)
 
 int update_other_quantities( struct domain D )
 {
+    DEBUG_LOG(" -> update_other_quantities \n");
     // 'yusuke'
     if ( D.flow_algorithm == 2)
         return 0;
@@ -435,6 +481,7 @@ int update_other_quantities( struct domain D )
 
     //for name in ['height', 'xvelocity', 'yvelocity']
     // height
+    #pragma hmpp extraFstOrder callsite
     extrapolate_first_order(
             D.number_of_elements,
             D.number_of_elements * 3,
@@ -443,6 +490,7 @@ int update_other_quantities( struct domain D )
             D.height_vertex_values
             );
     // xvelocity
+    #pragma hmpp extraFstOrder callsite
     extrapolate_first_order(
             D.number_of_elements,
             D.number_of_elements * 3,
@@ -451,6 +499,7 @@ int update_other_quantities( struct domain D )
             D.xvelocity_vertex_values
             );
     // yvelocity
+    #pragma hmpp extraFstOrder callsite
     extrapolate_first_order(
             D.number_of_elements,
             D.number_of_elements * 3,
@@ -458,6 +507,7 @@ int update_other_quantities( struct domain D )
             D.yvelocity_edge_values,
             D.yvelocity_vertex_values
             );
+    DEBUG_LOG("    --> update_other_quantities\n");
     return 0;
 }
 
@@ -465,9 +515,11 @@ int update_other_quantities( struct domain D )
 
 int protect_against_infinitesimal_and_negative_heights( struct domain D)
 {
+    DEBUG_LOG(" -> protect_against_infinitesimal_and_negative_heights \n");
     // 'tsunami'
     if ( D.flow_algorithm == 1)
     {
+        #pragma hmpp protectSWB2 callsite
         protect_swb2(
             D.number_of_elements,
             D.number_of_elements * 3,
@@ -486,6 +538,7 @@ int protect_against_infinitesimal_and_negative_heights( struct domain D)
             D.areas
             );
     } else {
+        #pragma hmpp protectSW callsite
         protect_sw(
             D.number_of_elements,
             D.number_of_elements * 3,
@@ -499,6 +552,7 @@ int protect_against_infinitesimal_and_negative_heights( struct domain D)
             D.ymom_centroid_values
             );
     }
+    DEBUG_LOG("    --> protect_against_infinitesimal_and_negative_heights\n");
     return 0;
 }
 
@@ -511,6 +565,7 @@ int distribute_using_edge_limiter(struct domain D)
 
 int distribute_using_vertex_limiter(struct domain D)
 {
+    DEBUG_LOG(" -> distribute_using_vertex_limiter \n");
     protect_against_infinitesimal_and_negative_heights(D);
 
     if ( D.optimised_gradient_limiter )
@@ -519,6 +574,7 @@ int distribute_using_vertex_limiter(struct domain D)
         {
             // for name in self.conserved_quantities:
             // stage
+            #pragma hmpp extraFstOrder callsite
             extrapolate_first_order(
                     D.number_of_elements,
                     D.number_of_elements * 3,
@@ -527,6 +583,7 @@ int distribute_using_vertex_limiter(struct domain D)
                     D.stage_vertex_values
                     );
             // xmomentum
+            #pragma hmpp extraFstOrder callsite
             extrapolate_first_order(
                     D.number_of_elements,
                     D.number_of_elements * 3,
@@ -535,6 +592,7 @@ int distribute_using_vertex_limiter(struct domain D)
                     D.xmom_vertex_values
                     );
             // ymomentum
+            #pragma hmpp extraFstOrder callsite
             extrapolate_first_order(
                     D.number_of_elements,
                     D.number_of_elements * 3,
@@ -558,6 +616,7 @@ int distribute_using_vertex_limiter(struct domain D)
         {
             // for name in self.conserved_quantities:
             // stage
+            #pragma hmpp extraFstOrder callsite
             extrapolate_first_order(
                     D.number_of_elements,
                     D.number_of_elements * 3,
@@ -566,6 +625,7 @@ int distribute_using_vertex_limiter(struct domain D)
                     D.stage_vertex_values
                     );
             // xmomentum
+            #pragma hmpp extraFstOrder callsite
             extrapolate_first_order(
                     D.number_of_elements,
                     D.number_of_elements * 3,
@@ -574,6 +634,7 @@ int distribute_using_vertex_limiter(struct domain D)
                     D.xmom_vertex_values
                     );
             // ymomentum
+            #pragma hmpp extraFstOrder callsite
             extrapolate_first_order(
                     D.number_of_elements,
                     D.number_of_elements * 3,
@@ -587,6 +648,9 @@ int distribute_using_vertex_limiter(struct domain D)
             // stage
             extrapolate_second_order_and_limit_by_vertex(
                     D.number_of_elements,
+                    D.number_of_elements * 2,
+                    D.number_of_elements * 3,
+                    D.number_of_elements * 6,
                     D.stage_beta,
 
                     D.centroid_coordinates,
@@ -605,6 +669,9 @@ int distribute_using_vertex_limiter(struct domain D)
             // xmomentum
             extrapolate_second_order_and_limit_by_vertex(
                     D.number_of_elements,
+                    D.number_of_elements * 2,
+                    D.number_of_elements * 3,
+                    D.number_of_elements * 6,
                     D.xmom_beta,
 
                     D.centroid_coordinates,
@@ -623,6 +690,9 @@ int distribute_using_vertex_limiter(struct domain D)
             // ymomentum
             extrapolate_second_order_and_limit_by_vertex(
                     D.number_of_elements,
+                    D.number_of_elements * 2,
+                    D.number_of_elements * 3,
+                    D.number_of_elements * 6,
                     D.ymom_beta,
 
                     D.centroid_coordinates,
@@ -669,23 +739,30 @@ int distribute_using_vertex_limiter(struct domain D)
            );
     // for name in self.conserved_quantities:
     // stage
+    #pragma hmpp interpolateVtoE callsite 
     interpolate_from_vertices_to_edges(
             D.number_of_elements,
+            D.number_of_elements * 3,
             D.stage_vertex_values,
             D.stage_edge_values
             );
     // xmomentum
+    #pragma hmpp interpolateVtoE callsite 
     interpolate_from_vertices_to_edges(
             D.number_of_elements,
+            D.number_of_elements * 3,
             D.xmom_vertex_values,
             D.xmom_edge_values
             );
     // ymomentum
+    #pragma hmpp interpolateVtoE callsite 
     interpolate_from_vertices_to_edges(
             D.number_of_elements,
+            D.number_of_elements * 3,
             D.ymom_vertex_values,
             D.ymom_edge_values
             );
+    DEBUG_LOG("    --> distribute_using_vertex_limiter\n");
     return 0;
 }
 
@@ -693,6 +770,7 @@ int distribute_using_vertex_limiter(struct domain D)
 
 int distribute_to_vertices_and_edges(struct domain D)
 {
+    DEBUG_LOG(" -> distribute_to_vertices_and_edges \n");
     // FIXME: compute_fluxes_method == 'tsunami'
     if ( D.compute_fluxes_method == 1)
     {
@@ -767,6 +845,7 @@ int distribute_to_vertices_and_edges(struct domain D)
         distribute_using_edge_limiter(D);
     else
         distribute_using_vertex_limiter(D);
+    DEBUG_LOG("    --> distribute_to_vertices_and_edges\n");
     return 0;
 }
 
@@ -798,7 +877,8 @@ int evolve( struct domain D,
             double finaltime,
             double duration,
             double epsilon,
-            int skip_initial_step
+            int skip_initial_step,
+            int step
             )
 {
     double initial_time;
@@ -806,46 +886,68 @@ int evolve( struct domain D,
 
     assert( D.beta_w >= 0 && D.beta_w <= 2.0 );
 
-
-    distribute_to_vertices_and_edges(D);
-
-    if (D.time != D.starttime)
-        D.time = D.starttime;
-    if ( ! yieldstep)
-        yieldstep = D.evolve_max_timestep;
-
-    D._order_ = D.default_order;
-
-    assert( finaltime >= D.starttime );
-
-    if (finaltime)
-        D.finaltime = finaltime;
-    else if (duration)
-        D.finaltime = duration;
-    else
+    // Initial step
+    if ( step == 0)
     {
-        printf("Only one of finaltime and duration may be specified\n");
-        exit(EXIT_FAILURE);
+        distribute_to_vertices_and_edges(D);
+
+        if (D.time != D.starttime)
+            D.time = D.starttime;
+        if ( ! yieldstep)
+            yieldstep = D.evolve_max_timestep;
+
+        D._order_ = D.default_order;
+
+        assert( finaltime >= D.starttime );
+
+        if (finaltime)
+            D.finaltime = finaltime;
+        else if (duration)
+            D.finaltime = duration;
+        else
+        {
+            printf("Only one of finaltime and duration may be specified\n");
+            exit(EXIT_FAILURE);
+        }
+
+        D.yieldtime = D.time + yieldstep;
+
+        D.recorded_min_timestep = D.evolve_max_timestep;
+        D.recorded_max_timestep = D.evolve_min_timestep;
+        D.number_of_steps = 0;
+        D.number_of_first_order_steps = 0;
+
+        update_ghosts(D);
+        distribute_to_vertices_and_edges(D);
+        update_boundary(D);
+
+        update_extrema(D);        
+
+        if ( !skip_initial_step )
+            return D.time;
     }
 
-    D.yieldtime = D.time + yieldstep;
-
-    D.recorded_min_timestep = D.evolve_max_timestep;
-    D.recorded_max_timestep = D.evolve_min_timestep;
-    D.number_of_steps = 0;
-    D.number_of_first_order_steps = 0;
-
-    update_ghosts(D);
-    distribute_to_vertices_and_edges(D);
-    update_boundary(D);
-
-    update_extrema(D);        
-
-    if ( !skip_initial_step )
-        return D.time;
 
     while(1)
     {
+        // This is used to simulate the 'yield' method in Python
+        //if (D.time >= D.yieldtime)
+        if ( step )
+        {
+            //log_operator_timestepping_statistics(D);
+            // FIXME: yield(self.get_time())
+            //return D.time;
+
+            D.yieldtime += yieldstep;
+            D.recorded_min_timestep = D.evolve_max_timestep;
+            D.recorded_max_timestep = D.evolve_min_timestep;
+            D.number_of_steps = 0;
+            D.number_of_first_order_steps = 0;
+            memset(D.max_speed, 0, D.number_of_elements);
+            DEBUG_LOG(" New step\n");
+        }
+
+
         initial_time = D.time;
 
         // euler
@@ -896,15 +998,12 @@ int evolve( struct domain D,
             // FIXME: yield(self.get_time())
             return D.time;
 
-            D.yieldtime += yieldstep;
-            D.recorded_min_timestep = D.evolve_max_timestep;
-            D.recorded_max_timestep = D.evolve_min_timestep;
-            D.number_of_steps = 0;
-            D.number_of_first_order_steps = 0;
-            memset(D.max_speed, 0, D.number_of_elements);
+            //D.yieldtime += yieldstep;
+            //D.recorded_min_timestep = D.evolve_max_timestep;
+            //D.recorded_max_timestep = D.evolve_min_timestep;
+            //D.number_of_steps = 0;
+            //D.number_of_first_order_steps = 0;
+            //memset(D.max_speed, 0, D.number_of_elements);
         }
     }
-
-
-
 }

@@ -2,6 +2,9 @@
 #include "hmpp_fun.h"
 
 
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp extraFstOrder codelet, target=CUDA args[*].transfer=atcall
+#endif
 void extrapolate_first_order(
         int N,
         int N3,

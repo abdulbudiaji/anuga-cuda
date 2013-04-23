@@ -2,6 +2,10 @@
 #include "hmpp_fun.h"
 
 
+
+#ifdef USING_LOCAL_DIRECTIVES
+#pragma hmpp update codelet, target=CUDA args[*].transfer=atcall
+#endif
 void update(
         int N,
         double timestep,
