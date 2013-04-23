@@ -69,7 +69,9 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
             *number_of_boundaries,
             *surrogate_neighbours,
             *max_speed,
-            *boundary;
+            *boundary,
+            *boundary_cells,
+            *boundary_edges;
             //*min_bed_edge_values,
             //*max_bed_edge_values,
             //*count_wet_neighbours;
@@ -161,6 +163,11 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->number_of_boundaries = (long *) number_of_boundaries->data;
 
 
+    boundary_cells = get_consecutive_array(domain, "boundary_cells");
+    D->boundary_cells = (long *) boundary_cells->data;
+
+    boundary_edges = get_consecutive_array(domain, "boundary_edges");
+    D->boundary_edges = (long *) boundary_edges->data;
 
     // Some others
     SAFE_MALLOC( D->min_bed_edge_values, D->number_of_elements, double);
@@ -292,6 +299,18 @@ int print_domain_struct(struct domain *D) {
     printf("D->minimum_allowed_height %g \n", D->minimum_allowed_height);
 
 
+    printf("D->time                 %g \n", D->time);
+    printf("D->starttime            %g \n", D->starttime);
+    printf("D->finaltime            %g \n", D->finaltime);
+    printf("D->yieldtime            %g \n", D->yieldtime);
+    printf("D->timestep             %g \n", D->timestep);
+
+    printf("D->smallsteps                    %d \n", D->smallsteps);
+    printf("D->max_smallsteps                %d \n", D->max_smallsteps);
+    printf("D->number_of_steps               %d \n", D->number_of_steps);
+    printf("D->number_of_first_order_steps   %d \n", D->number_of_first_order_steps);
+
+
     printf("D->_order_                %d \n", D->_order_);
     printf("D->default_order          %d \n", D->default_order);
     printf("D->use_sloped_mannings    %d \n", D->use_sloped_mannings);
@@ -303,6 +322,9 @@ int print_domain_struct(struct domain *D) {
     printf("D->timestepping_method      %d \n", D->timestepping_method);
 
     printf("D->CFL                      %g \n", D->CFL);
+    printf("D->flux_timestep            %g \n", D->flux_timestep);
+    printf("D->recorded_max_timestep    %g \n", D->recorded_max_timestep);
+    printf("D->recorded_min_timestep    %g \n", D->recorded_min_timestep);
     printf("D->maximum_allowed_speed    %g \n", D->maximum_allowed_speed);
     printf("D->optimised_gradient_limiter   %g \n", D->optimised_gradient_limiter);
     printf("D->alpha_balance            %g \n", D->alpha_balance);
