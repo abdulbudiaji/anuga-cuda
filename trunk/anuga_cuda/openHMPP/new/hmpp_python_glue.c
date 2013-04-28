@@ -197,6 +197,109 @@ PyObject *hmpp_distribute_to_vertices_and_edges(PyObject *self, PyObject *args)
 
 
 
+PyObject *hmpp_extrapolate_second_order_sw(PyObject *self, PyObject *args)
+{
+    PyObject *domain;
+
+
+    int timestepping_method, flow_algorithm, compute_fluxes_method;
+    int skip_initial_step;
+    int step;
+    double yieldstep, finaltime, duration, epsilon;
+
+
+    // Convert Python arguments to C
+    if (!PyArg_ParseTuple(args, "Oddddiiiii", 
+                &domain,
+                &yieldstep, 
+                &finaltime, 
+                &duration,
+                &epsilon,
+                &skip_initial_step,
+
+                &compute_fluxes_method,
+                &flow_algorithm,
+                &timestepping_method,
+                &step
+                )) 
+    {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
+
+    static struct domain D;
+    
+    
+    D.timestepping_method = timestepping_method;
+    D.flow_algorithm = flow_algorithm;
+    D.compute_fluxes_method = compute_fluxes_method;
+    
+
+    if ( !step )
+    {   
+        get_python_domain(&D, domain);
+        print_domain_struct(&D);
+        //fflush(stdout);
+    }
+    
+    // For testing single function
+    _extrapolate_second_order_sw(&D);
+    return Py_BuildValue("");
+}
+
+
+
+PyObject *hmpp_compute_fluxes(PyObject *self, PyObject *args)
+{
+    PyObject *domain;
+
+
+    int timestepping_method, flow_algorithm, compute_fluxes_method;
+    int skip_initial_step;
+    int step;
+    double yieldstep, finaltime, duration, epsilon;
+
+
+    // Convert Python arguments to C
+    if (!PyArg_ParseTuple(args, "Oddddiiiii", 
+                &domain,
+                &yieldstep, 
+                &finaltime, 
+                &duration,
+                &epsilon,
+                &skip_initial_step,
+
+                &compute_fluxes_method,
+                &flow_algorithm,
+                &timestepping_method,
+                &step
+                )) 
+    {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
+
+    static struct domain D;
+    
+    
+    D.timestepping_method = timestepping_method;
+    D.flow_algorithm = flow_algorithm;
+    D.compute_fluxes_method = compute_fluxes_method;
+    
+
+    if ( !step )
+    {   
+        get_python_domain(&D, domain);
+        print_domain_struct(&D);
+        //fflush(stdout);
+    }
+    
+    // For testing single function
+    compute_fluxes(&D);
+    return Py_BuildValue("");
+}
+
+
 
 //-------------------------------
 // Method table for python module
@@ -210,6 +313,8 @@ static struct PyMethodDef MethodTable[] = {
     {"hmpp_evolve", hmpp_evolve, METH_VARARGS, "Print out"},
     {"hmpp_python_test", hmpp_python_test, METH_VARARGS, "Print out"},
     {"hmpp_distribute_to_vertices_and_edges", hmpp_distribute_to_vertices_and_edges, METH_VARARGS,"Print out"},
+    {"hmpp_extrapolate_second_order_sw", hmpp_extrapolate_second_order_sw, METH_VARARGS, "Print out"},
+    {"hmpp_compute_fluxes", hmpp_compute_fluxes, METH_VARARGS, "Print out"},
     {NULL, NULL}
 };
 

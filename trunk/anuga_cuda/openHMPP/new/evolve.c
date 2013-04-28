@@ -7,9 +7,11 @@
 
 
 #define NON_DIRECTIVES
-#define NON_DIRECTIVES_PROTECT
-#define NON_DIRECTIVES_EXTRA2_VELOCITY
-//#define NON_DIRECTIVES_EXTRA2_SW_T
+//#define NON_DIRECTIVES_PROTECT
+//#define NON_DIRECTIVES_EXTRA2_VELOCITY
+//#define NON_DIRECTIVES_EXTRA2_SW
+//#define NON_DIRECTIVES_COMPUTE_FLUX
+//#define NON_DIRECTIVES_GRAVITY
 
 
 #define DEBUG_ROUND
@@ -127,7 +129,9 @@ double compute_fluxes(struct domain * D)
         case 1: // 'wb_1'
             assert(0); break;
         case 2: // 'wb_2'
+            #ifndef NON_DIRECTIVES_COMPUTE_FLUX 
             #pragma hmpp cf_central callsite
+            #endif 
             compute_fluxes_central_structure_CUDA(
                     D->number_of_elements, 
                     D->number_of_elements*3,
@@ -165,7 +169,10 @@ double compute_fluxes(struct domain * D)
                     D->limiting_threshold,
                     D->optimise_dry_cells);
 
+
+            #ifndef NON_DIRECTIVES_GRAVITY
             #pragma hmpp gravity callsite
+            #endif 
             gravity_wb(
                 D->number_of_elements,
                 D->number_of_elements * 3,
@@ -188,6 +195,7 @@ double compute_fluxes(struct domain * D)
 
                 D->g
                 );
+
             break;
         case 3: // 'wb_3'
             assert(0); break;
@@ -219,7 +227,9 @@ int manning_friction_implicit(struct domain * D)
     DEBUG_LOG(" -> manning_friction_implicit\n");
     if ( D->use_sloped_mannings )
     {
+        #ifndef NON_DIRECTIVES 
         #pragma hmpp manFrictionSloped callsite
+        #endif 
         manning_friction_sloped(
                 D->number_of_elements,
                 D->number_of_elements * 3,
@@ -239,7 +249,9 @@ int manning_friction_implicit(struct domain * D)
                 D->ymom_semi_implicit_update
                 );
     } else {
+        #ifndef NON_DIRECTIVES 
         #pragma hmpp manFrictionFlat callsite
+        #endif 
         manning_friction_flat(
                 D->number_of_elements,
                 D->number_of_elements * 3,
@@ -276,7 +288,9 @@ int compute_forcing_terms(struct domain * D)
 int _extrapolate_second_order_sw(struct domain * D)
 {
     DEBUG_LOG(" -> extrapolate_second_order_sw \n");
+    #ifndef NON_DIRECTIVES_EXTRA2_SW
     #pragma hmpp extraSndOrderSW callsite
+    #endif
     extrapolate_second_order_sw( 
                 D->number_of_elements,
                 D->number_of_elements * 2,
@@ -414,7 +428,9 @@ int update_conserved_quantities(struct domain * D)
     DEBUG_LOG(" -> update_conserved_quantities \n");
     //for name in self.conserved_quantities
     // stage
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp update callsite
+    #endif 
     update(
             D->number_of_elements,
             D->timestep,
@@ -425,7 +441,9 @@ int update_conserved_quantities(struct domain * D)
     // FIXME: on device
     memset( D->stage_semi_implicit_update, 0, D->number_of_elements);
     // xmomentum
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp update callsite
+    #endif 
     update(
             D->number_of_elements,
             D->timestep,
@@ -436,7 +454,9 @@ int update_conserved_quantities(struct domain * D)
     // FIXME: on device
     memset( D->xmom_semi_implicit_update, 0, D->number_of_elements);
     // ymomentum
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp update callsite
+    #endif 
     update(
             D->number_of_elements,
             D->timestep,
@@ -474,7 +494,9 @@ int saxpy_conserved_quantities(struct domain * D, double a, double b)
     DEBUG_LOG(" -> saxpy_conserved_quantities \n");
     //for name in self.conserved_quantities
     // stage
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp saxpyCen callsite
+    #endif 
     saxpy_centroid_values(
             D->number_of_elements,
             a,
@@ -483,7 +505,9 @@ int saxpy_conserved_quantities(struct domain * D, double a, double b)
             D->stage_centroid_backup
             );
     // xmomentum
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp saxpyCen callsite
+    #endif 
     saxpy_centroid_values(
             D->number_of_elements,
             a,
@@ -492,7 +516,9 @@ int saxpy_conserved_quantities(struct domain * D, double a, double b)
             D->xmom_centroid_backup
             );
     // ymomentum
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp saxpyCen callsite
+    #endif 
     saxpy_centroid_values(
             D->number_of_elements,
             a,
@@ -510,7 +536,9 @@ int update_centroids_of_velocities_and_height( struct domain * D)
 {
     DEBUG_LOG(" -> update_centroids_of_velocities_and_height \n");
     // elevation
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp setBoundaryE callsite
+    #endif 
     set_boundary_values_from_edges(
             D->number_of_boundary_elements,
             D->number_of_elements * 3,
@@ -520,8 +548,10 @@ int update_centroids_of_velocities_and_height( struct domain * D)
             D->bed_edge_values
             );
 
-    DEBUG_LOG("  >> finish set_boundary_values_from_edges\n");
+    DEBUG_LOG("    --> finish set_boundary_values_from_edges\n");
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp updateCentroidVH callsite
+    #endif 
     _update_centroids_of_velocities_and_height(
             D->number_of_elements,
             D->number_of_boundary_elements,
@@ -559,7 +589,9 @@ int update_other_quantities( struct domain * D )
 
     //for name in ['height', 'xvelocity', 'yvelocity']
     // height
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp extraFstOrder callsite
+    #endif 
     extrapolate_first_order(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -568,7 +600,9 @@ int update_other_quantities( struct domain * D )
             D->height_vertex_values
             );
     // xvelocity
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp extraFstOrder callsite
+    #endif 
     extrapolate_first_order(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -577,7 +611,9 @@ int update_other_quantities( struct domain * D )
             D->xvelocity_vertex_values
             );
     // yvelocity
+    #ifndef NON_DIRECTIVES 
     #pragma hmpp extraFstOrder callsite
+    #endif 
     extrapolate_first_order(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -657,7 +693,9 @@ int distribute_using_vertex_limiter(struct domain * D)
             DEBUG_LOG("    _order_ == 1");
             // for name in self.conserved_quantities:
             // stage
+            #ifndef NON_DIRECTIVES 
             #pragma hmpp extraFstOrder callsite
+            #endif 
             extrapolate_first_order(
                     D->number_of_elements,
                     D->number_of_elements * 3,
@@ -666,7 +704,9 @@ int distribute_using_vertex_limiter(struct domain * D)
                     D->stage_vertex_values
                     );
             // xmomentum
+            #ifndef NON_DIRECTIVES 
             #pragma hmpp extraFstOrder callsite
+            #endif 
             extrapolate_first_order(
                     D->number_of_elements,
                     D->number_of_elements * 3,
@@ -675,7 +715,9 @@ int distribute_using_vertex_limiter(struct domain * D)
                     D->xmom_vertex_values
                     );
             // ymomentum
+            #ifndef NON_DIRECTIVES 
             #pragma hmpp extraFstOrder callsite
+            #endif 
             extrapolate_first_order(
                     D->number_of_elements,
                     D->number_of_elements * 3,
@@ -700,7 +742,9 @@ int distribute_using_vertex_limiter(struct domain * D)
             DEBUG_LOG("    _order_ == 1");
             // for name in self.conserved_quantities:
             // stage
+            #ifndef NON_DIRECTIVES 
             #pragma hmpp extraFstOrder callsite
+            #endif 
             extrapolate_first_order(
                     D->number_of_elements,
                     D->number_of_elements * 3,
@@ -709,7 +753,9 @@ int distribute_using_vertex_limiter(struct domain * D)
                     D->stage_vertex_values
                     );
             // xmomentum
+            #ifndef NON_DIRECTIVES 
             #pragma hmpp extraFstOrder callsite
+            #endif 
             extrapolate_first_order(
                     D->number_of_elements,
                     D->number_of_elements * 3,
@@ -718,7 +764,9 @@ int distribute_using_vertex_limiter(struct domain * D)
                     D->xmom_vertex_values
                     );
             // ymomentum
+            #ifndef NON_DIRECTIVES 
             #pragma hmpp extraFstOrder callsite
+            #endif 
             extrapolate_first_order(
                     D->number_of_elements,
                     D->number_of_elements * 3,
