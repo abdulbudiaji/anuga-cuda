@@ -68,7 +68,6 @@ class HMPP_domain(Domain):
                 duration=0.0,
                 skip_initial_step=False):
         
-        print yieldstep, finaltime, duration, skip_initial_step
 
         if self.store is True and self.get_time() == self.get_starttime():
             self.initialise_storage()

@@ -156,6 +156,7 @@ void extrapolate_second_order_velocity_true(
 #endif
 void extrapolate_second_order_sw_true (
         int N,
+        int N2,
         int N3,
         int N6,
         double epsilon,
@@ -170,7 +171,7 @@ void extrapolate_second_order_sw_true (
 
         long surrogate_neighbours[N3],
         long number_of_boundaries[N],
-        double centroid_coordinates[N3],
+        double centroid_coordinates[N2],
 
         double stage_centroid_values[N],
         double bed_centroid_values[N],
