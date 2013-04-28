@@ -83,7 +83,7 @@ int limit_gradient_old(
 
     int i;
     double r = 1000.0, r0 = 1.0, phi = 1.0;
-    const double TINY = 1.0e-100; // to avoid machine accuracy problems.
+    double TINY = 1.0e-100; // to avoid machine accuracy problems.
     // FIXME: Perhaps use the epsilon used elsewhere.
 
     // Any provisional jump with magnitude < TINY does not contribute to

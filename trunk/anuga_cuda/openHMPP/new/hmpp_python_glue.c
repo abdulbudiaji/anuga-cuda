@@ -189,9 +189,9 @@ PyObject *hmpp_distribute_to_vertices_and_edges(PyObject *self, PyObject *args)
     }
     
     // For testing single function
-    //distribute_to_vertices_and_edges(&D);
+    _distribute_to_vertices_and_edges(&D);
 
-    _extrapolate_second_order_sw(&D);
+    //_extrapolate_second_order_sw(&D);
     return Py_BuildValue("");
 }
 
