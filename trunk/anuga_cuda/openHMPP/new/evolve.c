@@ -5,15 +5,33 @@
 #include <hmpp_fun.h>
 
 
+
+#define NON_DIRECTIVES
+#define NON_DIRECTIVES_PROTECT
+#define NON_DIRECTIVES_EXTRA2_VELOCITY
+//#define NON_DIRECTIVES_EXTRA2_SW_T
+
+
 #define DEBUG_ROUND
+#define DEBUG
+//#define DEBUG_LOG_PAR(a, b) printf(a, b)
+
+
 
 #ifdef DEBUG
 #define DEBUG_LOG(a) printf(a)
 #define DEBUG_LOG_PAR(a, b) printf(a, b)
+#define DEBUG_ASSERT(expr) \
+    (__ASSERT_VOID_CAST ((expr)? 0 : \
+    (__assert_fail (__STRING(expr), __FILE__, __LINE__, \
+    __ASSERT_FUNCTION), 0)))
 #else
 #define DEBUG_LOG(a) 
 #define DEBUG_LOG_PAR(a, b) 
+#define DEBUG_ASSERT(expr) (__ASSERT_VOID_CAST (0))
 #endif
+
+
 
 
 int apply_fractional_steps( struct domain * D)
@@ -73,7 +91,10 @@ int update_timestep(struct domain * D, double yieldstep, double finaltime)
         timestep = D->yieldtime - D->time;
 
     D->timestep = timestep;
-    DEBUG_LOG("    --> update_timestep\n");
+
+    DEBUG_ASSERT(D->time >= 0);
+    DEBUG_ASSERT(D->flux_timestep >= 0);
+
     return 0;
 }
 
@@ -90,12 +111,15 @@ double compute_fluxes(struct domain * D)
 {
     DEBUG_LOG(" -> compute_fluxes ");
     int i;
+
+    D->flux_timestep = D->evolve_max_timestep;
+
     switch ( D->compute_fluxes_method )
     {
         case 0: // 'original'
-            break;
+            assert(0); break;
         case 1: // 'wb_1'
-            break;
+            assert(0); break;
         case 2: // 'wb_2'
             #pragma hmpp cf_central callsite
             compute_fluxes_central_structure_CUDA(
@@ -160,9 +184,9 @@ double compute_fluxes(struct domain * D)
                 );
             break;
         case 3: // 'wb_3'
-            break;
+            assert(0); break;
         case 4: // 'tsunami'
-            break;
+            assert(0); break;
         default:
             printf("unknown compute_fluxes_method\n");
             exit(EXIT_FAILURE);
@@ -248,7 +272,9 @@ int extrapolate_second_order_sw(struct domain * D)
     DEBUG_LOG(" -> extrapolate_second_order_sw \n");
     if ( D->extrapolate_velocity_second_order )
     {
+        #ifndef NON_DIRECTIVES_EXTRA2_VELOCITY
         #pragma hmpp extraSndVelocity callsite
+        #endif
         extrapolate_second_order_velocity_true(
                 D->number_of_elements,
                 D->minimum_allowed_height,
@@ -261,9 +287,12 @@ int extrapolate_second_order_sw(struct domain * D)
                 D->ymom_centroid_store
                 );
 
+        #ifndef NON_DIRECTIVES_EXTRA2_SW_T
         #pragma hmpp extraSndOrderSWT callsite
+        #endif
         extrapolate_second_order_sw_true(
                 D->number_of_elements,
+                D->number_of_elements * 2,
                 D->number_of_elements * 3,
                 D->number_of_elements * 6,
                 D->epsilon,
@@ -294,7 +323,9 @@ int extrapolate_second_order_sw(struct domain * D)
                 D->ymom_vertex_values
                 );
     } else {
+        #ifndef NON_DIRECTIVES
         #pragma hmpp extraSndOrderSWF callsite
+        #endif
         extrapolate_second_order_sw_false(
                 D->number_of_elements,
                 D->number_of_elements * 3,
@@ -521,7 +552,9 @@ int protect_against_infinitesimal_and_negative_heights( struct domain * D)
     // 'tsunami'
     if ( D->flow_algorithm == 1)
     {
+        #ifndef NON_DIRECTIVES
         #pragma hmpp protectSWB2 callsite
+        #endif
         protect_swb2(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -540,7 +573,9 @@ int protect_against_infinitesimal_and_negative_heights( struct domain * D)
             D->areas
             );
     } else {
+        #ifndef NON_DIRECTIVES_PROTECT
         #pragma hmpp protectSW callsite
+        #endif
         protect_sw(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -574,6 +609,7 @@ int distribute_using_vertex_limiter(struct domain * D)
     {
         if ( D->_order_ == 1)
         {
+            DEBUG_LOG("    _order_ == 1");
             // for name in self.conserved_quantities:
             // stage
             #pragma hmpp extraFstOrder callsite
@@ -616,6 +652,7 @@ int distribute_using_vertex_limiter(struct domain * D)
         // for name in self.conserved_quantities:
         if ( D->_order_ == 1)
         {
+            DEBUG_LOG("    _order_ == 1");
             // for name in self.conserved_quantities:
             // stage
             #pragma hmpp extraFstOrder callsite
@@ -647,6 +684,8 @@ int distribute_using_vertex_limiter(struct domain * D)
         }
         else if (D->_order_ == 2)
         {
+            DEBUG_LOG("    _order_ == 2");
+
             // stage
             extrapolate_second_order_and_limit_by_vertex(
                     D->number_of_elements,
@@ -719,7 +758,9 @@ int distribute_using_vertex_limiter(struct domain * D)
         
     }
 
+    #ifndef NON_DIRECTIVES
     #pragma hmpp balance callsite 
+    #endif
     balance_deep_and_shallow(
            D->number_of_elements,
            D->number_of_elements*3,
@@ -741,7 +782,9 @@ int distribute_using_vertex_limiter(struct domain * D)
            );
     // for name in self.conserved_quantities:
     // stage
+    #ifndef NON_DIRECTIVES
     #pragma hmpp interpolateVtoE callsite 
+    #endif
     interpolate_from_vertices_to_edges(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -749,7 +792,9 @@ int distribute_using_vertex_limiter(struct domain * D)
             D->stage_edge_values
             );
     // xmomentum
+    #ifndef NON_DIRECTIVES
     #pragma hmpp interpolateVtoE callsite 
+    #endif
     interpolate_from_vertices_to_edges(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -757,7 +802,9 @@ int distribute_using_vertex_limiter(struct domain * D)
             D->xmom_edge_values
             );
     // ymomentum
+    #ifndef NON_DIRECTIVES
     #pragma hmpp interpolateVtoE callsite 
+    #endif
     interpolate_from_vertices_to_edges(
             D->number_of_elements,
             D->number_of_elements * 3,
@@ -856,8 +903,20 @@ int distribute_to_vertices_and_edges(struct domain * D)
 int evolve_one_euler_step(struct domain * D, double yieldstep, double finaltime)
 {
     compute_fluxes( D );
+
+    DEBUG_ASSERT(D->time >= 0);
+    DEBUG_ASSERT(D->flux_timestep >= 0);
+
     compute_forcing_terms( D );
+
+    DEBUG_ASSERT(D->time >= 0);
+    DEBUG_ASSERT(D->flux_timestep >= 0);
+
     update_timestep( D, yieldstep, finaltime);
+
+    DEBUG_ASSERT(D->time >= 0);
+    DEBUG_ASSERT(D->flux_timestep >= 0);
+
     update_conserved_quantities( D );
     return 0;
 }
@@ -890,7 +949,7 @@ double evolve( struct domain * D,
     int round = 10;
 #endif
 
-    assert( D->beta_w >= 0 && D->beta_w <= 2.0 );
+    DEBUG_ASSERT( D->beta_w >= 0 && D->beta_w <= 2.0 );
 
     // Initial step
     if ( step == 0)
@@ -942,7 +1001,8 @@ double evolve( struct domain * D,
 #endif
     }
 
-
+    DEBUG_ASSERT(D->time >= 0);
+    DEBUG_ASSERT(D->flux_timestep >= 0);
 
 #ifdef DEBUG_ROUND
     while( round-- )
@@ -972,6 +1032,9 @@ double evolve( struct domain * D,
 
         initial_time = D->time;
 
+        DEBUG_ASSERT(D->time >= 0);
+        DEBUG_ASSERT(D->flux_timestep >= 0);
+
         // euler
         if ( D->timestepping_method == 1)
             evolve_one_euler_step(D, yieldstep, D->finaltime);
@@ -981,6 +1044,9 @@ double evolve( struct domain * D,
         // rk3
         else if (D->timestepping_method == 3)
             evolve_one_rk3_step(D, yieldstep, D->finaltime);
+
+        DEBUG_ASSERT(D->time >= 0);
+        DEBUG_ASSERT(D->flux_timestep >= 0);
 
         apply_fractional_steps(D);
 
@@ -995,6 +1061,9 @@ double evolve( struct domain * D,
         update_other_quantities(D);
 
         update_extrema(D);
+
+        DEBUG_ASSERT(D->time >= 0);
+        DEBUG_ASSERT(D->flux_timestep >= 0);
 
         D->number_of_steps += 1;
         if ( D->_order_ == 1 )
@@ -1035,3 +1104,12 @@ double evolve( struct domain * D,
     }
     return D->time;
 }
+
+
+
+void test_single( struct domain *D)
+{
+    compute_fluxes(D);
+    printf(" flux_timestep  %lf \n", D->flux_timestep);
+}
+

@@ -48,6 +48,12 @@ double evolve(struct domain * D, double yieldstep,
             double epsilon, int skip_initial_step,
             int step);
 
+int distribute_to_vertices_and_edges(struct domain * D);
+
+
+int extrapolate_second_order_sw(struct domain * D);
+
+
 
 #ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall
@@ -474,6 +480,7 @@ void extrapolate_second_order_velocity_true(
 #endif
 void extrapolate_second_order_sw_true (
         int N,
+        int N2,
         int N3,
         int N6,
         double epsilon,
@@ -488,7 +495,7 @@ void extrapolate_second_order_sw_true (
 
         long surrogate_neighbours[N3],
         long number_of_boundaries[N],
-        double centroid_coordinates[N3],
+        double centroid_coordinates[N2],
 
         double stage_centroid_values[N],
         double bed_centroid_values[N],
@@ -602,3 +609,4 @@ void test_protect_sw();
 
 
 
+void test_single( struct domain *D);
