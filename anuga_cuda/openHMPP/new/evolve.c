@@ -267,9 +267,47 @@ int compute_forcing_terms(struct domain * D)
 
 
 
-int extrapolate_second_order_sw(struct domain * D)
+int _extrapolate_second_order_sw(struct domain * D)
 {
     DEBUG_LOG(" -> extrapolate_second_order_sw \n");
+    #pragma hmpp extraSndOrderSW callsite
+    extrapolate_second_order_sw( 
+                D->number_of_elements,
+                D->number_of_elements * 2,
+                D->number_of_elements * 3,
+                D->number_of_elements * 6,
+                D->epsilon,
+                D->minimum_allowed_height,
+                D->beta_w,
+                D->beta_w_dry,
+                D->beta_uh,
+                D->beta_uh_dry,
+                D->beta_vh,
+                D->beta_vh_dry,
+                D->optimise_dry_cells,
+                D->extrapolate_velocity_second_order,
+
+                D->surrogate_neighbours,
+                D->number_of_boundaries,
+                D->centroid_coordinates,
+                
+                D->stage_centroid_values,
+                D->bed_centroid_values,
+                D->xmom_centroid_values,
+                D->ymom_centroid_values,
+                
+                D->vertex_coordinates,
+
+                D->stage_vertex_values,
+                D->bed_vertex_values,
+                D->xmom_vertex_values,
+                D->ymom_vertex_values,
+
+                D->stage_centroid_store,
+                D->xmom_centroid_store,
+                D->ymom_centroid_store
+                );
+    /*
     if ( D->extrapolate_velocity_second_order )
     {
         #ifndef NON_DIRECTIVES_EXTRA2_VELOCITY
@@ -358,6 +396,7 @@ int extrapolate_second_order_sw(struct domain * D)
                 D->ymom_vertex_values
                 );
     }
+    */
     DEBUG_LOG("    --> extrapolate_second_order_sw\n");
     return 0;
 }
@@ -641,7 +680,7 @@ int distribute_using_vertex_limiter(struct domain * D)
         }
         else if (D->_order_ == 2)
         {
-            extrapolate_second_order_sw( D );
+            _extrapolate_second_order_sw( D );
         }
         else
         {

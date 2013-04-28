@@ -48,10 +48,10 @@ double evolve(struct domain * D, double yieldstep,
             double epsilon, int skip_initial_step,
             int step);
 
-int distribute_to_vertices_and_edges(struct domain * D);
+int _distribute_to_vertices_and_edges(struct domain * D);
 
 
-int extrapolate_second_order_sw(struct domain * D);
+int _extrapolate_second_order_sw(struct domain * D);
 
 
 
@@ -513,6 +513,47 @@ void extrapolate_second_order_sw_true (
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#pragma hmpp extraSndOrderSW codelet, target=CUDA args[*].transfer=atcall
+#endif
+void extrapolate_second_order_sw( 
+        int N,
+        int N2,
+        int N3,
+        int N6,
+        double epsilon,
+        double minimum_allowed_height,
+        double beta_w,
+        double beta_w_dry,
+        double beta_uh,
+        double beta_uh_dry,
+        double beta_vh,
+        double beta_vh_dry,
+        int optimise_dry_cells,
+        int extrapolate_velocity_second_order,
+
+        long surrogate_neighbours[N3],
+        long number_of_boundaries[N],
+        double centroid_coordinates[N2],
+
+        double stage_centroid_values[N],
+        double bed_centroid_values[N],
+        double xmom_centroid_values[N],
+        double ymom_centroid_values[N],
+
+        double vertex_coordinates[N6],
+        
+        double stage_vertex_values[N3],
+        double bed_vertex_values[N3],
+        double xmom_vertex_values[N3],
+        double ymom_vertex_values[N3],
+        double stage_centroid_store[N],
+        double xmom_centroid_store[N],
+        double ymom_centroid_store[N]
+        );
+
+
+
+#ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp extraSndOrderSWF codelet, target=CUDA args[*].transfer=atcall
 #endif
 void extrapolate_second_order_sw_false (
@@ -593,6 +634,11 @@ int limit_gradient(
         double beta_w); 
 
 
+int limit_gradient_old(
+        double *dqv, 
+        double qmin, 
+        double qmax, 
+        double beta_w);
 
 int find_qmin_and_qmax(
         double dq0, 
