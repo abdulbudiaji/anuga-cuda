@@ -48,7 +48,12 @@ int log_operator_timestepping_statistics(struct domain * D)
 
 
 int update_boundary(struct domain * D)
-{   return 0;}
+{   
+    DEBUG_LOG(" -> update_timestep \n");
+
+    DEBUG_LOG("    -->\n");
+    return 0;
+}
 
 
 
@@ -94,6 +99,7 @@ int update_timestep(struct domain * D, double yieldstep, double finaltime)
 
     DEBUG_ASSERT(D->time >= 0);
     DEBUG_ASSERT(D->flux_timestep >= 0);
+    DEBUG_LOG("    -->\n");
 
     return 0;
 }
@@ -856,7 +862,7 @@ int distribute_using_vertex_limiter(struct domain * D)
 
 
 
-int distribute_to_vertices_and_edges(struct domain * D)
+int _distribute_to_vertices_and_edges(struct domain * D)
 {
     DEBUG_LOG(" -> distribute_to_vertices_and_edges \n");
     // FIXME: compute_fluxes_method == 'tsunami'
@@ -996,7 +1002,7 @@ double evolve( struct domain * D,
         DEBUG_LOG(" STEP 0\n");
 
 
-        distribute_to_vertices_and_edges(D);
+        _distribute_to_vertices_and_edges(D);
 
         if (D->time != D->starttime)
             D->time = D->starttime;
@@ -1029,7 +1035,7 @@ double evolve( struct domain * D,
 
 
         update_ghosts(D);
-        distribute_to_vertices_and_edges(D);
+        _distribute_to_vertices_and_edges(D);
         update_boundary(D);
 
         update_extrema(D);        
@@ -1093,7 +1099,7 @@ double evolve( struct domain * D,
 
         update_ghosts(D);
 
-        distribute_to_vertices_and_edges(D);
+        _distribute_to_vertices_and_edges(D);
 
         update_boundary(D);
 
