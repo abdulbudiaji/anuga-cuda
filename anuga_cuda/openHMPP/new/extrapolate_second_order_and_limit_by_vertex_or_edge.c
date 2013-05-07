@@ -336,6 +336,11 @@ void _limit_vertices_by_all_neighbours(
     double dq, phi, r;
     double dqa0, dqa1, dqa2;
 
+    #pragma hmppcg gridify(k), &
+    #pragma hmppcg & private( i, n, qmin, qmax, qn, qc, dq, phi, r, dqa0, &
+    #pragma hmppcg & dqa1, dqa2), &
+    #pragma hmppcg & global( beta, centroid_values, vertex_values, edge_values,&
+    #pragma hmppcg & neighbours, x_gradient, y_gradient)
     for (k=0; k<N; k++){
         qc = centroid_values[k];
         qmin = qc;
@@ -464,6 +469,11 @@ void _limit_edges_by_all_neighbours(
     double dq, phi, r;
     double dqa0, dqa1, dqa2;
 
+    #pragma hmppcg gridify(k), &
+    #pragma hmppcg & private( i, n, qmin, qmax, qn, qc, dq, phi, r, dqa0, &
+    #pragma hmppcg & dqa1, dqa2), &
+    #pragma hmppcg & global( beta, centroid_values, vertex_values, edge_values,&
+    #pragma hmppcg & neighbours, x_gradient, y_gradient)
     for (k=0; k<N; k++){
         qc = centroid_values[k];
         qmin = qc;
@@ -600,6 +610,10 @@ void _extrapolate_from_gradient(
     int k;
     double x, y, x0, y0, x1, y1, x2, y2;
 
+    #pragma hmppcg gridify(k), &
+    #pragma hmppcg & private( x, y, x0, y0, x1, y1, x2, y2), &
+    #pragma hmppcg & global( centroids, centroid_values, vertex_coordinates, &
+    #pragma hmppcg & vertex_values, edge_values, a, b) 
     for (k=0; k<N; k++){
 
         // Centroid coordinates
@@ -670,6 +684,11 @@ void _compute_gradients(
     double det;
 
 
+    #pragma hmppcg gridify(k), &
+    #pragma hmppcg & private( k0, k1, k2, x0, y0, x1, y1, x2, y2, &
+    #pragma hmppcg & q0, q1, q2, det), &
+    #pragma hmppcg & global( centroids, centroid_values, number_of_boundaries, &
+    #pragma hmppcg & surrogate_neighbours, a, b)
     for (k=0; k<N; k++) {
 
         if (number_of_boundaries[k] < 2) {

@@ -29,6 +29,10 @@ void protect_sw(
 
     // Protect against initesimal and negative heights
     if (maximum_allowed_speed < epsilon) {
+        #pragma hmppcg gridify(k), &
+        #pragma hmppcg & private( hc, u, v, reduced_speed), &
+        #pragma hmppcg & global( minimum_allowed_height, maximum_allowed_speed, &
+        #pragma hmppcg & epsilon, wc, zc, xmomc, ymomc)
         for (k = 0; k < N; k++) {
             hc = wc[k] - zc[k];
             if (hc < minimum_allowed_height) {
@@ -41,6 +45,10 @@ void protect_sw(
 
     } else {
         // Protect against initesimal and negative heights
+        #pragma hmppcg gridify(k), &
+        #pragma hmppcg & private( hc, u, v, reduced_speed), &
+        #pragma hmppcg & global( minimum_allowed_height, maximum_allowed_speed, &
+        #pragma hmppcg & epsilon, wc, zc, xmomc, ymomc)
         for (k = 0; k < N; k++) {
             hc = wc[k] - zc[k];
             if (hc < minimum_allowed_height) {

@@ -11,20 +11,23 @@ void interpolate_from_vertices_to_edges(
         double vertex_values[N3],
         double edge_values[N3]) 
 {
-    int k;
+    int k, k3;
 
     double q0, q1, q2;
-
+    
+    #pragma hmppcg gridify(k), private(q0, q1, q2, k3), &
+    #pragma hmppcg & global(vertex_values, edge_values)
     for (k=0; k<N; k++) {
 
 #ifndef REARRANGED_DOMAIN
-        q0 = vertex_values[k*3 + 0];
-        q1 = vertex_values[k*3 + 1];
-        q2 = vertex_values[k*3 + 2];
+        k3 = k*3;
+        q0 = vertex_values[k3 + 0];
+        q1 = vertex_values[k3 + 1];
+        q2 = vertex_values[k3 + 2];
 
-        edge_values[k*3 + 0] = 0.5*(q1+q2);
-        edge_values[k*3 + 1] = 0.5*(q0+q2);
-        edge_values[k*3 + 2] = 0.5*(q0+q1);
+        edge_values[k3 + 0] = 0.5*(q1+q2);
+        edge_values[k3 + 1] = 0.5*(q0+q2);
+        edge_values[k3 + 2] = 0.5*(q0+q1);
 #else
         q0 = vertex_values[k];
         q1 = vertex_values[k + N];

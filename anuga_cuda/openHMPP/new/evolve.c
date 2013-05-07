@@ -1206,3 +1206,71 @@ void test_single( struct domain *D)
     printf(" flux_timestep  %lf \n", D->flux_timestep);
 }
 
+
+void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
+{
+
+    // stage
+    extrapolate_second_order_and_limit_by_vertex(
+            D->number_of_elements,
+            D->number_of_elements * 2,
+            D->number_of_elements * 3,
+            D->number_of_elements * 6,
+            D->stage_beta,
+
+            D->centroid_coordinates,
+            D->vertex_coordinates,
+
+            D->number_of_boundaries,
+            D->surrogate_neighbours,
+            D->neighbours,
+
+            D->stage_centroid_values,
+            D->stage_vertex_values,
+            D->stage_edge_values,
+            D->stage_x_gradient,
+            D->stage_y_gradient
+            );
+    // xmomentum
+    extrapolate_second_order_and_limit_by_vertex(
+            D->number_of_elements,
+            D->number_of_elements * 2,
+            D->number_of_elements * 3,
+            D->number_of_elements * 6,
+            D->xmom_beta,
+
+            D->centroid_coordinates,
+            D->vertex_coordinates,
+
+            D->number_of_boundaries,
+            D->surrogate_neighbours,
+            D->neighbours,
+
+            D->xmom_centroid_values,
+            D->xmom_vertex_values,
+            D->xmom_edge_values,
+            D->xmom_x_gradient,
+            D->xmom_y_gradient
+            );
+    // ymomentum
+    extrapolate_second_order_and_limit_by_vertex(
+            D->number_of_elements,
+            D->number_of_elements * 2,
+            D->number_of_elements * 3,
+            D->number_of_elements * 6,
+            D->ymom_beta,
+
+            D->centroid_coordinates,
+            D->vertex_coordinates,
+
+            D->number_of_boundaries,
+            D->surrogate_neighbours,
+            D->neighbours,
+
+            D->ymom_centroid_values,
+            D->ymom_vertex_values,
+            D->ymom_edge_values,
+            D->ymom_x_gradient,
+            D->ymom_y_gradient
+            );
+}
