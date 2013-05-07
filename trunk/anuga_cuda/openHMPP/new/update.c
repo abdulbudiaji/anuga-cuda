@@ -14,11 +14,15 @@ void update(
         double semi_implicit_update[N])
 {
     int k;
+    double denominator, x;
 
 
     // Divide semi_implicit update by conserved quantity
+    #pragma hmppcg gridify(k), &
+    #pragma hmppcg & private(denominator, x), &
+    #pragma hmppcg & global(timestep, centroid_values, explicit_update, &
+    #pragma hmppcg & semi_implicit_update)
     for (k=0; k<N; k++) {
-        double denominator, x;
         x = centroid_values[k];
         if (x == 0.0) {
             semi_implicit_update[k] = 0.0;

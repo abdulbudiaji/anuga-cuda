@@ -52,9 +52,13 @@ int _distribute_to_vertices_and_edges(struct domain * D);
 
 
 int _extrapolate_second_order_sw(struct domain * D);
+void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D);
 
 
 double compute_fluxes(struct domain * D);
+int update_boundary(struct domain * D);
+int update_ghosts(struct domain * D);
+int update_extrema(struct domain * D);
 
 #ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall

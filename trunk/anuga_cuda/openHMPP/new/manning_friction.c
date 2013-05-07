@@ -25,6 +25,9 @@ void manning_friction_flat(
 #endif
     double S, h, z, z0, z1, z2;
 
+    #pragma hmppcg gridify(k), &
+    #pragma hmppcg & private( k3, S, h, z, z0, z1, z2), &
+    #pragma hmppcg & global( g, eps, w,zv, uh, vh, eta, xmom, ymom)
     for (k = 0; k < N; k++) {
         if (eta[k] > eps) {
 #ifndef REARRANGED_DOMAIN
@@ -85,6 +88,11 @@ void manning_friction_sloped(
     double x0, y0, x1, y1, x2, y2;
     double det;
 
+    #pragma hmppcg gridify(k), &
+    #pragma hmppcg & private( k3, k6, S, h, z, z0, z1, z2, zs, zx, zy, &
+    #pragma hmppcg & x0, y0, x1, y1, x2, y2, det), &
+    #pragma hmppcg & global( g, eps, x, w, zv, uh, vh, eta, &
+    #pragma hmppcg & xmom_update, ymom_update)
     for (k = 0; k < N; k++) {
         if (eta[k] > eps) {
 #ifndef REARRANGED_DOMAIN
