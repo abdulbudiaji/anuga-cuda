@@ -25,9 +25,11 @@ HMPP_ENV_VAR = HMPPRT_LOG_LEVEL=info HMPPRT_NO_FALLBACK=0
 	#capsmc ${HMPP_FLAGS13} ${CC} ${CXXFLAGS} -c $^ -o $@
 
 
-hmpp_evolve.13 : hmpp_evolve.o gravity.o compute_fluxes.o
-	capsmc ${HMPP_FLAGS13} ${CC} $^ -o $@ ${LIBS}
+#hmpp_evolve.13 : hmpp_evolve.o gravity.o compute_fluxes.o
+#	capsmc ${HMPP_FLAGS13} ${CC} $^ -o $@ ${LIBS}
 
+main.13 : main.o extrapolate_second_order_and_limit_by_vertex_or_edge.o
+	capsmc ${HMPP_FLAGS13} ${CC} $^ -o $@ ${LIBS}
 
 %.o : %.c   
 	capsmc ${HMPP_FLAGS13} ${CC} ${CXXFLAGS} -c $^ -o $@

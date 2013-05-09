@@ -38,5 +38,6 @@ sw_domain_fun.o : sw_domain_fun.h
 
 
 
+
 clean : 
 	rm -f *.o *.so *.hmc *.cu

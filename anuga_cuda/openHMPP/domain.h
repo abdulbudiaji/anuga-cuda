@@ -38,8 +38,9 @@ struct domain {
     double beta_vh;
     double beta_vh_dry;
 
-    // 
-    char * compute_fluxes_method;
+    // Compute fluxes method
+    //char * compute_fluxes_method;
+    int compute_fluxes_method;
 
     // Changing values in these arrays will change the values in the python object
     long*   neighbours;
@@ -131,7 +132,7 @@ struct domain {
     // Some others
     double* min_bed_edge_values;
     double* max_bed_edge_values;
-    int * count_wet_neighbouts;
+    int * count_wet_neighbours;
 
 
     // Boundary values
