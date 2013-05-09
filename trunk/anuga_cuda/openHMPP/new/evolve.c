@@ -6,7 +6,7 @@
 
 
 
-#define NON_DIRECTIVES
+//#define NON_DIRECTIVES
 //#define NON_DIRECTIVES_PROTECT
 //#define NON_DIRECTIVES_EXTRA2_VELOCITY
 //#define NON_DIRECTIVES_EXTRA2_SW
@@ -52,8 +52,53 @@ int log_operator_timestepping_statistics(struct domain * D)
 
 int update_boundary(struct domain * D)
 {   
-    DEBUG_LOG(" -> update_timestep \n");
+    int i;
+    DEBUG_LOG(" -> update_boundary \n");
 
+    for (i =0; i< D->boundary_number; i++)
+    {
+        if ( D->boundary_map[i].type == 0)
+        {
+
+
+            #ifndef NON_DIRECTIVES_EVAREF
+            #pragma hmpp evaRef callsite
+            #endif
+            evaluate_segment_reflective(
+                D->boundary_map[i].length,      // Nids
+                D->number_of_boundary_elements, // Nb
+                D->number_of_elements*3,
+                D->number_of_elements*6,
+            
+                D->boundary_map[i].ids,         // ids
+                D->boundary_cells,
+                D->boundary_edges,
+                D->normals, 
+                
+                D->stage_edge_values,
+                D->bed_edge_values,
+                D->height_edge_values,
+                D->xmom_edge_values,
+                D->ymom_edge_values,
+                D->xvelocity_edge_values,
+                D->yvelocity_edge_values,
+            
+                D->stage_boundary_values,
+                D->bed_boundary_values,
+                D->height_boundary_values,
+                D->xmom_boundary_values,
+                D->ymom_boundary_values,
+                D->xvelocity_boundary_values,
+                D->yvelocity_boundary_values
+                );
+        }
+        else if ( D->boundary_map[i].type == 1)
+        {
+            // FIXME
+        }
+        else
+            assert("\nUnknown boundary type!\n");
+    }
     DEBUG_LOG("    -->\n");
     return 0;
 }
@@ -218,7 +263,9 @@ double compute_fluxes(struct domain * D)
             #ifdef DEBUG
             if (D->flux_timestep < 0)
             {
-                printf(" Negative step time: %lf!! %lf", D->radii[i]);
+                printf(" Negative step time: %lf!!", D->radii[i]);
+                return 0.0;
+
             }
             #endif
     }

@@ -13,11 +13,15 @@ import numpy
 flags = sys.getdlopenflags()
 sys.setdlopenflags(flags | ctypes.RTLD_GLOBAL)
 
-from hmpp_python_glue import hmpp_python_test
+from hmpp_python_glue import *
 sys.setdlopenflags(flags)
 
 
 from anuga import Domain
+from anuga import Reflective_boundary
+from anuga import Dirichlet_boundary
+from anuga import Time_boundary
+from anuga import Transmissive_boundary
 
 import numpy as num
 
@@ -109,6 +113,31 @@ class HMPP_domain(Domain):
             compute_fluxes_method = 5
         print " The compute_fluxes_method is '%s' %d" % (self.compute_fluxes_method, compute_fluxes_method)
 
+    
+        boundary_cnt = 0
+        fileHandle = open('boundary_names', 'w')
+        for name in self.tag_boundary_cells:
+            B = self.boundary_map[name]
+            if B is None:
+                continue
+
+
+            boundary_cnt += 1
+            fileHandle.write("%s\n" % name)
+            if isinstance(B, Reflective_boundary):
+                fileHandle.write("0\n")
+            elif isinstance(B, Dirichlet_boundary):
+                fileHandle.write("1\n")
+            else:
+                print B
+
+
+            if name == 'open':
+                self.openArr = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
+            elif name == 'exterior':
+                self.exterior = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
+        fileHandle.close()
+                
             
         yield_step = 0
         while True :
@@ -122,7 +151,8 @@ class HMPP_domain(Domain):
                     numpy.int32( compute_fluxes_method ),
                     numpy.int32( flow_algorithm ),
                     numpy.int32( timestepping_method ),
-                    numpy.int32( yield_step)
+                    numpy.int64( boundary_cnt ),
+                    numpy.int32( yield_step )
                     )
 
             yield_step = 1
