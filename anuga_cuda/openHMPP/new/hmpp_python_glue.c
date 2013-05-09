@@ -29,12 +29,13 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
     int timestepping_method, flow_algorithm, compute_fluxes_method;
     int skip_initial_step;
     int step;
+    long Nid;
     double yieldstep, finaltime, duration, epsilon;
     double tmp_timestep;
 
 
     // Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "Oddddiiiii", 
+    if (!PyArg_ParseTuple(args, "Oddddiiiili", 
                 &domain,
                 &yieldstep, 
                 &finaltime, 
@@ -45,6 +46,7 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
                 &compute_fluxes_method,
                 &flow_algorithm,
                 &timestepping_method,
+                &Nid,
                 &step
                 )) 
     {
@@ -54,6 +56,7 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
 
     static struct domain D;
     
+    D.boundary_number = Nid;
     
     D.timestepping_method = timestepping_method;
     D.flow_algorithm = flow_algorithm;
@@ -63,7 +66,7 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
     if ( !step )
     {   
         get_python_domain(&D, domain);
-        print_domain_struct(&D);
+        //print_domain_struct(&D);
         //fflush(stdout);
     }
     
@@ -71,6 +74,7 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
     //-------------------------------
     // Start evolve procedure
     //-------------------------------
+
     tmp_timestep = evolve( &D, 
             yieldstep, finaltime, duration, 
             epsilon, skip_initial_step, step);
@@ -242,7 +246,7 @@ PyObject *hmpp_extrapolate_second_order_sw(PyObject *self, PyObject *args)
     if ( !step )
     {   
         get_python_domain(&D, domain);
-        print_domain_struct(&D);
+        //print_domain_struct(&D);
         //fflush(stdout);
     }
     

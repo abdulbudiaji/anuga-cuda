@@ -15,7 +15,7 @@ HMPP_ENV_VAR = HMPPRT_LOG_LEVEL=info HMPPRT_NO_FALLBACK=0
 
 
 
-hmpp_python_glue.so : hmpp_python_glue.o evolve.o gravity.o compute_fluxes.o extrapolate_first_order.o extrapolate_second_order_sw.o extrapolate_second_order_and_limit_by_vertex_or_edge.o swb2_domain_ext.o balance_deep_and_shallow.o protect.o set_boundary.o update_centroids_of_velocities_and_height.o update.o interpolate_from_vertices_to_edges.o manning_friction.o saxpy_centroid_values.o
+hmpp_python_glue.so : hmpp_python_glue.o evolve.o gravity.o compute_fluxes.o extrapolate_first_order.o extrapolate_second_order_sw.o extrapolate_second_order_and_limit_by_vertex_or_edge.o swb2_domain_ext.o balance_deep_and_shallow.o protect.o set_boundary.o update_centroids_of_velocities_and_height.o update.o interpolate_from_vertices_to_edges.o manning_friction.o saxpy_centroid_values.o evaluate_segment.o
 	capsmc ${HMPP_FLAGS13} ${CC} -shared $^ -o $@ ${LIBS}
 
 

@@ -696,6 +696,40 @@ void saxpy_centroid_values(
 
 
 
+
+#ifdef USING_GLOBAL_DIRECTIVES
+#pragma hmpp evaRef codelet, target=CUDA args[*].transfer=atcall
+#endif
+void evaluate_segment_reflective(
+    int Nids,
+    int Nb,
+    int N3,
+    int N6,
+
+    long ids[Nids],
+    long vol_ids[Nb],   // domain.boundary_cells
+    long edge_ids[Nb],  // domain.boundary_edges
+    double normals[N6], 
+    
+    double stage_edge_values[N3],
+    double bed_edge_values[N3],
+    double height_edge_values[N3],
+    double xmom_edge_values[N3],
+    double ymom_edge_values[N3],
+    double xvel_edge_values[N3],
+    double yvel_edge_values[N3],
+
+    double stage_boundary_values[Nb],
+    double bed_boundary_values[Nb],
+    double height_boundary_values[Nb],
+    double xmom_boundary_values[Nb],
+    double ymom_boundary_values[Nb],
+    double xvel_boundary_values[Nb],
+    double yvel_boundary_values[Nb]
+    );
+
+
+
 // swb2
 int _find_qmin_and_qmax(double dq0, double dq1, double dq2, 
                double *qmin, double *qmax);

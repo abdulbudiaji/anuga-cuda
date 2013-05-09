@@ -3,6 +3,7 @@
 // Stephen Roberts 2012
 // John Weng 2013
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 
@@ -54,6 +55,10 @@ void get_edge_data(struct edge *E, struct domain *D, int k, int i) {
 
 
 struct domain* get_python_domain(struct domain *D, PyObject *domain) {
+    int i;
+    //char name[50];
+    //FILE * fp;
+
     PyArrayObject
             *neighbours,
             *neighbour_edges,
@@ -69,14 +74,19 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
             *number_of_boundaries,
             *surrogate_neighbours,
             *max_speed,
-            *boundary,
+            *boundary_array,
             *boundary_cells,
             *boundary_edges;
             //*min_bed_edge_values,
             //*max_bed_edge_values,
             //*count_wet_neighbours;
 
-    PyObject *quantities, *stage;
+    PyObject *quantities, *stage;//, *tag_boundary_cells, *boundary;
+
+
+    //fp = fopen("boundary_names", "r");
+
+
 
     D->number_of_elements   = get_python_integer(domain, "number_of_elements");
     D->epsilon              = get_python_double(domain, "epsilon");
@@ -163,11 +173,47 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     D->number_of_boundaries = (long *) number_of_boundaries->data;
 
 
+    // Boundary variables
     boundary_cells = get_consecutive_array(domain, "boundary_cells");
     D->boundary_cells = (long *) boundary_cells->data;
 
     boundary_edges = get_consecutive_array(domain, "boundary_edges");
     D->boundary_edges = (long *) boundary_edges->data;
+
+
+    D->boundary_map = (struct boundary *)malloc(D->boundary_number*sizeof(struct boundary));
+    // FIXME: fail to parse the list var from the dictionary
+//    tag_boundary_cells = get_python_object(domain, "tag_boundary_cells");
+//
+//    
+//    for (i=0; i< D->boundary_number; i++)
+//    {
+//        fgets( name, 20, fp);
+//        //boundary_array = PyDict_GetItemString(tag_boundary_cells, name);
+//        boundary_array = get_consecutive_array(tag_boundary_cells, name);
+//        D->boundary_map[i].ids = boundary_array->data;
+//        D->boundary_map[i].length = boundary_array->dimensions[0];
+//        fgets( name, 20, fp);
+//        D->boundary_map[i].type = name[0]- 48;
+//    }
+    // FIXME: instead we append the tag_boundary_cells on domain
+    boundary_array = get_consecutive_array( domain, "openArr");
+    D->boundary_map[0].length = boundary_array->dimensions[0];
+    //printf("%ld\n", D->boundary_map[0].length);
+    D->boundary_map[0].ids = (long *) boundary_array->data;
+    D->boundary_map[0].type = 0;
+ 
+    boundary_array = get_consecutive_array( domain, "exterior");
+    D->boundary_map[1].length = boundary_array->dimensions[0];
+    D->boundary_map[1].ids = (long *)boundary_array->data;
+    D->boundary_map[1].type = 0;
+    
+    //for (i=0; i < D->boundary_map[0].length; i++)
+    //    printf("%ld  ", D->boundary_map[0].ids[i]);
+    //printf("\n");
+    //for (i=0; i < D->boundary_map[1].length; i++)
+    //    printf("%ld  ", D->boundary_map[1].ids[i]);
+    //printf("\n");
 
     // Some others
     SAFE_MALLOC( D->min_bed_edge_values, D->number_of_elements, double);
@@ -179,9 +225,9 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
     // Quantities
     quantities = get_python_object(domain, "quantities");
     stage = PyDict_GetItemString(quantities,   "stage");
-    boundary = get_consecutive_array( stage, "boundary_values");
+    boundary_array = get_consecutive_array( stage, "boundary_values");
     // Number of boundary elements
-    D->number_of_boundary_elements = boundary->dimensions[0];
+    D->number_of_boundary_elements = boundary_array->dimensions[0];
     
     D->stage_beta   = get_python_double(stage, "beta");
     stage = PyDict_GetItemString(quantities,   "xmomentum");

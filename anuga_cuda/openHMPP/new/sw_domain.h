@@ -5,11 +5,19 @@
 
 #define SW_DOMAIN
 
+struct boundary {
+    long length;// number_of_elements
+    long * ids; // element id list
+    int type;   // boundary type 
+};
+
+
 // structures
 struct domain {
     // Changing these don't change the data in python object
     long    number_of_elements;
-    long    number_of_boundary_elements;
+    long    number_of_boundary_elements;// Nb
+    long    boundary_number;            // # boundary
     double  epsilon;
     double  H0;
     double  h0;
@@ -42,6 +50,7 @@ struct domain {
 
     long*   boundary_cells;
     long*   boundary_edges;
+    struct boundary* boundary_map; // # boundary (up, down, left, right ...)
 
 
     double CFL;
