@@ -190,9 +190,9 @@ PyObject *hmpp_distribute_to_vertices_and_edges(PyObject *self, PyObject *args)
     
     // For testing single function
     _distribute_to_vertices_and_edges(&D);
-    update_ghosts(&D);
-    _distribute_to_vertices_and_edges(&D);
-    update_boundary(&D);
+    //update_ghosts(&D);
+    //_distribute_to_vertices_and_edges(&D);
+    //update_boundary(&D);
     //update_extrema(&D);
 
     //_extrapolate_second_order_sw(&D);
@@ -304,6 +304,55 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex(
     return Py_BuildValue("");
 }
 
+PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
+        PyObject *self, PyObject *args)
+{
+    PyObject *domain;
+
+
+    int timestepping_method, flow_algorithm, compute_fluxes_method;
+    int skip_initial_step;
+    int step;
+    double yieldstep, finaltime, duration, epsilon;
+
+
+    // Convert Python arguments to C
+    if (!PyArg_ParseTuple(args, "Oddddiiiii", 
+                &domain,
+                &yieldstep, 
+                &finaltime, 
+                &duration,
+                &epsilon,
+                &skip_initial_step,
+
+                &compute_fluxes_method,
+                &flow_algorithm,
+                &timestepping_method,
+                &step
+                )) 
+    {
+        report_python_error(AT, "could not parse input arguments");
+        return NULL;
+    }
+
+    static struct domain D;
+    
+    
+    D.timestepping_method = timestepping_method;
+    D.flow_algorithm = flow_algorithm;
+    D.compute_fluxes_method = compute_fluxes_method;
+    
+
+    if ( !step )
+    {   
+        get_python_domain(&D, domain);
+    }
+    
+    // For testing single function
+    test_extrapolate_second_order_and_limit_by_vertex_normal(&D);
+    return Py_BuildValue("");
+}
+
 
 
 PyObject *hmpp_compute_fluxes(PyObject *self, PyObject *args)
@@ -373,6 +422,7 @@ static struct PyMethodDef MethodTable[] = {
     {"hmpp_extrapolate_second_order_sw", hmpp_extrapolate_second_order_sw, METH_VARARGS, "Print out"},
     {"hmpp_compute_fluxes", hmpp_compute_fluxes, METH_VARARGS, "Print out"},
     {"hmpp_extrapolate_second_order_and_limit_by_vertex", hmpp_extrapolate_second_order_and_limit_by_vertex, METH_VARARGS, "Print out"},
+    {"hmpp_extrapolate_second_order_and_limit_by_vertex_normal", hmpp_extrapolate_second_order_and_limit_by_vertex_normal, METH_VARARGS, "Print out"},
     {NULL, NULL}
 };
 

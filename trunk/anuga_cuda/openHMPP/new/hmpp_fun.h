@@ -53,12 +53,16 @@ int _distribute_to_vertices_and_edges(struct domain * D);
 
 int _extrapolate_second_order_sw(struct domain * D);
 void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D);
+void test_extrapolate_second_order_and_limit_by_vertex_normal( struct domain *D);
 
 
 double compute_fluxes(struct domain * D);
 int update_boundary(struct domain * D);
 int update_ghosts(struct domain * D);
 int update_extrema(struct domain * D);
+
+
+
 
 #ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall
@@ -284,6 +288,78 @@ void extrapolate_second_order_and_limit_by_vertex(
         double * quantity_x_gradient,
         double * quantity_y_gradient
         );
+
+
+
+void extrapolate_second_order_and_limit_by_vertex_normal(
+        int N,
+        int N2,
+        int N3,
+        int N6,
+        double beta,
+
+        double domain_centroid_coordinates[N2],
+        double domain_vertex_coordinates[N6],
+        long domain_number_of_boundaries[N],
+        long domain_surrogate_neighbours[N3],
+        long domain_neighbours[N3],
+
+        double quantity_centroid_values[N],
+        double quantity_vertex_values[N3],
+        double quantity_edge_values[N3],
+        double quantity_x_gradient[N],
+        double quantity_y_gradient[N]
+        );
+
+
+
+#ifndef NON_DIRECTIVES_EXTRA2_VERTEX_CPTGRA
+#pragma hmpp cptGradients codelet, target=CUDA args[*].transfer=atcall
+#endif
+void _compute_gradients(
+        int N,
+        int N2,
+        int N3,
+        double centroids[N2],
+        double centroid_values[N],
+        long number_of_boundaries[N],
+        long surrogate_neighbours[N3],
+        double a[N],
+        double b[N]);
+
+
+
+#ifndef NON_DIRECTIVES_EXTRA2_VERTEX_EXTRA_FROM_GRA
+#pragma hmpp extraFromGradient codelet, target=CUDA args[*].transfer=atcall
+#endif
+void _extrapolate_from_gradient(
+        int N,
+        int N2,
+        int N3,
+        int N6,
+        double centroids[N2],
+        double centroid_values[N],
+        double vertex_coordinates[N6],
+        double vertex_values[N3],
+        double edge_values[N3],
+        double a[N],
+        double b[N]);
+
+
+
+#ifndef NON_DIRECTIVES_EXTRA2_VERTEX
+#pragma hmpp lmtVByNeigh codelet, target=CUDA args[*].transfer=atcall
+#endif
+void _limit_vertices_by_all_neighbours(
+        int N, 
+        int N3,
+        double beta,
+        double centroid_values[N],
+        double vertex_values[N3],
+        double edge_values[N3],
+        long   neighbours[N3],
+        double x_gradient[N],
+        double y_gradient[N]);
 
 
 

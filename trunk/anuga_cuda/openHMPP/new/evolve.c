@@ -12,6 +12,7 @@
 //#define NON_DIRECTIVES_EXTRA2_SW
 //#define NON_DIRECTIVES_COMPUTE_FLUX
 //#define NON_DIRECTIVES_GRAVITY
+//#define NON_DIRECTIVES_EXTRA2_VERTEX
 
 
 #define DEBUG_ROUND
@@ -214,6 +215,12 @@ double compute_fluxes(struct domain * D)
     {
         if ( D->flux_timestep > D->timestep_array[i] )
             D->flux_timestep = D->timestep_array[i];
+            #ifdef DEBUG
+            if (D->flux_timestep < 0)
+            {
+                printf(" Negative step time: %lf!! %lf", D->radii[i]);
+            }
+            #endif
     }
     DEBUG_LOG_PAR("  **** flux_timestep is %lf\n", D->flux_timestep);
     DEBUG_LOG("    -->\n");
@@ -1209,7 +1216,6 @@ void test_single( struct domain *D)
 
 void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
 {
-
     // stage
     extrapolate_second_order_and_limit_by_vertex(
             D->number_of_elements,
@@ -1254,6 +1260,75 @@ void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
             );
     // ymomentum
     extrapolate_second_order_and_limit_by_vertex(
+            D->number_of_elements,
+            D->number_of_elements * 2,
+            D->number_of_elements * 3,
+            D->number_of_elements * 6,
+            D->ymom_beta,
+
+            D->centroid_coordinates,
+            D->vertex_coordinates,
+
+            D->number_of_boundaries,
+            D->surrogate_neighbours,
+            D->neighbours,
+
+            D->ymom_centroid_values,
+            D->ymom_vertex_values,
+            D->ymom_edge_values,
+            D->ymom_x_gradient,
+            D->ymom_y_gradient
+            );
+}
+
+
+ 
+void test_extrapolate_second_order_and_limit_by_vertex_normal( struct domain *D)
+{
+    // stage
+    extrapolate_second_order_and_limit_by_vertex_normal(
+            D->number_of_elements,
+            D->number_of_elements * 2,
+            D->number_of_elements * 3,
+            D->number_of_elements * 6,
+            D->stage_beta,
+
+            D->centroid_coordinates,
+            D->vertex_coordinates,
+
+            D->number_of_boundaries,
+            D->surrogate_neighbours,
+            D->neighbours,
+
+            D->stage_centroid_values,
+            D->stage_vertex_values,
+            D->stage_edge_values,
+            D->stage_x_gradient,
+            D->stage_y_gradient
+            );
+    // xmomentum
+    extrapolate_second_order_and_limit_by_vertex_normal(
+            D->number_of_elements,
+            D->number_of_elements * 2,
+            D->number_of_elements * 3,
+            D->number_of_elements * 6,
+            D->xmom_beta,
+
+            D->centroid_coordinates,
+            D->vertex_coordinates,
+
+            D->number_of_boundaries,
+            D->surrogate_neighbours,
+            D->neighbours,
+
+            D->xmom_centroid_values,
+            D->xmom_vertex_values,
+            D->xmom_edge_values,
+            D->xmom_x_gradient,
+            D->xmom_y_gradient
+            );
+    // ymomentum
+    extrapolate_second_order_and_limit_by_vertex_normal(
             D->number_of_elements,
             D->number_of_elements * 2,
             D->number_of_elements * 3,
