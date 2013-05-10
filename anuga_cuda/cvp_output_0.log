@@ -1,0 +1,24 @@
+
+memcpyHtoD:  gputime=56.6  cputime=128.0 
+
+memcpyHtoD:  gputime=56.7  cputime=111.0 
+
+memcpyHtoD:  gputime=165.9  cputime=308.0 
+
+memcpyHtoD:  gputime=165.9  cputime=301.0 
+
+memcpyHtoD:  gputime=56.5  cputime=98.0 
+
+memcpyHtoD:  gputime=56.4  cputime=97.0 
+
+memcpyHtoD:  gputime=165.9  cputime=279.0 
+
+memcpyHtoD:  gputime=165.9  cputime=276.0 
+
+_balance_deep_and_shallow:  gputime=21.7  cputime=14.0 ] thread=[39, 0, 
+
+memcpyDtoH:  gputime=186.5  cputime=480.0 
+
+memcpyDtoH:  gputime=183.1  cputime=457.0 
+
+memcpyDtoH:  gputime=181.3  cputime=511.0 

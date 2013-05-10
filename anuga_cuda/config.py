@@ -1,4 +1,4 @@
-WorkingStation = "Borogove5"
+WorkingStation = "GTX480"
 if WorkingStation == "Xe":
     work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
 else:
@@ -66,6 +66,43 @@ if WorkingStation == "Xe":
 
         "update_centroids_fun" : 256,
         "update_fun" : 256,
+        }
+elif WorkingStation == "GTX480":
+    kernel_block_configuration = {
+        "balance_fun" : 256,
+
+        "compute_fluxes_fun" : 128,
+
+        "extrapolate_first_order_fun" : 1024,
+
+        "extrapolate_second_order_sw_fun" : 128,
+        "extrapolate_velocity_second_order_true_fun" : 128,
+        "extrapolate_second_order_edge_swb2_fun" : 64,
+        "extrapolate_second_order_and_limit_by_vertex_fun" : 256,
+        "extrapolate_second_order_and_limit_by_edge_fun" : 256, # FIXME
+
+        "evaluate_segment_reflective_fun" : 256,
+        "evaluate_segment_dirichlet_1_fun" : 256, # FIXME
+        "evaluate_segment_dirichlet_2_fun" : 256, # FIXME
+
+        "gravity_fun" : 512,
+
+        "get_absolute_fun" : 512,
+
+        "interpolate_fun" : 1024,
+
+        "manning_friction_flat_fun" : 192,
+        "manning_friction_sloped_fun" : 128,
+
+        "protect_sw_ext_fun" : 512,
+        "protect_swb2_fun" : 64, # FIXME
+
+        "saxpy_fun" : 512,
+
+        "set_boundary_values_from_edges_fun" :512,
+
+        "update_centroids_fun" : 512,
+        "update_fun" : 512,
         }
 else:
     kernel_block_configuration = {

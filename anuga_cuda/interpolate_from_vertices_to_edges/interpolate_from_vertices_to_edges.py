@@ -4,7 +4,7 @@ from pycuda import driver as drv
 from anuga_cuda import *
 
 
-using_rearranged_domain = False
+using_rearranged_domain = True
 
 domain1 = generate_merimbula_domain( gpu=False )
 domain2 = generate_merimbula_domain( gpu=True )

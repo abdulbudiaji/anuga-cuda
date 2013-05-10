@@ -1,0 +1,12 @@
+
+memcpyHtoD:    8 calls
+	 gputime=889.9  cputime=1598
+
+_balance_deep_and_shallow:    1 calls
+	 gputime=21.7  cputime=14.0 ] thread = [0..39(39), 0..0(0), 
+
+memcpyDtoH:    3 calls
+	 gputime=551.0  cputime=1448
+
+total:   12 calls
+	 gputime=1462 cputime=3060] thread = [0..39(3), 0..0(0), 

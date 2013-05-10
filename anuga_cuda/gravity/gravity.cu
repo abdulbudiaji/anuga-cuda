@@ -1,6 +1,6 @@
 //#define REARRANGED_DOMAIN 
 
-#define BLOCK_SIZE 32
+#define BLOCK_SIZE 960
 
 __global__ void gravity_wb(
         int N,
