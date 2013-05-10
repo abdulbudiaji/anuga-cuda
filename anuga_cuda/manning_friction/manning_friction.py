@@ -131,20 +131,12 @@ print "\n\nxmom_semi_implicit_update all closed? " ,res[0]
 print "ymom_semi_implicit_update all closed? " ,res[1]
 
 if not res.count(True) == 2:
-    cnt_xc = 0
-    cnt_yc = 0
-    cnt_se = 0
-    cnt_xe = 0
-    cnt_ye = 0
-    cnt_sv = 0
-    cnt_xv = 0
-    cnt_yv = 0
-    res = []
+    cnt_xs = 0
+    cnt_ys = 0
     for i in range(N):
-        if (se1[i] != se2[i]).any():
-            cnt_se += 1
-            res.append(i)
-            if cnt_se :
-                print i, se1[i], se2[i]
-    print " Number of diff: is %d " % cnt_se
+        if (xs1[i] != xs2[i]).any():
+            cnt_xs += 1
+            if cnt_xs < 10:
+                print i, xs1[i], xs2[i]
+    print " Number of diff: is %d " % cnt_xs
     print res

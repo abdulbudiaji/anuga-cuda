@@ -4,7 +4,7 @@ from pycuda import driver as drv
 from anuga_cuda import *
 
 
-using_rearranged_domain = True
+using_rearranged_domain = False
 
 domain1 = generate_merimbula_domain( gpu=False )
 domain2 = generate_merimbula_domain( gpu=True )
@@ -80,4 +80,9 @@ for name in domain1.conserved_quantities:
 
     #print name
     #print Q1.edge_values, Q2.edge_values
-    print numpy.allclose(Q1.edge_values, Q2.edge_values)
+    if not numpy.allclose(Q1.edge_values, Q2.edge_values):
+        for i in range(N):
+            if not numpy.allclose(Q1.edge_values[i], Q2.edge_values[i]):
+                print i, Q1.edge_values[i], Q2.edge_values[i]
+    else:
+        print True

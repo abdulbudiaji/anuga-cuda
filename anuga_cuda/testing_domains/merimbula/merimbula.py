@@ -98,7 +98,7 @@ for i in range(len(sys.argv)):
     elif sys.argv[i] == '-ustore':
         domain.store = True
         print " --> Disable storing"
-    elif sys.argv[i] == '-rg':
+    elif '-r' in sys.argv[i] or sys.argv[i] == '-rg':
         domain.rearranged_domain = True
 
 

@@ -13,14 +13,17 @@ import anuga
 from anuga_cuda.gpu_domain import GPU_domain
 
 
-finaltime= 10
+finaltime= 1
 
 def generate_channel1_domain(gpu=True):
     #--------------------------------------------------------------------------
     # Setup computational domain
     #--------------------------------------------------------------------------
-    points, vertices, boundary = anuga.rectangular_cross(10, 5,
-                                                   len1=10.0, len2=5.0) # Mesh
+
+    #points, vertices, boundary = anuga.rectangular_cross(10, 1,
+    #                                               len1=10.0, len2=5.0) # Mesh
+    points, vertices, boundary = anuga.rectangular_cross(1, 4,
+                                                   len1=0.1, len2=0.1) # Mesh
     
     if gpu:
         domain = GPU_domain(points, vertices, boundary)  # Create domain
@@ -78,5 +81,6 @@ def evolve_channel1_domain( domain ):
 
 if __name__ == '__main__':
     domain = generate_channel1_domain()
+    print domain.number_of_elements
+    print domain.number_of_triangles
     evolve_channel1_domain(domain)
-

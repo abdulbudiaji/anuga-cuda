@@ -1,4 +1,4 @@
-#define REARRANGED_DOMAIN
+//#define REARRANGED_DOMAIN
 
 __global__ void extrapolate_first_order(
         int N,

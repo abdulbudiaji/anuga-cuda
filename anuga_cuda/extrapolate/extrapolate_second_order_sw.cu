@@ -1,4 +1,4 @@
-#define REARRANGED_DOMAIN
+//#define REARRANGED_DOMAIN
 
 #ifndef USING_HOST_MACRO
 #define BLOCK_SIZE  8

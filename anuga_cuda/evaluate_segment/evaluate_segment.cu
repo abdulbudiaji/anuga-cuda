@@ -1,3 +1,5 @@
+//#define REARRANGED_DOMAIN
+
 __global__ void evaluate_segment_reflective(
     int N,
     long * ids,
@@ -29,8 +31,8 @@ __global__ void evaluate_segment_reflective(
         return;
 
     long id = ids[k],
-         id_vol = vol_ids[k],
-         id_edge= edge_ids[k];
+         id_vol = vol_ids[k],   // Note here should be k, since we pass
+         id_edge= edge_ids[k];  // the vol_ids and edge_ids from CPU
 
 #ifndef REARRANGED_DOMAIN
     double n1 = normals[id_vol*6 + id_edge*2],

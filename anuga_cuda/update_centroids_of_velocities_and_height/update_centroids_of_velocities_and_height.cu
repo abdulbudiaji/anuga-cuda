@@ -25,18 +25,17 @@ __global__ void update_centroids_of_velocities_and_height(
     double H0 = 1.0e-8;
     double factor;
 
-    if ( k >=N_c )
-        return;
+    if ( k < N_c )
+    {
+        h_C[k] = w_C[k] - z_C[k];
+        if (h_C[k] < 0)
+            h_C[k] = 0;
 
-    h_C[k] = w_C[k] - z_C[k];
-    if (h_C[k] < 0)
-        h_C[k] = 0;
 
-
-    factor = h_C[k] / (h_C[k]*h_C[k] + H0);
-    u_C[k] = uh_C[k]*factor;
-    v_C[k] = vh_C[k]*factor;
-
+        factor = h_C[k] / (h_C[k]*h_C[k] + H0);
+        u_C[k] = uh_C[k]*factor;
+        v_C[k] = vh_C[k]*factor;
+    }
 
 
     if (k >= N_b)

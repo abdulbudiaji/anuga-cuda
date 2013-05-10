@@ -1856,26 +1856,27 @@ if __name__ == '__main__':
 
     testing_gpu_domain = True
     testing_python_version = False
+    using_rearranged_domain = True
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
     domain2 = generate_merimbula_domain(gpu = True)
     #domain2 = generate_channel3_domain()
     #sort_domain(domain2)
-    #for t in domain2.evolve(yieldstep = 50, finaltime = 50):
-    #    pass
 
 
     domain1 = generate_merimbula_domain()
     #domain1 = generate_channel3_domain()
-    #domain2 = rearrange_domain(domain1)
     #for t in domain1.evolve(yieldstep = 50, finaltime = 50):
     #    pass
     
+    host_macro = ""
+    if using_rearranged_domain: 
+        domain2 = rearrange_domain(domain2)
+        sort_domain(domain1)
+        host_macro="#define REARRANGED_DOMAIN\n"
 
 
-    #sort_domain(domain2)
-    domain2 = rearrange_domain(domain2)
     print " Number of elements is: %d" % domain1.number_of_elements
     """
     CUDA Function
@@ -1884,10 +1885,10 @@ if __name__ == '__main__':
     if  testing_gpu_domain:
         from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
-                open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
+                host_macro+ open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
                 arch = 'compute_20',
-                code = 'sm_20',
-                options = ['-use_fast_math', '--prec-div=false', '--compiler-options', '-O2']
+                code = 'sm_20'
+                #options = ['-use_fast_math', '--prec-div=false', '--compiler-options', '-O2']
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
                 #"compute_fluxes_central_structure_cuda_single")
@@ -2029,10 +2030,10 @@ if __name__ == '__main__':
         from shallow_water_ext import gravity_wb as gravity_wb_c
 
         #print "wb_2"
-        #t1 = time()
+        t1 = time.time()
         domain1.flux_timestep = compute_fluxes_ext_central_structure(domain1)
         #gravity_wb_c(domain1)
-        #print "\n C compute flux duration is %lf\n" % (time()-t1)
+        print "\n C compute flux duration is %lf\n" % (time.time()-t1)
     elif domain1.compute_fluxes_method == 'wb_3':
         from shallow_water_ext import compute_fluxes_ext_wb_3
         from shallow_water_ext import gravity_wb as gravity_wb_c
