@@ -149,16 +149,20 @@ def sort_domain_check(domain2):
 
 
 
-def rearrange_domain(domain, sort_flag=True):
+def rearrange_domain(domain, sort_flag=True, spare_domain=None):
     import copy 
 
-    new_dom = copy.deepcopy(domain)
+    if spare_domain == None:
+        new_dom = copy.deepcopy(domain)
 	
-    if sort_flag:
-    	sort_domain(new_dom)
-        temp_dom = copy.deepcopy(new_dom)
+        if sort_flag:
+            sort_domain(new_dom)
+            temp_dom = copy.deepcopy(new_dom)
+        else:
+            temp_dom = domain
     else:
-        temp_dom = domain
+        new_dom = domain
+        temp_dom = spare_domain
 
     N = new_dom.number_of_elements
 
@@ -398,7 +402,7 @@ def rearrange_domain_check(domain1, domain2):
 
 
 
-    print "nb=%d, nb_edge=%d" % (cnt_nb, cnt_nbedge)
+    print "nb=%d, nb_edge=%d surrnb=%d nor=%d" % (cnt_nb, cnt_nbedge, cnt_surrnb, cnt_norm)
 
 if __name__ == "__main__":
     from anuga_cuda import generate_merimbula_domain

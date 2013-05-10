@@ -1,4 +1,4 @@
-#define REARRANGED_DOMAIN
+//#define REARRANGED_DOMAIN
 
 __global__ void _interpolate_from_vertices_to_edges(
         int N,

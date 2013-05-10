@@ -1,4 +1,4 @@
-WorkingStation = "Xe"
+WorkingStation = "Borogove5"
 if WorkingStation == "Xe":
     work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
 else:
@@ -85,7 +85,7 @@ else:
         "evaluate_segment_dirichlet_1_fun" : 64, # FIXME
         "evaluate_segment_dirichlet_2_fun" : 64, # FIXME
 
-        "gravity_fun" : 32,
+        "gravity_fun" :32,
 
         "get_absolute_fun" : 64,
 

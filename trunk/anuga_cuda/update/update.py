@@ -7,7 +7,7 @@ from anuga_cuda import *
 
 
 using_tsunami_domain = False
-using_rearranged_domain = True
+using_rearranged_domain = False
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)
@@ -37,14 +37,14 @@ get_kernel_function_info(domain2.update_func,
         W1,W2, W3)
 
 
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
-domain1.evolve(yieldstep = 50, finaltime = 500)
+for i in domain1.evolve(yieldstep = 50, finaltime = 50):
+    pass
+    
+domain2.using_gpu = False
+for i in domain2.evolve(yieldstep = 50, finaltime = 50):
+    pass
     
 
-domain2.evolve(yieldstep = 50, finaltime = 500)
-domain2.evolve(yieldstep = 50, finaltime = 500)
-domain2.evolve(yieldstep = 50, finaltime = 500)
 
 N = domain2.number_of_elements
 

@@ -1,3 +1,5 @@
+//#define REARRANGED_DOMAIN
+
 __global__ void get_absolute(
     int N,
     double xllcorner,

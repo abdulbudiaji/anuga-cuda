@@ -724,14 +724,13 @@ if __name__ == '__main__':
     testing_gpu_domain= True
     testing_2 = True
     testing_3 = False
-    testing_rearranged_domain = True
+    testing_rearranged_domain = False
 
     domain1 = generate_merimbula_domain()
     domain2 = generate_merimbula_domain(True)
     if testing_rearranged_domain:
         sort_domain(domain1)
         domain2 = rearrange_domain(domain2)
-        rearrange_domain_check(domain1, domain2)
     domain2.equip_kernel_functions()
 
     print "~~~~~~~ domain 1 ~~~~~~~"

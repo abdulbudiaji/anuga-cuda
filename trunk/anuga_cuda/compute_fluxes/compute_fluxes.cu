@@ -1,6 +1,6 @@
 //#define UNSORTED_DOMAIN
 #define USING_MULTI_FUNCTION
-#define REARRANGED_DOMAIN
+//#define REARRANGED_DOMAIN
 
 #define B blockDim.x*blockDim.y
 #define T threadIdx.x+threadIdx.y*blockDim.x

@@ -11,7 +11,7 @@ NVCCFLAGS = -O3 --gpu-architecture sm_11 ${IPATH} -I${CUDA_INSTALL_PATH}/include
 #	export PATH=$PATH:${CUDA_INSTALL_PATH}/bin:${CUDA_INSTALL_PATH}/open64/bin
 #	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CUDA_INSTALL_PATH}/lib64/:${CUDA_INSTALL_PATH}/computeprof/bin/
 
-LIBS = -L/usr/local/cuda//lib64 -lcudart -lm
+LIBS = -L/usr/local/cuda/lib64 -lcudart -lm
 
 .PHONY : clean
 

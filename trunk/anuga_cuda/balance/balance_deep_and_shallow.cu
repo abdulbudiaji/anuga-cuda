@@ -1,4 +1,4 @@
-#define REARRANGED_DOMAIN
+//#define REARRANGED_DOMAIN
 
 __global__ void  _balance_deep_and_shallow(
         int N,

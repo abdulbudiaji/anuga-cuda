@@ -1,17 +1,17 @@
-#define REARRANGED_DOMAIN
+//#define REARRANGED_DOMAIN
 
 __global__ void _manning_friction_flat(
         int N,
         double g, 
-        double eps, 
+        double eps, // minimum_allowed_height 
 
-        double* w, 
-        double* zv,
-        double* uh,
-        double* vh,
-        double* eta, 
-        double* xmom, 
-        double* ymom) 
+        double* w,  // stage_centroid_values
+        double* zv, // elevation_vertex_values
+        double* uh, // xmom_centroid_values
+        double* vh, // ymom_centroid_values
+        double* eta,// friction_centroid_values
+        double* xmom,//xmom_semi_implicit_update 
+        double* ymom)//ymom_semi_implicit_update 
 {
     const int k = 
         threadIdx.x+threadIdx.y*blockDim.x+
@@ -51,22 +51,27 @@ __global__ void _manning_friction_flat(
             ymom[k] += S * vh[k];
         }
     }
+    
+    // For testing
+    //xmom[k] = h;
+    //ymom[k] = S;
+
     //}
 }
 
 __global__ void _manning_friction_sloped(
         int N,
         double g, 
-        double eps, 
+        double eps, // minimum_allowed_height
 
-        double* x, 
-        double* w, 
-        double* zv,
-        double* uh, 
-        double* vh,
-        double* eta, 
-        double* xmom_update, 
-        double* ymom_update) 
+        double* x,  // vertex_coordinates
+        double* w,  // stage_centroid_values
+        double* zv, // elevation_vertex_values
+        double* uh, // xmom_centroid_values
+        double* vh, // ymom_centroid_values
+        double* eta,// friction_centroid_values
+        double* xmom_update,    // xmom_semi_implicit_update
+        double* ymom_update)    // ymom_semi_implicit_update
 {
     const int k = 
         threadIdx.x+threadIdx.y*blockDim.x+
