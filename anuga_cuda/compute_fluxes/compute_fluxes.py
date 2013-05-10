@@ -1856,7 +1856,7 @@ if __name__ == '__main__':
 
     testing_gpu_domain = True
     testing_python_version = False
-    using_rearranged_domain = True
+    using_rearranged_domain = False
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
