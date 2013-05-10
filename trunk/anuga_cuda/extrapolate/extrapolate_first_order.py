@@ -4,7 +4,7 @@ import numpy
 from pycuda import driver as drv
 from anuga_cuda import *
 
-testing_rearranged = True
+testing_rearranged = False
 
 domain1 = generate_merimbula_domain( gpu=False )
 domain2 = generate_merimbula_domain( gpu=True )
@@ -55,17 +55,17 @@ for name in domain1.conserved_quantities:
     e2 = Q2.edge_values
     v2 = Q2.vertex_values
     for i in range(N):
-        #if (Q1.edge_values[i] != Q2.edge_values[i]).all():
-        if e1[i][0] != e2[i/3][i%3] or \
-                e1[i][1] != e2[(i+N)/3][(i+N)%3] or \
-                e1[i][2] != e2[(i+2*N)/3][(i+2*N)%3]:
+        if (Q1.edge_values[i] != Q2.edge_values[i]).all():
+        #if e1[i][0] != e2[i/3][i%3] or \
+        #        e1[i][1] != e2[(i+N)/3][(i+N)%3] or \
+        #        e1[i][2] != e2[(i+2*N)/3][(i+2*N)%3]:
             cnt_e += 1
             if cnt_e  < 5:
                 print i, Q1.edge_values[i], Q2.edge_values[i]
-        #if (Q1.vertex_values[i] != Q2.vertex_values[i]).all():
-        if v1[i][0] != v2[i/3][i%3] or \
-                v1[i][1] != v2[(i+N)/3][(i+N)%3] or \
-                v1[i][2] != v2[(i+2*N)/3][(i+2*N)%3]:
+        if (Q1.vertex_values[i] != Q2.vertex_values[i]).all():
+        #if v1[i][0] != v2[i/3][i%3] or \
+        #        v1[i][1] != v2[(i+N)/3][(i+N)%3] or \
+        #        v1[i][2] != v2[(i+2*N)/3][(i+2*N)%3]:
             cnt_v += 1
             if cnt_v  < 5:
                 print i, Q1.vertex_values[i], Q2.vertex_values[i]

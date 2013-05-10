@@ -1497,7 +1497,7 @@ if __name__ == '__main__':
     from pycuda.compiler import SourceModule
     import numpy
 
-    using_rearranged_domain = False
+    using_rearranged_domain = True
     using_python = False
 
     domain1 = generate_merimbula_domain()

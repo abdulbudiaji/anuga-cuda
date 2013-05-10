@@ -119,6 +119,9 @@ class GPU_domain(Domain):
         print "    Current cache/shared memory configure is ", \
             ctx.get_cache_config()
         ctx.set_cache_config(drv.func_cache.PREFER_L1)
+        #ctx.set_cache_config(drv.func_cache.PREFER_SHARED)
+        #ctx.set_cache_config(drv.func_cache.PREFER_EQUAL)
+        #ctx.set_cache_config(drv.func_cache.PREFER_NONE)
 
 
         if stream:
@@ -2621,7 +2624,7 @@ def cpy_back_and_cmp(a, b, value_type, gpu = True):
 
 def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -2689,7 +2692,7 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
 
 def test_evolve_one_euler_step(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
 
@@ -2745,7 +2748,7 @@ def test_evolve_one_euler_step(domain):
 
 def test_update_ghosts(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
 
@@ -2777,7 +2780,7 @@ def test_update_ghosts(domain):
 
 def test_update_extrema(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -2790,7 +2793,7 @@ def test_update_extrema(domain):
 
 def test_update_timestep(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -2820,7 +2823,7 @@ def test_update_timestep(domain):
 
 def test_update_conserved_quantities(domain, output =True):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     for name in domain.conserved_quantities:
@@ -2859,7 +2862,7 @@ def test_update_conserved_quantities(domain, output =True):
 
 def test_manning_friction_implicit(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -2932,7 +2935,7 @@ def test_manning_friction_implicit(domain):
 
 def test_update_boundary(domain, inputOnly=False):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3058,7 +3061,7 @@ def test_update_boundary(domain, inputOnly=False):
 
 def test_update_other_quantities(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3091,7 +3094,7 @@ def test_update_other_quantities(domain):
 
 def test_compute_fluxes(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3163,7 +3166,7 @@ def test_compute_fluxes(domain):
 
 def test_compute_forcing_terms(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3203,7 +3206,7 @@ def test_compute_forcing_terms(domain):
 
 def test_protect_against_infinitesimal_and_negative_heights(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3235,7 +3238,7 @@ def test_protect_against_infinitesimal_and_negative_heights(domain):
 
 def test_extrapolate_second_order_sw(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3353,7 +3356,7 @@ def test_extrapolate_second_order_sw(domain):
 
 def test_balance_deep_and_shallow(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3427,7 +3430,7 @@ def test_interpolate_from_vertices_to_edges(domain):
 
 def test_extrapolate_second_order_and_limit_by_vertex(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3469,7 +3472,7 @@ def test_extrapolate_second_order_and_limit_by_vertex(domain):
     
 def test_extrapolate_first_order(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
@@ -3504,7 +3507,7 @@ def test_extrapolate_first_order(domain):
 
 def test_update_centroids_of_velocities_and_height(domain):
     # For time-dependence issues
-    ctx.synchronize()
+    #ctx.synchronize()
 
     gpu = domain.using_gpu
     sc = domain.cotesting_domain
