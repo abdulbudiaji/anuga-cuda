@@ -1,12 +1,54 @@
 
-memcpyHtoD:    8 calls
-	 gputime=889.9  cputime=1598
+memcpyHtoDasync:   72 calls
+	 gputime=7787 cputime=13859
 
-_balance_deep_and_shallow:    1 calls
-	 gputime=21.7  cputime=14.0 ] thread = [0..39(39), 0..0(0), 
+_protect_sw:   32 calls
+	 gputime=277.8  cputime=158.0 ] thread = [0..22(22), 0..0(0), 
 
-memcpyDtoH:    3 calls
-	 gputime=551.0  cputime=1448
+extrapolate_velocity_second_order_true:   32 calls
+	 gputime=553.4  cputime=145.0 ] thread = [0..20(20), 0..0(0), 
 
-total:   12 calls
-	 gputime=1462 cputime=3060] thread = [0..39(3), 0..0(0), 
+extrapolate_second_order_sw_true:   32 calls
+	 gputime=11258 cputime=144.0 ] thread = [0..62(62), 0..0(0), 
+
+_balance_deep_and_shallow:   32 calls
+	 gputime=738.9  cputime=139.0 ] thread = [0..39(39), 0..0(0), 
+
+_interpolate_from_vertices_to_edges:   96 calls
+	 gputime=2394 cputime=399.0 ] thread = [0..16(16), 0..0(0), 
+
+evaluate_segment_reflective:   62 calls
+	 gputime=677.4  cputime=265.0 ] thread = [0..22(22), 0..0(0), 
+
+compute_fluxes_central_structure_CUDA:   30 calls
+	 gputime=13664 cputime=143.0 ] thread = [0..62(62), 0..0(0), 
+
+memcpyDtoHasync:   30 calls
+	 gputime=1847 cputime=23677
+
+gravity_wb:   30 calls
+	 gputime=4698 cputime=185.0 0..46080(46080)] thread = [0..34(34), 0..0(0), 
+
+memcpyDtoH:   30 calls
+	 gputime=11141 cputime=25339
+
+_manning_friction_flat:   30 calls
+	 gputime=164.6  cputime=283.0 ] thread = [0..26(26), 0..0(0), 
+
+update:   90 calls
+	 gputime=2251 cputime=404.0 ] thread = [0..22(22), 0..0(0), 
+
+memset32_post:  150 calls
+	 gputime=864.7  cputime=556.0 ] thread = [0..6(6), 0..0(0), 
+
+set_boundary_values_from_edges:   30 calls
+	 gputime=155.6  cputime=128.0 ] thread = [0..11(11), 0..1(1), 
+
+update_centroids_of_velocities_and_height:   30 calls
+	 gputime=549.9  cputime=133.0 ] thread = [0..19(19), 0..1(1), 
+
+extrapolate_first_order:   90 calls
+	 gputime=3241 cputime=384.0 ] thread = [0..16(16), 0..0(0), 
+
+total:  898 calls
+	 gputime=62263 cputime=663410..46080(1539)] thread = [0..62(18), 0..1(0), 
