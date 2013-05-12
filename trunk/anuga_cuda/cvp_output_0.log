@@ -1,24 +1,1796 @@
 
-memcpyHtoD:  gputime=56.6  cputime=128.0 
+memcpyHtoDasync:  gputime=1.0  cputime=11.0 
 
-memcpyHtoD:  gputime=56.7  cputime=111.0 
+memcpyHtoDasync:  gputime=0.8  cputime=5.0 
 
-memcpyHtoD:  gputime=165.9  cputime=308.0 
+memcpyHtoDasync:  gputime=0.8  cputime=5.0 
 
-memcpyHtoD:  gputime=165.9  cputime=301.0 
+memcpyHtoDasync:  gputime=1.0  cputime=6.0 
 
-memcpyHtoD:  gputime=56.5  cputime=98.0 
+memcpyHtoDasync:  gputime=0.9  cputime=5.0 
 
-memcpyHtoD:  gputime=56.4  cputime=97.0 
+memcpyHtoDasync:  gputime=1.0  cputime=6.0 
 
-memcpyHtoD:  gputime=165.9  cputime=279.0 
+memcpyHtoDasync:  gputime=63.0  cputime=76.0 
 
-memcpyHtoD:  gputime=165.9  cputime=276.0 
+memcpyHtoDasync:  gputime=215.7  cputime=385.0 
 
-_balance_deep_and_shallow:  gputime=21.7  cputime=14.0 ] thread=[39, 0, 
+memcpyHtoDasync:  gputime=208.1  cputime=443.0 
 
-memcpyDtoH:  gputime=186.5  cputime=480.0 
+memcpyHtoDasync:  gputime=212.5  cputime=488.0 
 
-memcpyDtoH:  gputime=183.1  cputime=457.0 
+memcpyHtoDasync:  gputime=630.3  cputime=854.0 
 
-memcpyDtoH:  gputime=181.3  cputime=511.0 
+memcpyHtoDasync:  gputime=202.9  cputime=406.0 
+
+memcpyHtoDasync:  gputime=66.5  cputime=182.0 
+
+memcpyHtoDasync:  gputime=65.8  cputime=133.0 
+
+memcpyHtoDasync:  gputime=65.5  cputime=131.0 
+
+memcpyHtoDasync:  gputime=60.6  cputime=127.0 
+
+memcpyHtoDasync:  gputime=3.4  cputime=15.0 
+
+memcpyHtoDasync:  gputime=2.3  cputime=7.0 
+
+memcpyHtoDasync:  gputime=580.0  cputime=709.0 
+
+memcpyHtoDasync:  gputime=580.1  cputime=759.0 
+
+memcpyHtoDasync:  gputime=128.3  cputime=303.0 
+
+memcpyHtoDasync:  gputime=69.3  cputime=146.0 
+
+memcpyHtoDasync:  gputime=194.8  cputime=337.0 
+
+memcpyHtoDasync:  gputime=194.1  cputime=372.0 
+
+memcpyHtoDasync:  gputime=193.2  cputime=375.0 
+
+memcpyHtoDasync:  gputime=194.9  cputime=372.0 
+
+memcpyHtoDasync:  gputime=194.2  cputime=373.0 
+
+memcpyHtoDasync:  gputime=190.3  cputime=372.0 
+
+memcpyHtoDasync:  gputime=177.1  cputime=395.0 
+
+memcpyHtoDasync:  gputime=3.2  cputime=16.0 
+
+memcpyHtoDasync:  gputime=3.0  cputime=11.0 
+
+memcpyHtoDasync:  gputime=3.0  cputime=12.0 
+
+memcpyHtoDasync:  gputime=2.1  cputime=11.0 
+
+memcpyHtoDasync:  gputime=2.0  cputime=7.0 
+
+memcpyHtoDasync:  gputime=1.1  cputime=7.0 
+
+memcpyHtoDasync:  gputime=1.0  cputime=7.0 
+
+memcpyHtoDasync:  gputime=65.1  cputime=107.0 
+
+memcpyHtoDasync:  gputime=64.7  cputime=124.0 
+
+memcpyHtoDasync:  gputime=64.5  cputime=124.0 
+
+memcpyHtoDasync:  gputime=64.7  cputime=147.0 
+
+memcpyHtoDasync:  gputime=64.3  cputime=125.0 
+
+memcpyHtoDasync:  gputime=66.8  cputime=124.0 
+
+memcpyHtoDasync:  gputime=194.9  cputime=332.0 
+
+memcpyHtoDasync:  gputime=195.4  cputime=374.0 
+
+memcpyHtoDasync:  gputime=194.8  cputime=382.0 
+
+memcpyHtoDasync:  gputime=195.2  cputime=380.0 
+
+memcpyHtoDasync:  gputime=65.1  cputime=174.0 
+
+memcpyHtoDasync:  gputime=65.0  cputime=127.0 
+
+memcpyHtoDasync:  gputime=65.6  cputime=124.0 
+
+memcpyHtoDasync:  gputime=64.7  cputime=123.0 
+
+memcpyHtoDasync:  gputime=64.8  cputime=124.0 
+
+memcpyHtoDasync:  gputime=65.5  cputime=125.0 
+
+memcpyHtoDasync:  gputime=64.6  cputime=126.0 
+
+memcpyHtoDasync:  gputime=63.8  cputime=121.0 
+
+memcpyHtoDasync:  gputime=65.3  cputime=123.0 
+
+memcpyHtoDasync:  gputime=64.8  cputime=124.0 
+
+memcpyHtoDasync:  gputime=64.5  cputime=122.0 
+
+memcpyHtoDasync:  gputime=63.9  cputime=125.0 
+
+memcpyHtoDasync:  gputime=70.1  cputime=123.0 
+
+memcpyHtoDasync:  gputime=64.3  cputime=111.0 
+
+memcpyHtoDasync:  gputime=212.4  cputime=307.0 
+
+memcpyHtoDasync:  gputime=63.7  cputime=180.0 
+
+memcpyHtoDasync:  gputime=67.2  cputime=85.0 
+
+memcpyHtoDasync:  gputime=66.6  cputime=116.0 
+
+memcpyHtoDasync:  gputime=197.0  cputime=291.0 
+
+memcpyHtoDasync:  gputime=63.8  cputime=168.0 
+
+memcpyHtoDasync:  gputime=68.0  cputime=83.0 
+
+memcpyHtoDasync:  gputime=67.0  cputime=117.0 
+
+memcpyHtoDasync:  gputime=196.6  cputime=285.0 
+
+memcpyHtoDasync:  gputime=64.2  cputime=163.0 
+
+memcpyHtoDasync:  gputime=66.7  cputime=88.0 
+
+memcpyHtoDasync:  gputime=57.7  cputime=116.0 
+
+_protect_sw:  gputime=8.5  cputime=20.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=21.9  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=201.9  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.3  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.5  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.4  cputime=4.0 ] thread=[16, 0, 
+
+_protect_sw:  gputime=7.6  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=21.3  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=196.4  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.2  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.6  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=5.0 ] thread=[22, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=437.6  cputime=11.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=62.2  cputime=581.0 
+
+gravity_wb:  gputime=156.6  cputime=7.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=374.2  cputime=1111
+
+_manning_friction_flat:  gputime=5.2  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=23.7  cputime=6.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=15.1  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=16.0  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=7.4  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.2  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=327.1  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.1  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.1  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.1  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=5.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.1  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.1  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.1  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.7  cputime=7.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.7  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.3  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=5.9  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=441.3  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=585.0 
+
+gravity_wb:  gputime=156.5  cputime=7.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.5  cputime=836.0 
+
+_manning_friction_flat:  gputime=5.3  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.5  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=24.6  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.4  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.0  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=371.9  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.8  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.4  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.1  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.2  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=5.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.7  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.3  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.8  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.7  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.6  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.2  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=5.9  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=453.2  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=802.0 
+
+gravity_wb:  gputime=155.4  cputime=7.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.4  cputime=827.0 
+
+_manning_friction_flat:  gputime=5.3  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.5  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.5  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=9.0  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.1  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=376.7  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.8  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.8  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.5  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.7  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.9  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.7  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.5  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.8  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=451.3  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=804.0 
+
+gravity_wb:  gputime=156.2  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.6  cputime=834.0 
+
+_manning_friction_flat:  gputime=5.5  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.7  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.1  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.6  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.7  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=381.6  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.2  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.4  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.1  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.6  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.5  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.3  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.1  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=455.5  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=805.0 
+
+gravity_wb:  gputime=157.3  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.2  cputime=831.0 
+
+_manning_friction_flat:  gputime=5.5  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.1  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.6  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.8  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.6  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=377.3  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.1  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.3  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.6  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.7  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.3  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.4  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.2  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=451.2  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=814.0 
+
+gravity_wb:  gputime=156.8  cputime=7.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.4  cputime=833.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.7  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.1  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.8  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=9.0  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.2  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=377.8  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.2  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.9  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.4  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.9  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=461.2  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=821.0 
+
+gravity_wb:  gputime=156.4  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=370.0  cputime=853.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.5  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.5  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=6.0 ] thread=[6, 0, 
+
+update:  gputime=24.6  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.9  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=369.3  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.6  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.4  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.4  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.9  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.0  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.9  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=450.8  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=803.0 
+
+gravity_wb:  gputime=157.1  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.6  cputime=835.0 
+
+_manning_friction_flat:  gputime=5.4  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.5  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=25.3  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.6  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.1  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=368.1  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.6  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.5  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.1  cputime=5.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.3  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.9  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.8  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=5.9  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=458.7  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=810.0 
+
+gravity_wb:  gputime=156.4  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.4  cputime=830.0 
+
+_manning_friction_flat:  gputime=5.5  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.9  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.9  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.1  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=362.3  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.8  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=5.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.1  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=19.2  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.3  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.4  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=457.3  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=802.0 
+
+gravity_wb:  gputime=156.3  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.2  cputime=837.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=26.1  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.4  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.9  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=363.1  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.3  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.4  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.7  cputime=5.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.1  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.8  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.6  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.0  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.5  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=455.1  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=827.0 
+
+gravity_wb:  gputime=155.6  cputime=7.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.0  cputime=825.0 
+
+_manning_friction_flat:  gputime=5.4  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=25.4  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=25.0  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.7  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=366.3  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.0  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.5  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.1  cputime=5.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.1  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.7  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.3  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=451.0  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=802.0 
+
+gravity_wb:  gputime=158.3  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.5  cputime=826.0 
+
+_manning_friction_flat:  gputime=5.5  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.2  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.6  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.0  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.0  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=365.1  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.9  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.1  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.4  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.9  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.1  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=19.1  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.5  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.3  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.2  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=448.6  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=800.0 
+
+gravity_wb:  gputime=155.8  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=370.8  cputime=855.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.9  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.0  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.6  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=6.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.3  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=363.0  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.2  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.6  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.9  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.5  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.0  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.4  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=460.2  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=810.0 
+
+gravity_wb:  gputime=156.6  cputime=5.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.6  cputime=834.0 
+
+_manning_friction_flat:  gputime=5.4  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.8  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.1  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=9.1  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.2  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=367.1  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.3  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.5  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.5  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.9  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.2  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.4  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=5.9  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=452.8  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=804.0 
+
+gravity_wb:  gputime=157.1  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=369.6  cputime=838.0 
+
+_manning_friction_flat:  gputime=5.4  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.2  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.5  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.4  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.7  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=354.8  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.8  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.3  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.3  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.7  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.3  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.4  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.6  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=456.5  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=784.0 
+
+gravity_wb:  gputime=156.2  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.2  cputime=837.0 
+
+_manning_friction_flat:  gputime=5.4  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.3  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.9  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=25.3  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=9.1  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.0  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=362.9  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.1  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.3  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.3  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.2  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.7  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.1  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.3  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=5.9  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=463.7  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=65.9  cputime=837.0 
+
+gravity_wb:  gputime=155.6  cputime=8.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.3  cputime=826.0 
+
+_manning_friction_flat:  gputime=5.5  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.1  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=25.3  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.5  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.4  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=363.4  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.1  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.4  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.9  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.9  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.9  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.5  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.6  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.0  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=5.9  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=468.6  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=820.0 
+
+gravity_wb:  gputime=156.9  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.6  cputime=818.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.8  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.0  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.1  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.8  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=358.8  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.2  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.9  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.9  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.1  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.0  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=463.6  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=806.0 
+
+gravity_wb:  gputime=158.4  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.5  cputime=832.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.7  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.1  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.5  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.8  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.2  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=360.2  cputime=7.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.3  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.1  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.7  cputime=5.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.3  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.5  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.6  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=457.9  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=806.0 
+
+gravity_wb:  gputime=155.8  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=372.0  cputime=835.0 
+
+_manning_friction_flat:  gputime=5.3  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.2  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=24.7  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.8  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=360.0  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.1  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.6  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.6  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.0  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.5  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=462.5  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=768.0 
+
+gravity_wb:  gputime=156.2  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.5  cputime=831.0 
+
+_manning_friction_flat:  gputime=5.4  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.6  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.8  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.0  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.9  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=361.2  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.7  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.1  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.6  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=19.0  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.7  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=462.8  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=812.0 
+
+gravity_wb:  gputime=157.0  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.4  cputime=826.0 
+
+_manning_friction_flat:  gputime=5.7  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.3  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.7  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.1  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.8  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.4  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=354.7  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.2  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.4  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.4  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.7  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.7  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.8  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.9  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.2  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.2  cputime=5.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=5.9  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=453.8  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=791.0 
+
+gravity_wb:  gputime=157.1  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.5  cputime=836.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.6  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.4  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=24.7  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.6  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.6  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=363.8  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.4  cputime=5.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.7  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.2  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=17.7  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=36.2  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.4  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=459.9  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.4  cputime=806.0 
+
+gravity_wb:  gputime=156.0  cputime=5.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.5  cputime=834.0 
+
+_manning_friction_flat:  gputime=5.7  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.8  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.3  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.5  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.0  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=349.0  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.4  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.1  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.6  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.9  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.1  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.5  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.5  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.7  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=466.6  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=801.0 
+
+gravity_wb:  gputime=157.5  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.5  cputime=831.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.7  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.9  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.2  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.6  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.5  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=356.1  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.0  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.9  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=5.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=19.0  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.1  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=37.6  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=448.5  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=791.0 
+
+gravity_wb:  gputime=156.5  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.4  cputime=837.0 
+
+_manning_friction_flat:  gputime=5.4  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=24.9  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.0  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.3  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.8  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=352.0  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.3  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.4  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.7  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.5  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.9  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.7  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=39.7  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=459.7  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.8  cputime=806.0 
+
+gravity_wb:  gputime=157.6  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.0  cputime=832.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.6  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=25.4  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.6  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.9  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=356.5  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.4  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.5  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.1  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.1  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.5  cputime=5.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.7  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.9  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.3  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=447.6  cputime=5.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=790.0 
+
+gravity_wb:  gputime=155.6  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=370.4  cputime=874.0 
+
+_manning_friction_flat:  gputime=5.6  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.2  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.8  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=3.0 ] thread=[6, 0, 
+
+update:  gputime=24.9  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=9.0  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.0  cputime=4.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=356.6  cputime=5.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=22.9  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.2  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.7  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=6.8  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.1  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.0  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.0  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.0  cputime=5.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=3.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=454.0  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.6  cputime=795.0 
+
+gravity_wb:  gputime=155.8  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=371.4  cputime=847.0 
+
+_manning_friction_flat:  gputime=5.5  cputime=9.0 ] thread=[26, 0, 
+
+update:  gputime=25.6  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.2  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.6  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=24.8  cputime=4.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=4.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=8.7  cputime=4.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=17.2  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=358.6  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=23.2  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=5.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.9  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.0  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=5.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=14.8  cputime=5.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.5  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.8  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=35.5  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.1  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=3.0 ] thread=[6, 0, 
+
+compute_fluxes_central_structure_CUDA:  gputime=452.0  cputime=4.0 ] thread=[62, 0, 
+
+memcpyDtoHasync:  gputime=61.3  cputime=794.0 
+
+gravity_wb:  gputime=157.2  cputime=6.0 46080] thread=[34, 0, 
+
+memcpyDtoH:  gputime=372.2  cputime=838.0 
+
+_manning_friction_flat:  gputime=5.3  cputime=10.0 ] thread=[26, 0, 
+
+update:  gputime=25.7  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.0  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.6  cputime=4.0 ] thread=[6, 0, 
+
+update:  gputime=25.5  cputime=5.0 ] thread=[22, 0, 
+
+memset32_post:  gputime=5.7  cputime=3.0 ] thread=[6, 0, 
+
+_protect_sw:  gputime=9.0  cputime=5.0 ] thread=[22, 0, 
+
+extrapolate_velocity_second_order_true:  gputime=16.8  cputime=5.0 ] thread=[20, 0, 
+
+extrapolate_second_order_sw_true:  gputime=354.4  cputime=4.0 ] thread=[62, 0, 
+
+_balance_deep_and_shallow:  gputime=24.3  cputime=4.0 ] thread=[39, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=25.6  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.5  cputime=4.0 ] thread=[16, 0, 
+
+_interpolate_from_vertices_to_edges:  gputime=24.8  cputime=4.0 ] thread=[16, 0, 
+
+evaluate_segment_reflective:  gputime=7.0  cputime=4.0 ] thread=[22, 0, 
+
+evaluate_segment_reflective:  gputime=15.0  cputime=4.0 ] thread=[22, 0, 
+
+set_boundary_values_from_edges:  gputime=5.2  cputime=4.0 ] thread=[11, 1, 
+
+update_centroids_of_velocities_and_height:  gputime=18.9  cputime=4.0 ] thread=[19, 1, 
+
+extrapolate_first_order:  gputime=35.6  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=36.2  cputime=4.0 ] thread=[16, 0, 
+
+extrapolate_first_order:  gputime=34.1  cputime=4.0 ] thread=[16, 0, 
+
+memset32_post:  gputime=6.0  cputime=4.0 ] thread=[6, 0, 
+
+memset32_post:  gputime=5.5  cputime=4.0 ] thread=[6, 0, 
