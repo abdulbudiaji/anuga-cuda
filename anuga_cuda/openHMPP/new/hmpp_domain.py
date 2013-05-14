@@ -139,6 +139,9 @@ class HMPP_domain(Domain):
         fileHandle.close()
                 
             
+        import time 
+        ini_time = time.time()
+
         yield_step = 0
         while True :
             tmp_timestep = hmpp_evolve(self,
@@ -156,12 +159,14 @@ class HMPP_domain(Domain):
                     )
 
             yield_step = 1
-            print " Python: tmp_timestep %lf " % tmp_timestep
+            #print " Python: tmp_timestep %lf " % tmp_timestep
 
-            cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
-            if 'q' in cmd or 'Q' in cmd:
-                break
+            #cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
+            #if 'q' in cmd or 'Q' in cmd:
+            #    break
             if tmp_timestep >= finaltime - epsilon: 
-                print " Evolve finish"
+                fin_time = time.time()
+                print " Evolve finish, time last : %lf" % (fin_time - ini_time)
+
                 break
 

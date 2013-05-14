@@ -4,7 +4,7 @@ INCLUDES = -I"/usr/lib/python2.7/dist-packages/numpy/core/include"  -I"/usr/incl
 
 CXXFLAGS += -O0 -Wall -fno-inline -g -std=c99 -fPIC ${INCLUDES}
 
-HMPP_FLAGS13 = -e --nvcc-options -Xptxas=-v,-arch=sm_13 -c --force  
+HMPP_FLAGS13 = -e --nvcc-options -Xptxas=-v,-arch=sm_20 -c --force  
 
 LIBS = -lm -lpython2.7 
 
