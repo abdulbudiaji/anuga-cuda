@@ -478,51 +478,6 @@ void extrapolate_second_order_and_limit_by_vertex(
         double quantity_y_gradient[N]
         )
 {
-    
-/*
-    #pragma hmpp <extra2LV> cptGradients allocate &
-    #pragma hmpp & args[number_of_boundaries].hostdata="domain_number_of_boundaries", &
-    #pragma hmpp & args[number_of_boundaries].size={N}, &
-    #pragma hmpp & args[surrogate_neighbours].hostdata="domain_surrogate_neighbours", &
-    #pragma hmpp & args[surrogate_neighbours].size={N3}, & //
-    #pragma hmpp & args[centroids].hostdata="domain_centroid_coordinates", &
-    #pragma hmpp & args[centroids].size={N2},&
-    #pragma hmpp & args[centroid_values].hostdata="quantity_centroid_values", &
-    #pragma hmpp & args[centroid_values].size={N}, &
-    #pragma hmpp & args[a].hostdata="quantity_x_gradient", &
-    #pragma hmpp & args[b].hostdata="quantity_y_gradient", &
-    #pragma hmpp & args[a, b].size={N}
-
-    
-    #pragma hmpp <extra2LV> extraFromGradient allocate, args[N6].hostdata="N6", &
-    #pragma hmpp & args[vertex_coordinates].hostdata="domain_vertex_coordinates", &
-    #pragma hmpp & args[vertex_coordinates].size={N6}, & // 
-    #pragma hmpp & args[vertex_values].hostdata="quantity_vertex_values", &
-    #pragma hmpp & args[edge_values].hostdata="quantity_edge_values", &
-    #pragma hmpp & args[vertex_values, edge_values].size={N3}
-
-    
-    #pragma hmpp <extra2LV> lmtVByNeigh allocate, args[beta].hostdata="beta", &
-    #pragma hmpp & args[neighbours].hostdata="domain_neighbours", &
-    #pragma hmpp & args[neighbours].size={N3}
-
-*/
-
-/*
-    #pragma hmpp <extra2LV> cptGradients allocate, &
-    #pragma hmpp & args[N].hostdata="N", args[N2].hostdata="N2", &
-    #pragma hmpp & args[N3].hostdata="N3", &
-    #pragma hmpp & args[centroids].hostdata="domain_centroid_coordinates", &
-    #pragma hmpp & args[centroids].size={N2},&
-    #pragma hmpp & args[centroid_values].hostdata="quantity_centroid_values", &
-    #pragma hmpp & args[number_of_boundaries].hostdata="domain_number_of_boundaries", &
-    #pragma hmpp & args[centroid_values, number_of_boundaries].size={N}, &
-    #pragma hmpp & args[surrogate_neighbours].hostdata="domain_surrogate_neighbours", &
-    #pragma hmpp & args[surrogate_neighbours].size={N3}, &
-    #pragma hmpp & args[a].hostdata="quantity_x_gradient", &
-    #pragma hmpp & args[b].hostdata="quantity_y_gradient", &
-    #pragma hmpp & args[a, b].size={N}
-*/
 
     #pragma hmpp <extra2LV> allocate, &
     #pragma hmpp & args[*::N].hostdata="N", &
@@ -570,7 +525,7 @@ void extrapolate_second_order_and_limit_by_vertex(
     #pragma hmpp & lmtVByNeigh::beta, & 
     #pragma hmpp & lmtVByNeigh::neighbours]
 
-
+    printf("a\n");
 
     #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
     #pragma hmpp <extra2LV> cptGradients callsite, asynchronous
