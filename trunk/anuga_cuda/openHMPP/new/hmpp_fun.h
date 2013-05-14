@@ -314,8 +314,32 @@ void extrapolate_second_order_and_limit_by_vertex_normal(
 
 
 
+#pragma hmpp <extra2LV> group, target=CUDA
+
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[cptGradients::N; extraFromGradient::N;lmtVByNeigh::N]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[cptGradients::N2; extraFromGradient::N2]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[cptGradients::N3; extraFromGradient::N3; lmtVByNeigh::N3]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[cptGradients::centroids; extraFromGradient::centroids]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[cptGradients::centroid_values; extraFromGradient::centroid_values; lmtVByNeigh::centroid_values]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[cptGradients::a; extraFromGradient::a; lmtVByNeigh::x_gradient]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[cptGradients::b; extraFromGradient::b; lmtVByNeigh::y_gradient]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[extraFromGradient::vertex_values; lmtVByNeigh::vertex_values]
+#pragma hmpp <extra2LV> map, &
+#pragma hmpp & args[extraFromGradient::edge_values; lmtVByNeigh::edge_values]
+
+
 #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_CPTGRA
-#pragma hmpp cptGradients codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp cptGradients codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp cptGradients codelet, target=CUDA args[*].transfer=manual
+#pragma hmpp <extra2LV> cptGradients codelet, args[*].transfer=manual
 #endif
 void _compute_gradients(
         int N,
@@ -331,7 +355,9 @@ void _compute_gradients(
 
 
 #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_EXTRA_FROM_GRA
-#pragma hmpp extraFromGradient codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp extraFromGradient codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp extraFromGradient codelet, target=CUDA args[*].transfer=manual
+#pragma hmpp <extra2LV> extraFromGradient codelet, args[*].transfer=manual
 #endif
 void _extrapolate_from_gradient(
         int N,
@@ -349,7 +375,9 @@ void _extrapolate_from_gradient(
 
 
 #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
-#pragma hmpp lmtVByNeigh codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp lmtVByNeigh codelet, target=CUDA args[*].transfer=atcall
+//#pragma hmpp lmtVByNeigh codelet, target=CUDA args[*].transfer=manual
+#pragma hmpp <extra2LV> lmtVByNeigh codelet, args[*].transfer=manual
 #endif
 void _limit_vertices_by_all_neighbours(
         int N, 

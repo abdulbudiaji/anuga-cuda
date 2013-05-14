@@ -197,11 +197,16 @@ struct domain* get_python_domain(struct domain *D, PyObject *domain) {
 //        D->boundary_map[i].type = name[0]- 48;
 //    }
     // FIXME: instead we append the tag_boundary_cells on domain
+    printf("%ld\n", D->boundary_number);
     boundary_array = get_consecutive_array( domain, "openArr");
+    printf("2\n");
     D->boundary_map[0].length = boundary_array->dimensions[0];
+    printf("2\n");
     //printf("%ld\n", D->boundary_map[0].length);
     D->boundary_map[0].ids = (long *) boundary_array->data;
+    printf("2\n");
     D->boundary_map[0].type = 0;
+    printf("2\n");
  
     boundary_array = get_consecutive_array( domain, "exterior");
     D->boundary_map[1].length = boundary_array->dimensions[0];

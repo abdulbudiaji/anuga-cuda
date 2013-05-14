@@ -65,6 +65,29 @@ class HMPP_domain(Domain):
                         geo_reference=geo_reference) #jj added this
 
 
+    def convert_boundary_elements(self):
+        fileHandle = open('boundary_names', 'w')
+        for name in self.tag_boundary_cells:
+            B = self.boundary_map[name]
+            if B is None:
+                continue
+
+
+            fileHandle.write("%s\n" % name)
+            if isinstance(B, Reflective_boundary):
+                fileHandle.write("0\n")
+            elif isinstance(B, Dirichlet_boundary):
+                fileHandle.write("1\n")
+            else:
+                print B
+
+
+            if name == 'open':
+                self.openArr = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
+            elif name == 'exterior':
+                self.exterior = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
+        fileHandle.close()
+
 
     def evolve(self,
                 yieldstep=0.0,
@@ -114,30 +137,8 @@ class HMPP_domain(Domain):
         print " The compute_fluxes_method is '%s' %d" % (self.compute_fluxes_method, compute_fluxes_method)
 
     
-        boundary_cnt = 0
-        fileHandle = open('boundary_names', 'w')
-        for name in self.tag_boundary_cells:
-            B = self.boundary_map[name]
-            if B is None:
-                continue
-
-
-            boundary_cnt += 1
-            fileHandle.write("%s\n" % name)
-            if isinstance(B, Reflective_boundary):
-                fileHandle.write("0\n")
-            elif isinstance(B, Dirichlet_boundary):
-                fileHandle.write("1\n")
-            else:
-                print B
-
-
-            if name == 'open':
-                self.openArr = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
-            elif name == 'exterior':
-                self.exterior = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
-        fileHandle.close()
-                
+        boundary_cnt = 2
+        self.convert_boundary_elements()                
             
         import time 
         ini_time = time.time()
@@ -159,11 +160,11 @@ class HMPP_domain(Domain):
                     )
 
             yield_step = 1
-            #print " Python: tmp_timestep %lf " % tmp_timestep
+            print " Python: tmp_timestep %lf " % tmp_timestep
 
-            #cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
-            #if 'q' in cmd or 'Q' in cmd:
-            #    break
+            cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
+            if 'q' in cmd or 'Q' in cmd:
+                break
             if tmp_timestep >= finaltime - epsilon: 
                 fin_time = time.time()
                 print " Evolve finish, time last : %lf" % (fin_time - ini_time)
