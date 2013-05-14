@@ -15,6 +15,12 @@
 #include "hmpp_fun.h"
 #include "sw_domain_fun.h"
 
+#ifdef DEBUG
+#define DEBUG_LOG_PAR(a, b) printf(a, b)
+#else
+#define DEBUG_LOG_PAR(a, b) 
+#endif
+
 
 
 //=========================================================================
@@ -74,15 +80,16 @@ PyObject *hmpp_evolve(PyObject *self, PyObject *args)
     //-------------------------------
     // Start evolve procedure
     //-------------------------------
-
     tmp_timestep = evolve( &D, 
             yieldstep, finaltime, duration, 
             epsilon, skip_initial_step, step);
-
-    printf(" GLUE: flux_timestep    %lf\n", D.flux_timestep);
-    printf(" GLUE: tmp_timestep     %lf\n", tmp_timestep);
-    printf(" GLUE: fnltime-epsilon  %lf\n", D.finaltime - epsilon);
-    printf(" GLUE: yieldtime        %lf\n", D.yieldtime);
+/*
+    update_boundary(&D);
+*/
+    DEBUG_LOG_PAR(" GLUE: flux_timestep    %lf\n", D.flux_timestep);
+    DEBUG_LOG_PAR(" GLUE: tmp_timestep     %lf\n", tmp_timestep);
+    DEBUG_LOG_PAR(" GLUE: fnltime-epsilon  %lf\n", D.finaltime - epsilon);
+    DEBUG_LOG_PAR(" GLUE: yieldtime        %lf\n", D.yieldtime);
     return Py_BuildValue("d", tmp_timestep);
 }
 

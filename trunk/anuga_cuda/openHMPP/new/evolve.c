@@ -15,8 +15,8 @@
 //#define NON_DIRECTIVES_EXTRA2_VERTEX
 
 
-#define DEBUG_ROUND
-#define DEBUG
+//#define DEBUG_ROUND
+//#define DEBUG
 //#define DEBUG_LOG_PAR(a, b) printf(a, b)
 
 
@@ -52,15 +52,13 @@ int log_operator_timestepping_statistics(struct domain * D)
 
 int update_boundary(struct domain * D)
 {   
-    int i;
+    int i, j;
     DEBUG_LOG(" -> update_boundary \n");
-
+/*
     for (i =0; i< D->boundary_number; i++)
     {
         if ( D->boundary_map[i].type == 0)
         {
-
-
             #ifndef NON_DIRECTIVES_EVAREF
             #pragma hmpp evaRef callsite
             #endif
@@ -91,6 +89,12 @@ int update_boundary(struct domain * D)
                 D->xvelocity_boundary_values,
                 D->yvelocity_boundary_values
                 );
+
+        printf("%ld \n", D->boundary_map[i].length);
+        for(j=0; j< D->boundary_map[i].length; j++)
+            printf("%ld %ld      ", D->boundary_cells[j], D->boundary_map[i].ids[j]);
+        printf("\n");
+
         }
         else if ( D->boundary_map[i].type == 1)
         {
@@ -99,6 +103,7 @@ int update_boundary(struct domain * D)
         else
             assert("\nUnknown boundary type!\n");
     }
+*/
     DEBUG_LOG("    -->\n");
     return 0;
 }
@@ -1227,6 +1232,7 @@ double evolve( struct domain * D,
             D->time = D->finaltime;
             log_operator_timestepping_statistics(D);
             
+            printf("\nFinish evolving with %d steps\n", D->number_of_steps);
             // FIXME: exit the whole program
             return D->time;
         }

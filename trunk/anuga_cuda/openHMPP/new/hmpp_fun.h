@@ -110,6 +110,7 @@ void compute_fluxes_central_structure_CUDA(
         double xmom_edge_values[N3],
         double ymom_edge_values[N3],
         double bed_edge_values[N3],
+
         double stage_boundary_values[N2],
         double xmom_boundary_values[N2],
         double ymom_boundary_values[N2],
@@ -701,14 +702,14 @@ void saxpy_centroid_values(
 #pragma hmpp evaRef codelet, target=CUDA args[*].transfer=atcall
 #endif
 void evaluate_segment_reflective(
-    int Nids,
-    int Nb,
+    int N1,   // Nids
+    int N2,     // Nb
     int N3,
     int N6,
 
-    long ids[Nids],
-    long vol_ids[Nb],   // domain.boundary_cells
-    long edge_ids[Nb],  // domain.boundary_edges
+    long ids[N1],
+    long vol_ids[N2],   // domain.boundary_cells
+    long edge_ids[N2],  // domain.boundary_edges
     double normals[N6], 
     
     double stage_edge_values[N3],
@@ -719,13 +720,13 @@ void evaluate_segment_reflective(
     double xvel_edge_values[N3],
     double yvel_edge_values[N3],
 
-    double stage_boundary_values[Nb],
-    double bed_boundary_values[Nb],
-    double height_boundary_values[Nb],
-    double xmom_boundary_values[Nb],
-    double ymom_boundary_values[Nb],
-    double xvel_boundary_values[Nb],
-    double yvel_boundary_values[Nb]
+    double stage_boundary_values[N2],
+    double bed_boundary_values[N2],
+    double height_boundary_values[N2],
+    double xmom_boundary_values[N2],
+    double ymom_boundary_values[N2],
+    double xvel_boundary_values[N2],
+    double yvel_boundary_values[N2]
     );
 
 
