@@ -8,7 +8,10 @@
 // Do not back and force between Python and C
 #define EVOLVE_ALL_IN_C
 
+#define USING_GROUP_SHARING_DATA
 
+// Used for testing group sharing data
+//#define TESTING_EXTRA_2_LV_GROUP
 
 #ifdef USING_CPP
 #include <iostream>
@@ -38,6 +41,90 @@ using namespace std;
 // Shallow_water domain structure
 #include "sw_domain.h"
 
+
+
+#pragma hmpp <hmpp_domain> group, target=CUDA
+
+#pragma hmpp <hmpp_domain> map, args[*::g]
+#pragma hmpp <hmpp_domain> map, args[*::epsilon]
+#pragma hmpp <hmpp_domain> map, args[*::optimise_dry_cells]
+#pragma hmpp <hmpp_domain> map, args[*::minimum_allowed_height; manFrictionFlat::eps; manFrictionSloped::eps]
+#pragma hmpp <hmpp_domain> map, args[*::maximum_allowed_speed]
+
+#pragma hmpp <hmpp_domain> map, args[*::vertex_coordinates]
+#pragma hmpp <hmpp_domain> map, args[*::normals]
+#pragma hmpp <hmpp_domain> map, args[*::areas]
+#pragma hmpp <hmpp_domain> map, args[*::edgelengths]
+#pragma hmpp <hmpp_domain> map, args[*::neighbours]
+#pragma hmpp <hmpp_domain> map, args[*::neighbour_edges]
+#pragma hmpp <hmpp_domain> map, args[*::radii]
+#pragma hmpp <hmpp_domain> map, args[*::surrogate_neighbours]
+#pragma hmpp <hmpp_domain> map, args[*::number_of_boundaries]
+#pragma hmpp <hmpp_domain> map, args[*::centroid_coordinates]
+#pragma hmpp <hmpp_domain> map, args[*::]
+// cf_central::timestep, tri_full_flag, max_speed_array, evolve_max_timestep
+//              h0, limiting_threshold, 
+// update::timestep
+// balance_deep_and_shallow:: H0, alpha_balance, tight_slope_limiters, 
+//                              use_centroid_velocities
+// extrapolate_2_swT:: beta_w, beta_w_dry, beta_uh, beta_uh_dry, beta_vh, beta_vh_dry,
+                        
+// extrapolate_2_sw:: extrapolate_velocity_second_order
+
+// extra_1:: centroid_values, edge_values, vertex_values
+// extra_2_LV::
+// limit_vertices_by_all_neighbours::
+// interpolate_from_vertices_to_edges::
+#pragma hmpp <hmpp_domain> map, args[*::xmom_explicit_update]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_explicit_update]
+#pragma hmpp <hmpp_domain> map, args[*::stage_edge_values]
+#pragma hmpp <hmpp_domain> map, args[*::bed_edge_values]
+#pragma hmpp <hmpp_domain> map, args[*::xmom_edge_values]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_edge_values]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::stage_vertex_values; balance::wv]
+#pragma hmpp <hmpp_domain> map, args[*::bed_vertex_values; balance::zv; &
+#pragma hmpp &  manFrictionFlat::zv]
+#pragma hmpp <hmpp_domain> map, args[*::xmom_vertex_values; balance::xmomv]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_vertex_values; balance::ymomv]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::stage_centroid_values; &
+#pragma hmpp &  balance::wc; protectSW::wc; updateCentroidVH::w_C; manFrictionFlat::w]
+#pragma hmpp <hmpp_domain> map, args[*::bed_centroid_values; balance::zc; protectSW::zc; &
+#pragma hmpp &  updateCentroidVH::z_C]
+#pragma hmpp <hmpp_domain> map, args[*::xmom_centroid_values; balance:xmomc; &
+#pragma hmpp &  protectSW::xmomc; updateCentroidVH::uh_C; manFrictionFlat::uh]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_centroid_values; balance::ymomc; &
+#pragma hmpp &  protectSW::ymomc; updateCentroidVH::vh_C; manFrictionFlat::vh]
+#pragma hmpp <hmpp_domain> map, args[*::height_centroid_values; updateCentroidVH::h_C]
+#pragma hmpp <hmpp_domain> map, args[*::xvelocity_centroid_values; updateCentroidVH::u_C]
+#pragma hmpp <hmpp_domain> map, args[*::yvelocity_centroid_values; updateCentroidVH::v_C]
+#pragma hmpp <hmpp_domain> map, args[*::friction_centroid_values; manFrictionFlat::eta] 
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::stage_boundary_values; updateCentroidVH::w_B]
+#pragma hmpp <hmpp_domain> map, args[*::xmom_boundary_values; updateCentroidVH::uh_B]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_boundary_values; updateCentroidVH::vh_B]
+#pragma hmpp <hmpp_domain> map, args[*::height_boundary_values; updateCentroidVH::h_B]
+#pragma hmpp <hmpp_domain> map, args[*::bed_boundary_values; updateCentroidVH::z_B]
+#pragma hmpp <hmpp_domain> map, args[*::xvelocity_boundary_values; updateCentroidVH::u_B]
+#pragma hmpp <hmpp_domain> map, args[*::yvelocity_boundary_values; updateCentroidVH::v_B]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::stage_explicit_update]
+#pragma hmpp <hmpp_domain> map, args[*::xmom_explicit_update]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_explicit_update]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::xmom_semi_implicit_update; manFrictionFlat::xmom]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_semi_implicit_update; manFrictionFlat::ymom]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::]
+#pragma hmpp <hmpp_domain> map, args[*::xmom_centroid_store; &
+#pragma hmpp &  extraSndOrderSWT::xmom_centroid_values]
+#pragma hmpp <hmpp_domain> map, args[*::ymom_centroid_store; &
+#pragma hmpp &  extraSndOrderSWT::ymom_centroid_values]
+#pragma hmpp <hmpp_domain> map, args[*::]
 
 
 int check_tolerance(DATA_TYPE a,DATA_TYPE b);
@@ -313,7 +400,7 @@ void extrapolate_second_order_and_limit_by_vertex_normal(
         );
 
 
-
+#ifdef TESTING_EXTRA_2_LV_GROUP
 #pragma hmpp <extra2LV> group, target=CUDA
 
 #pragma hmpp <extra2LV> map, &
@@ -334,12 +421,15 @@ void extrapolate_second_order_and_limit_by_vertex_normal(
 #pragma hmpp & args[extraFromGradient::vertex_values; lmtVByNeigh::vertex_values]
 #pragma hmpp <extra2LV> map, &
 #pragma hmpp & args[extraFromGradient::edge_values; lmtVByNeigh::edge_values]
+#endif
 
 
 #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_CPTGRA
 //#pragma hmpp cptGradients codelet, target=CUDA args[*].transfer=atcall
 //#pragma hmpp cptGradients codelet, target=CUDA args[*].transfer=manual
+#ifdef TESTING_EXTRA_2_LV_GROUP
 #pragma hmpp <extra2LV> cptGradients codelet, args[*].transfer=manual
+#endif
 #endif
 void _compute_gradients(
         int N,
@@ -357,7 +447,9 @@ void _compute_gradients(
 #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_EXTRA_FROM_GRA
 //#pragma hmpp extraFromGradient codelet, target=CUDA args[*].transfer=atcall
 //#pragma hmpp extraFromGradient codelet, target=CUDA args[*].transfer=manual
+#ifdef TESTING_EXTRA_2_LV_GROUP
 #pragma hmpp <extra2LV> extraFromGradient codelet, args[*].transfer=manual
+#endif
 #endif
 void _extrapolate_from_gradient(
         int N,
@@ -377,7 +469,9 @@ void _extrapolate_from_gradient(
 #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
 //#pragma hmpp lmtVByNeigh codelet, target=CUDA args[*].transfer=atcall
 //#pragma hmpp lmtVByNeigh codelet, target=CUDA args[*].transfer=manual
+#ifdef TESTING_EXTRA_2_LV_GROUP
 #pragma hmpp <extra2LV> lmtVByNeigh codelet, args[*].transfer=manual
+#endif
 #endif
 void _limit_vertices_by_all_neighbours(
         int N, 
@@ -483,11 +577,11 @@ void protect_sw(
         double maximum_allowed_speed,
         double epsilon,
 
-        double wc[N],
-        double zc[N],
-        double xmomc[N],
-        double ymomc[N]);
-
+        double wc[N],   // stage_centroid_values
+        double zc[N],   // bed_centroid_values
+        double xmomc[N],// xmom_centroid_values
+        double ymomc[N] //ymom_centroid_values 
+        )
 
 
 #ifdef USING_GLOBAL_DIRECTIVES

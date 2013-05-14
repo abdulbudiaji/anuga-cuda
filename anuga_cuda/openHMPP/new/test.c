@@ -1,8 +1,8 @@
+#include <stdio.h>
 
-
-#pragma hmpp myCall codelet, args[*].transfer=atcall, &
-#pragma hmpp & target=CUDA
-void myFunc(int n, int A[n], int B[n])
+#pragma hmpp myCall codelet, target=CUDA, transfer=atcall, &
+#pragma hmpp & args[A, B].mirror, args[A, B].transfer=manual
+void myFunc(int n, int *A, int *B)
 {
     int i, i3;
 
@@ -23,6 +23,28 @@ void myFunc(int n, int A[n], int B[n])
 
 
 
+#pragma hmpp myCall2 codelet, target=CUDA, transfer=atcall, &
+#pragma hmpp & args[C, D].mirror, args[C, D].transfer=manual
+void myFunc2(int n, int C[n], int D[n])
+{
+    int i, i3;
+
+    int hh[2];
+
+    #pragma hmppcg gridify(i), private(i3, hh)
+    for (i=0; i<n ; ++i)
+    {
+        i3 = i*1;
+        hh[0] = 3*C[i];
+        hh[1] = 4*C[i]; 
+        if (i < 3)
+            D[i3] =  hh[0];
+        else
+            D[i] = C[i] + hh[1];
+    }
+}
+
+
 void main(void) {
     int n = 10, i;
     int X[10], Y[10], Z[10];
@@ -33,9 +55,24 @@ void main(void) {
         Z[i] = 0;
     }
 
+#pragma hmpp myCall allocate, data[X, Y, Z], size={n}
+
+#pragma hmpp advancedload data[X]
+
     printf(" In GPU\n");
 #pragma hmpp myCall callsite
     myFunc(n, X, Y);
+
+    printf(" In GPU\n");
+#pragma hmpp myCall2 callsite
+    myFunc2(n, X, Z);
+
+#pragma hmpp delegatedstore data[Y, Z]
+
+
+#pragma hmpp myCall release
+#pragma hmpp myCall2 release
+
 
     for(i = 0; i< n; i++)
         if (Y[i] != Z[i])
