@@ -3,6 +3,7 @@
 //
 // Zhe Weng 2013
 #include <hmpp_fun.h>
+#include <time.h>
 
 
 
@@ -1095,11 +1096,16 @@ double evolve( struct domain * D,
             )
 {
     double initial_time;
+    clock_t ini_time, fin_time;
+
 
 #ifdef DEBUG_ROUND
     // Debug 
     int round = 10;
 #endif
+
+    ini_time = clock() / (CLOCKS_PER_SEC / 1000);
+
 
     DEBUG_ASSERT( D->beta_w >= 0 && D->beta_w <= 2.0 );
 
@@ -1231,8 +1237,12 @@ double evolve( struct domain * D,
             }
             D->time = D->finaltime;
             log_operator_timestepping_statistics(D);
-            
-            printf("\nFinish evolving with %d steps\n", D->number_of_steps);
+                
+            fin_time = clock() / (CLOCKS_PER_SEC / 1000);
+
+            printf("\nFinish evolving with %d steps, time: %ld\n",
+                    D->number_of_steps,
+                    fin_time- ini_time);
             // FIXME: exit the whole program
             return D->time;
         }
