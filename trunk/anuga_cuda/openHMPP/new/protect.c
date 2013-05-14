@@ -17,10 +17,11 @@ void protect_sw(
         double maximum_allowed_speed,
         double epsilon,
 
-        double wc[N],
-        double zc[N],
-        double xmomc[N],
-        double ymomc[N]) 
+        double wc[N],   // stage_centroid_values
+        double zc[N],   // bed_centroid_values
+        double xmomc[N],// xmom_centroid_values
+        double ymomc[N] //ymom_centroid_values 
+        )
 {
     int k;
     double hc;
