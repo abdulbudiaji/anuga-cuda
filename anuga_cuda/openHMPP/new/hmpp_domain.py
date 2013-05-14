@@ -162,9 +162,9 @@ class HMPP_domain(Domain):
             yield_step = 1
             print " Python: tmp_timestep %lf " % tmp_timestep
 
-            cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
-            if 'q' in cmd or 'Q' in cmd:
-                break
+            #cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
+            #if 'q' in cmd or 'Q' in cmd:
+            #    break
             if tmp_timestep >= finaltime - epsilon: 
                 fin_time = time.time()
                 print " Evolve finish, time last : %lf" % (fin_time - ini_time)
