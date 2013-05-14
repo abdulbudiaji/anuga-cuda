@@ -273,11 +273,12 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex(
     int timestepping_method, flow_algorithm, compute_fluxes_method;
     int skip_initial_step;
     int step;
+    long Nid;
     double yieldstep, finaltime, duration, epsilon;
 
 
     // Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "Oddddiiiii", 
+    if (!PyArg_ParseTuple(args, "Oddddiiiili", 
                 &domain,
                 &yieldstep, 
                 &finaltime, 
@@ -288,6 +289,7 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex(
                 &compute_fluxes_method,
                 &flow_algorithm,
                 &timestepping_method,
+                &Nid,
                 &step
                 )) 
     {
@@ -297,6 +299,7 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex(
 
     static struct domain D;
     
+    D.boundary_number = Nid;
     
     D.timestepping_method = timestepping_method;
     D.flow_algorithm = flow_algorithm;
@@ -306,7 +309,6 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex(
     if ( !step )
     {   
         get_python_domain(&D, domain);
-        print_domain_struct(&D);
         //fflush(stdout);
     }
     
@@ -324,11 +326,12 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
     int timestepping_method, flow_algorithm, compute_fluxes_method;
     int skip_initial_step;
     int step;
+    long Nid;
     double yieldstep, finaltime, duration, epsilon;
 
 
     // Convert Python arguments to C
-    if (!PyArg_ParseTuple(args, "Oddddiiiii", 
+    if (!PyArg_ParseTuple(args, "Oddddiiiili", 
                 &domain,
                 &yieldstep, 
                 &finaltime, 
@@ -339,15 +342,16 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
                 &compute_fluxes_method,
                 &flow_algorithm,
                 &timestepping_method,
+                &Nid,
                 &step
                 )) 
     {
         report_python_error(AT, "could not parse input arguments");
         return NULL;
     }
-
     static struct domain D;
     
+    D.boundary_number = Nid;
     
     D.timestepping_method = timestepping_method;
     D.flow_algorithm = flow_algorithm;
@@ -357,6 +361,7 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
     if ( !step )
     {   
         get_python_domain(&D, domain);
+        //fflush(stdout);
     }
     
     // For testing single function
