@@ -2,7 +2,7 @@ WorkingStation = "GTX480"
 if WorkingStation == "Xe":
     work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
 else:
-    work_dir="/home/u5044856/anuga-cuda/anuga_cuda/"
+    work_dir="/home/john/anuga_cuda/"
 
 
 testing_domain_path = work_dir+"testing_domains/"

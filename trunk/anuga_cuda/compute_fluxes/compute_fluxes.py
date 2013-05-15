@@ -1886,8 +1886,8 @@ if __name__ == '__main__':
         from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
                 host_macro+ open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
-                arch = 'compute_20',
-                code = 'sm_20'
+                arch = 'compute_30',
+                code = 'sm_30'
                 #options = ['-use_fast_math', '--prec-div=false', '--compiler-options', '-O2']
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
