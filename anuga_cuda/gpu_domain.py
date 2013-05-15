@@ -1539,7 +1539,7 @@ class GPU_domain(Domain):
             
             
             self.flux_timestep = numpy.min(self.timestep_array)
-            print self.flux_timestep
+            #print self.flux_timestep
             #print numpy.min(self.timestep_array)
             
 
@@ -2492,8 +2492,8 @@ def get_sourceModule(k_dir, k_name, rearranged_domain=False):
         defince_macro = ""
     return SourceModule(
             defince_macro + open( k_dir + k_name, "r").read(),
-            arch = 'compute_20',
-            code = 'sm_20',
+            arch = 'compute_30',
+            code = 'sm_30',
             options =['-use_fast_math', '--compiler-options', '-O3'],
             include_dirs=[ k_dir ]
             )
