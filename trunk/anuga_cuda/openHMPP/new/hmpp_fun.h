@@ -8,7 +8,7 @@
 // Do not back and force between Python and C
 #define EVOLVE_ALL_IN_C
 
-
+#define USING_MIRROR_DATA
 
 #ifdef USING_CPP
 #include <iostream>
@@ -68,7 +68,19 @@ int update_extrema(struct domain * D);
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp gravity codelet, target=CUDA, transfer=atcall, & 
+#pragma hmpp & args[xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & stage_vertex_values, stage_edge_values, stage_centroid_values, &
+#pragma hmpp & bed_edge_values, bed_centroid_values, vertex_coordinates, &
+#pragma hmpp & normals, areas, edgelengths].mirror, &
+#pragma hmpp & args[xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & stage_vertex_values, stage_edge_values, stage_centroid_values, &
+#pragma hmpp & bed_edge_values, bed_centroid_values, vertex_coordinates, &
+#pragma hmpp & normals, areas, edgelengths].transfer=manual
+#else
 #pragma hmpp gravity codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void gravity_wb( 
         int n, int n3, int n6, 
@@ -93,7 +105,25 @@ void gravity_wb(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp cf_central codelet, target=CUDA, transfer=atcall, &
+#pragma hmpp & args[timestep, neighbours, neighbour_edges, normals, &
+#pragma hmpp & edgelengths, radii, areas, tri_full_flag, stage_edge_values, &
+#pragma hmpp & xmom_edge_values, ymom_edge_values, bed_edge_values, &
+#pragma hmpp & stage_boundary_values, xmom_boundary_values, &
+#pragma hmpp & ymom_boundary_values, stage_explicit_update, &
+#pragma hmpp & xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & max_speed_array].mirror, &
+#pragma hmpp & args[timestep, neighbours, neighbour_edges, normals, &
+#pragma hmpp & edgelengths, radii, areas, tri_full_flag, stage_edge_values, &
+#pragma hmpp & xmom_edge_values, ymom_edge_values, bed_edge_values, &
+#pragma hmpp & stage_boundary_values, xmom_boundary_values, &
+#pragma hmpp & ymom_boundary_values, stage_explicit_update, &
+#pragma hmpp & xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & max_speed_array].transfer=manual
+#else
 #pragma hmpp cf_central codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void compute_fluxes_central_structure_CUDA(
         int N,
@@ -132,7 +162,25 @@ void compute_fluxes_central_structure_CUDA(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp cf_central_single codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[timestep, neighbours, neighbour_edges, normals, &
+#pragma hmpp & edgelengths, radii, areas, tri_full_flag, stage_edge_values, &
+#pragma hmpp & xmom_edge_values, ymom_edge_values, bed_edge_values, &
+#pragma hmpp & stage_boundary_values, xmom_boundary_values, &
+#pragma hmpp & ymom_boundary_values, stage_explicit_update, &
+#pragma hmpp & xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & max_speed_array].mirror &
+#pragma hmpp & args[timestep, neighbours, neighbour_edges, normals, &
+#pragma hmpp & edgelengths, radii, areas, tri_full_flag, stage_edge_values, &
+#pragma hmpp & xmom_edge_values, ymom_edge_values, bed_edge_values, &
+#pragma hmpp & stage_boundary_values, xmom_boundary_values, &
+#pragma hmpp & ymom_boundary_values, stage_explicit_update, &
+#pragma hmpp & xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & max_speed_array].transfer=manual
+#else
 #pragma hmpp cf_central_single codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void compute_fluxes_central_structure_cuda_single(
         int N,
@@ -211,7 +259,13 @@ void gravity_call(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp extraFstOrder codelet, target=CUDA, transfer=atcall, &
+#pragma hmpp & args[centroid_values, edge_values, vertex_values].mirror, &
+#pragma hmpp & args[centroid_values, edge_values, vertex_values].transfer=manual
+#else
 #pragma hmpp extraFstOrder codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void extrapolate_first_order(
         int N,
@@ -224,6 +278,7 @@ void extrapolate_first_order(
 
 
 // swb2_domain.c
+// Not used so far
 #ifdef USING_GLOBAL_DIRECTIVES
 #pragma hmpp extraSndOrderEdge codelet, target=CUDA args[*].transfer=atcall
 #endif
@@ -383,11 +438,11 @@ void _extrapolate_from_gradient(
 
 
 #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
-#pragma hmpp lmtVByNeigh codelet, target=CUDA, transfer=atcall, &
-#pragma hmpp & args[centroid_values, vertex_values, edge_values, neighbours, x_gradient, &
-#pragma hmpp & y_gradient].mirror, &
-#pragma hmpp & args[centroid_values, vertex_values, edge_values, neighbours, x_gradient, &
-#pragma hmpp & y_gradient].transfer=manual
+#pragma hmpp lmtVByNeigh codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[centroid_values, vertex_values, edge_values, &
+#pragma hmpp & neighbours, x_gradient, y_gradient].mirror &
+#pragma hmpp & args[centroid_values, vertex_values, edge_values, &
+#pragma hmpp & neighbours, x_gradient, y_gradient].transfer=manual
 #endif
 void _limit_vertices_by_all_neighbours(
         int N, 
@@ -425,7 +480,13 @@ void extrapolate_second_order_and_limit_by_edge(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp balance codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[wc, zc, wv, zv, xmomc, ymomc, xmomv, ymomv].mirror &
+#pragma hmpp & args[wc, zc, wv, zv, xmomc, ymomc, xmomv, ymomv].transfer=manual
+#else
 #pragma hmpp balance codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void balance_deep_and_shallow(
         int N,
@@ -449,7 +510,13 @@ void balance_deep_and_shallow(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp setBoundaryE codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[vol_id, edge_id, boundary_values, edge_values].mirror &
+#pragma hmpp & args[vol_id, edge_id, boundary_values, edge_values].transfer=manual
+#else
 #pragma hmpp setBoundaryE codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void set_boundary_values_from_edges(
         int Nb,
@@ -461,9 +528,16 @@ void set_boundary_values_from_edges(
         );
 
 
-
+// swb2_domain.c
+// Not used so far
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp protectSWB2 codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[wc, wv, zc, zv, xmomc, ymomc, areas].mirror &
+#pragma hmpp & args[wc, wv, zc, zv, xmomc, ymomc, areas].transfer=manual
+#else
 #pragma hmpp protectSWB2 codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void protect_swb2(
         long N,
@@ -484,7 +558,13 @@ void protect_swb2(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp protectSW codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[wc, zc, xmomc, ymomc].mirror &
+#pragma hmpp & args[wc, zc, xmomc, ymomc].transfer=manual
+#else
 #pragma hmpp protectSW codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void protect_sw(
         int N,
@@ -501,7 +581,13 @@ void protect_sw(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp interpolateVtoE codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[vertex_values, edge_values].mirror &
+#pragma hmpp & args[vertex_values, edge_values].transfer=manual
+#else
 #pragma hmpp interpolateVtoE codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void interpolate_from_vertices_to_edges(
         int N,
@@ -513,7 +599,15 @@ void interpolate_from_vertices_to_edges(
 
         
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp updateCentroidVH codelet, target=CUDA,  transfer=atcall &
+#pragma hmpp & args[w_C, uh_C, vh_C, h_C, z_C, u_C, v_C, &
+#pragma hmpp &      w_B, uh_B, vh_B, h_B, z_B, u_B, v_B].mirror &
+#pragma hmpp & args[w_C, uh_C, vh_C, h_C, z_C, u_C, v_C, &
+#pragma hmpp &      w_B, uh_B, vh_B, h_B, z_B, u_B, v_B].transfer=manual
+#else
 #pragma hmpp updateCentroidVH codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void _update_centroids_of_velocities_and_height(
         int N_c,
@@ -538,7 +632,13 @@ void _update_centroids_of_velocities_and_height(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp manFrictionFlat codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[w, zv, uh, vh, eta, xmom, ymom].mirror &
+#pragma hmpp & args[w, zv, uh, vh, eta, xmom, ymom].transfer=manual
+#else
 #pragma hmpp manFrictionFlat codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void manning_friction_flat(
         int N,
@@ -558,7 +658,14 @@ void manning_friction_flat(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp manFrictionSloped codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[x, w, zv, uh, vh, eta, xmom_update, ymom_update].mirror &
+#pragma hmpp & args[x, w, zv, uh, vh, eta, xmom_update, &
+#pragma hmpp & ymom_update].transfer=manual
+#else
 #pragma hmpp manFrictionSloped codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void manning_friction_sloped(
         int N,
@@ -580,7 +687,17 @@ void manning_friction_sloped(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp extraSndVelocity codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[stage_centroid_values, bed_centroid_values, &
+#pragma hmpp & xmom_centroid_values, xmom_centroid_store, &
+#pragma hmpp & ymom_centroid_values, ymom_centroid_store].mirror &
+#pragma hmpp & args[stage_centroid_values, bed_centroid_values, &
+#pragma hmpp & xmom_centroid_values, xmom_centroid_store, &
+#pragma hmpp & ymom_centroid_values, ymom_centroid_store].transfer=manual
+#else
 #pragma hmpp extraSndVelocity codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void extrapolate_second_order_velocity_true(
             int N,
@@ -596,7 +713,23 @@ void extrapolate_second_order_velocity_true(
 
             
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp extraSndOrderSWT codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[surrogate_neighbours, number_of_boundaries, &
+#pragma hmpp & centroid_coordinates, stage_centroid_values, &
+#pragma hmpp & bed_centroid_values, xmom_centroid_values, &
+#pragma hmpp & ymom_centroid_values, vertex_coordinates, &
+#pragma hmpp & stage_vertex_values, bed_vertex_values, &
+#pragma hmpp & xmom_vertex_values, ymom_vertex_values].mirror &
+#pragma hmpp & args[surrogate_neighbours, number_of_boundaries, &
+#pragma hmpp & centroid_coordinates, stage_centroid_values, &
+#pragma hmpp & bed_centroid_values, xmom_centroid_values, &
+#pragma hmpp & ymom_centroid_values, vertex_coordinates, &
+#pragma hmpp & stage_vertex_values, bed_vertex_values, &
+#pragma hmpp & xmom_vertex_values, ymom_vertex_values].transfer=manual
+#else
 #pragma hmpp extraSndOrderSWT codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void extrapolate_second_order_sw_true (
         int N,
@@ -633,7 +766,27 @@ void extrapolate_second_order_sw_true (
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp extraSndOrderSW codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[surrogate_neighbours, number_of_boundaries, &
+#pragma hmpp & centroid_coordinates, stage_centroid_values, &
+#pragma hmpp & bed_centroid_values, xmom_centroid_values, &
+#pragma hmpp & ymom_centroid_values, vertex_coordinates, &
+#pragma hmpp & stage_vertex_values, bed_vertex_values, &
+#pragma hmpp & xmom_vertex_values, ymom_vertex_values, &
+#pragma hmpp & stage_centroid_store, xmom_centroid_store, &
+#pragma hmpp & ymom_centroid_store].mirror &
+#pragma hmpp & args[surrogate_neighbours, number_of_boundaries, &
+#pragma hmpp & centroid_coordinates, stage_centroid_values, &
+#pragma hmpp & bed_centroid_values, xmom_centroid_values, &
+#pragma hmpp & ymom_centroid_values, vertex_coordinates, &
+#pragma hmpp & stage_vertex_values, bed_vertex_values, &
+#pragma hmpp & xmom_vertex_values, ymom_vertex_values, &
+#pragma hmpp & stage_centroid_store, xmom_centroid_store, &
+#pragma hmpp & ymom_centroid_store].transfer=manual
+#else
 #pragma hmpp extraSndOrderSW codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void extrapolate_second_order_sw( 
         int N,
@@ -674,7 +827,23 @@ void extrapolate_second_order_sw(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp extraSndOrderSWF codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[surrogate_neighbours, number_of_boundaries, &
+#pragma hmpp & centroid_coordinates, stage_centroid_values, &
+#pragma hmpp & bed_centroid_values, xmom_centroid_values, &
+#pragma hmpp & ymom_centroid_values, vertex_coordinates, &
+#pragma hmpp & stage_vertex_values, bed_vertex_values, &
+#pragma hmpp & xmom_vertex_values, ymom_vertex_values].mirror &
+#pragma hmpp & args[surrogate_neighbours, number_of_boundaries, &
+#pragma hmpp & centroid_coordinates, stage_centroid_values, &
+#pragma hmpp & bed_centroid_values, xmom_centroid_values, &
+#pragma hmpp & ymom_centroid_values, vertex_coordinates, &
+#pragma hmpp & stage_vertex_values, bed_vertex_values, &
+#pragma hmpp & xmom_vertex_values, ymom_vertex_values].transfer=manual
+#else
 #pragma hmpp extraSndOrderSWF codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void extrapolate_second_order_sw_false (
         int N,
@@ -710,7 +879,15 @@ void extrapolate_second_order_sw_false (
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp update codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[centroid_values, explicit_update, &
+#pragma hmpp & semi_implicit_update].mirror &
+#pragma hmpp & args[centroid_values, explicit_update, &
+#pragma hmpp & semi_implicit_update].transfer=manual
+#else
 #pragma hmpp update codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void update(
         int N,
@@ -723,7 +900,13 @@ void update(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp saxpyCen codelet, target=CUDA, transfer=atcall &
+#pragma hmpp & args[centroid_values, centroid_backup_values].mirror &
+#pragma hmpp & args[centroid_values, centroid_backup_values].transfer=manual
+#else
 #pragma hmpp saxpyCen codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void saxpy_centroid_values(
         int N,
@@ -737,7 +920,23 @@ void saxpy_centroid_values(
 
 
 #ifdef USING_GLOBAL_DIRECTIVES
+#ifdef USING_MIRROR_DATA
+#pragma hmpp evaRef codelet, target=CUDA, transfer=atcall, &
+#pragma hmpp & args[stage_edge_values, bed_edge_values, height_edge_values, &
+#pragma hmpp & xmom_edge_values, xvel_edge_values, yvel_edge_values, &
+#pragma hmpp & stage_boundary_values, bed_boundary_values, &
+#pragma hmpp & height_boundary_values, xmom_boundary_values, &
+#pragma hmpp & ymom_boundary_values, xvel_boundary_values, &
+#pragma hmpp & yvel_boundary_values].mirror, &
+#pragma hmpp & args[stage_edge_values, bed_edge_values, height_edge_values, &
+#pragma hmpp & xmom_edge_values, xvel_edge_values, yvel_edge_values, &
+#pragma hmpp & stage_boundary_values, bed_boundary_values, &
+#pragma hmpp & height_boundary_values, xmom_boundary_values, &
+#pragma hmpp & ymom_boundary_values, xvel_boundary_values, &
+#pragma hmpp & yvel_boundary_values].transfer=manual
+#else
 #pragma hmpp evaRef codelet, target=CUDA args[*].transfer=atcall
+#endif
 #endif
 void evaluate_segment_reflective(
     int N1,   // Nids

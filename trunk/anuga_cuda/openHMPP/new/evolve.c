@@ -171,6 +171,7 @@ double compute_fluxes(struct domain * D)
 {
     DEBUG_LOG(" -> compute_fluxes ");
     int i;
+    double * timestep_array = D->timestep_array;
 
     D->flux_timestep = D->evolve_max_timestep;
 
@@ -259,6 +260,9 @@ double compute_fluxes(struct domain * D)
             break;
     }
 
+#pragma hmpp delegatedstore data[timestep_array]
+    
+    
     // FIXME: needs transmit back
     // min
     //qsort(D->timestep, D->number_of_elements, sizeof(double), cmp);
@@ -1099,12 +1103,240 @@ double evolve( struct domain * D,
     clock_t ini_time, fin_time;
 
 
+
+    int N = D->number_of_elements;
+    int N2 = 2*N, N3=N*3, N6=N*6, Nb=D->number_of_boundary_elements;
+
+    double  *normals = D->normals,
+            *edgelengths = D->edgelengths,
+            *radii = D->radii,
+            *areas = D->areas,
+            *max_speed = D->max_speed,
+            *timestep_array = D->timestep_array,
+
+            *vertex_coordinates = D->vertex_coordinates,
+            *edge_coordinates = D->edge_coordinates,
+            *centroid_coordinates = D->centroid_coordinates;
+
+
+    double  *stage_edge_values = D->stage_edge_values,
+            *xmom_edge_values = D->xmom_edge_values,
+            *ymom_edge_values = D->ymom_edge_values,
+            *bed_edge_values = D->bed_edge_values,
+            *height_edge_values = D->height_edge_values,
+            *xvelocity_edge_values = D->xvelocity_edge_values,
+            *yvelocity_edge_values = D->yvelocity_edge_values;
+            
+
+    double  *stage_centroid_values = D->stage_centroid_values,
+            *xmom_centroid_values = D->xmom_centroid_values,
+            *ymom_centroid_values = D->ymom_centroid_values,
+            *bed_centroid_values = D->bed_centroid_values,
+            *friction_centroid_values = D->friction_centroid_values,
+            *height_centroid_values = D->height_centroid_values,
+            *xvelocity_centroid_values = D->xvelocity_centroid_values,
+            *yvelocity_centroid_values = D->yvelocity_centroid_values;
+            
+
+    double  *stage_centroid_store = D->stage_centroid_store,
+            *xmom_centroid_store = D->xmom_centroid_store,
+            *ymom_centroid_store = D->ymom_centroid_store;
+
+
+    double  *stage_centroid_backup = D->stage_centroid_backup,
+            *xmom_centroid_backup = D->xmom_centroid_backup,
+            *ymom_centroid_backup = D->ymom_centroid_backup;
+
+
+    double  *stage_vertex_values = D->stage_vertex_values,
+            *xmom_vertex_values = D->xmom_vertex_values,
+            *ymom_vertex_values = D->ymom_vertex_values,
+            *bed_vertex_values = D->bed_vertex_values,
+            *height_vertex_values = D->height_vertex_values,
+            *xvelocity_vertex_values = D->xvelocity_vertex_values,
+            *yvelocity_vertex_values = D->yvelocity_vertex_values;
+           
+
+    double  *stage_boundary_values = D->stage_boundary_values,
+            *xmom_boundary_values = D->xmom_boundary_values,
+            *ymom_boundary_values = D->ymom_boundary_values,
+            *bed_boundary_values = D->bed_boundary_values,
+            *height_boundary_values = D->height_boundary_values,
+            *xvelocity_boundary_values = D->xvelocity_boundary_values,
+            *yvelocity_boundary_values = D->yvelocity_boundary_values;
+           
+
+    double  *stage_explicit_update = D->stage_explicit_update,
+            *xmom_explicit_update = D->xmom_explicit_update,
+            *ymom_explicit_update = D->ymom_explicit_update;
+
+            
+    double  *stage_semi_implicit_update = D->stage_semi_implicit_update,
+            *xmom_semi_implicit_update = D->xmom_semi_implicit_update,
+            *ymom_semi_implicit_update = D->ymom_semi_implicit_update;
+
+
+    double  *stage_x_gradient = D->stage_x_gradient,
+            *stage_y_gradient = D->stage_y_gradient,
+
+            *xmom_x_gradient = D->xmom_x_gradient,
+            *xmom_y_gradient = D->xmom_y_gradient,
+            
+            *ymom_x_gradient = D->ymom_x_gradient,
+            *ymom_y_gradient = D->ymom_y_gradient, 
+
+            *height_x_gradient = D->height_x_gradient,
+            *height_y_gradient = D->height_y_gradient, 
+
+            *xvelocity_x_gradient = D->xvelocity_x_gradient,
+            *xvelocity_y_gradient = D->xvelocity_y_gradient, 
+
+            *yvelocity_x_gradient = D->yvelocity_x_gradient,
+            *yvelocity_y_gradient = D->yvelocity_y_gradient;
+
+
+    long    *neighbours = D->neighbours,
+            *neighbour_edges = D->neighbour_edges,
+            *surrogate_neighbours = D->surrogate_neighbours,
+            *tri_full_flag = D->tri_full_flag,
+            *number_of_boundaries = D->number_of_boundaries,
+            *boundary_cells = D->boundary_cells,
+            *boundary_edges = D->boundary_edges;
+            
+    // Start timing 
+    ini_time = clock() / (CLOCKS_PER_SEC / 1000);
+
+#pragma hmpp cptGradients allocate, data[normals], size={N6}
+#pragma hmpp cptGradients allocate, data[edgelengths], size={N3}
+#pragma hmpp cptGradients allocate, data[radii], size={N}
+#pragma hmpp cptGradients allocate, data[areas], size={N}
+#pragma hmpp cptGradients allocate, data[max_speed], size={N}
+#pragma hmpp cptGradients allocate, data[timestep_array], size={N}
+#pragma hmpp cptGradients allocate, data[vertex_coordinates], size={N6}
+#pragma hmpp cptGradients allocate, data[edge_coordinates], size={N6}
+#pragma hmpp cptGradients allocate, data[centroid_coordinates], size={N2}
+
+
+#pragma hmpp cptGradients allocate, data[neighbours], size={N3}
+#pragma hmpp cptGradients allocate, data[neighbour_edges], size={N3}
+#pragma hmpp cptGradients allocate, data[surrogate_neighbours], size={N3}
+#pragma hmpp cptGradients allocate, data[tri_full_flag], size={N}
+#pragma hmpp cptGradients allocate, data[number_of_boundaries], size={N}
+#pragma hmpp cptGradients allocate, data[boundary_cells], size={Nb}
+#pragma hmpp cptGradients allocate, data[boundary_edges], size={Nb}
+
+
+#pragma hmpp cptGradients allocate, data[stage_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[xmom_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[ymom_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[bed_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[height_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[xvelocity_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[yvelocity_edge_values], size={N3}
+
+
+#pragma hmpp cptGradients allocate, data[stage_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[bed_centroid_values], size={N3}
+#pragma hmpp cptGradients allocate, data[friction_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[height_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[xvelocity_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[yvelocity_centroid_values], size={N}
+
+
+#pragma hmpp cptGradients allocate, data[stage_centroid_store], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_centroid_store], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_centroid_store], size={N}
+
+
+#pragma hmpp cptGradients allocate, data[stage_centroid_backup], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_centroid_backup], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_centroid_backup], size={N}
+
+
+#pragma hmpp cptGradients allocate, data[stage_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[xmom_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[ymom_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[bed_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[height_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[xvelocity_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[yvelocity_vertex_values], size={N3}
+
+
+#pragma hmpp cptGradients allocate, data[stage_boundary_values], size={Nb}
+#pragma hmpp cptGradients allocate, data[xmom_boundary_values], size={Nb}
+#pragma hmpp cptGradients allocate, data[ymom_boundary_values], size={Nb}
+#pragma hmpp cptGradients allocate, data[bed_boundary_values], size={Nb}
+#pragma hmpp cptGradients allocate, data[height_boundary_values], size={Nb}
+#pragma hmpp cptGradients allocate, data[xvelocity_boundary_values], size={Nb}
+#pragma hmpp cptGradients allocate, data[yvelocity_boundary_values], size={Nb}
+
+
+#pragma hmpp cptGradients allocate, data[stage_explicit_update], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_explicit_update], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_explicit_update], size={N}
+
+
+#pragma hmpp cptGradients allocate, data[stage_semi_implicit_update], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_semi_implicit_update], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_semi_implicit_update], size={N}
+
+
+#pragma hmpp cptGradients allocate, data[stage_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[stage_y_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_y_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_y_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[height_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[height_y_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[xvelocity_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[xvelocity_y_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[yvelocity_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[yvelocity_y_gradient], size={N}
+
+
+// Copy from host to device 
+#pragma hmpp advancedload data[ normals, edgelengths, radii, areas, max_speed, &
+#pragma hmpp & timestep_array, vertex_coordinates, edge_coordinates, &
+#pragma hmpp & centroid_coordinates, &
+#pragma hmpp & stage_edge_values, xmom_edge_values, ymom_edge_values, &
+#pragma hmpp & bed_edge_values, height_edge_values, xvelocity_edge_values, &
+#pragma hmpp & yvelocity_edge_values, &
+#pragma hmpp & stage_centroid_values, xmom_centroid_values, ymom_centroid_values, &
+#pragma hmpp & bed_centroid_values, friction_centroid_values, height_centroid_values, &
+#pragma hmpp & xvelocity_centroid_values, yvelocity_centroid_values, &
+#pragma hmpp & stage_centroid_store, xmom_centroid_store, ymom_centroid_store, &
+#pragma hmpp & stage_centroid_backup, xmom_centroid_backup, ymom_centroid_backup, &
+#pragma hmpp & stage_vertex_values, xmom_vertex_values, ymom_vertex_values, &
+#pragma hmpp & bed_vertex_values, height_vertex_values, xvelocity_vertex_values, &
+#pragma hmpp & yvelocity_vertex_values, &
+#pragma hmpp & stage_boundary_values, xmom_boundary_values, bed_boundary_values, &
+#pragma hmpp & height_boundary_values, xvelocity_boundary_values, &
+#pragma hmpp & yvelocity_boundary_values, &
+#pragma hmpp & stage_explicit_update, xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & stage_semi_implicit_update, xmom_semi_implicit_update, &
+#pragma hmpp & ymom_semi_implicit_update, &
+#pragma hmpp & stage_x_gradient, stage_y_gradient, &
+#pragma hmpp & xmom_x_gradient, xmom_y_gradient, &
+#pragma hmpp & ymom_x_gradient, ymom_y_gradient, &
+#pragma hmpp & height_x_gradient, height_y_gradient, &
+#pragma hmpp & xvelocity_x_gradient, xvelocity_y_gradient, &
+#pragma hmpp & yvelocity_x_gradient, yvelocity_y_gradient, &
+#pragma hmpp & neighbours, neighbour_edges, surrogate_neighbours, &
+#pragma hmpp & tri_full_flag, number_of_boundaries, boundary_cells, boundary_edges]
+
+
+
+
+
+
 #ifdef DEBUG_ROUND
     // Debug 
     int round = 10;
 #endif
 
-    ini_time = clock() / (CLOCKS_PER_SEC / 1000);
 
 
     DEBUG_ASSERT( D->beta_w >= 0 && D->beta_w <= 2.0 );
@@ -1227,6 +1459,8 @@ double evolve( struct domain * D,
         if ( D->_order_ == 1 )
             D->number_of_first_order_steps += 1;
 
+        if (D->number_of_steps > 200)
+            return 1;
         if (D->finaltime && D->time >= D->finaltime - epsilon)
         {
             if (D->time > D->finaltime)
@@ -1238,12 +1472,48 @@ double evolve( struct domain * D,
             D->time = D->finaltime;
             log_operator_timestepping_statistics(D);
                 
+
+        //
+        // Update the host variable with the contents of the mirrored 
+        // accelerator memory space 
+        //
+#pragma hmpp delegatedstore data[ normals, edgelengths, radii, areas, max_speed, &
+#pragma hmpp & timestep_array, vertex_coordinates, edge_coordinates, &
+#pragma hmpp & centroid_coordinates, &
+#pragma hmpp & stage_edge_values, xmom_edge_values, ymom_edge_values, &
+#pragma hmpp & bed_edge_values, height_edge_values, xvelocity_edge_values, &
+#pragma hmpp & yvelocity_edge_values, &
+#pragma hmpp & stage_centroid_values, xmom_centroid_values, ymom_centroid_values, &
+#pragma hmpp & bed_centroid_values, friction_centroid_values, height_centroid_values, &
+#pragma hmpp & xvelocity_centroid_values, yvelocity_centroid_values, &
+#pragma hmpp & stage_centroid_store, xmom_centroid_store, ymom_centroid_store, &
+#pragma hmpp & stage_centroid_backup, xmom_centroid_backup, ymom_centroid_backup, &
+#pragma hmpp & stage_vertex_values, xmom_vertex_values, ymom_vertex_values, &
+#pragma hmpp & bed_vertex_values, height_vertex_values, xvelocity_vertex_values, &
+#pragma hmpp & yvelocity_vertex_values, &
+#pragma hmpp & stage_boundary_values, xmom_boundary_values, bed_boundary_values, &
+#pragma hmpp & height_boundary_values, xvelocity_boundary_values, &
+#pragma hmpp & yvelocity_boundary_values, &
+#pragma hmpp & stage_explicit_update, xmom_explicit_update, ymom_explicit_update, &
+#pragma hmpp & stage_semi_implicit_update, xmom_semi_implicit_update, &
+#pragma hmpp & ymom_semi_implicit_update, &
+#pragma hmpp & stage_x_gradient, stage_y_gradient, &
+#pragma hmpp & xmom_x_gradient, xmom_y_gradient, &
+#pragma hmpp & ymom_x_gradient, ymom_y_gradient, &
+#pragma hmpp & height_x_gradient, height_y_gradient, &
+#pragma hmpp & xvelocity_x_gradient, xvelocity_y_gradient, &
+#pragma hmpp & yvelocity_x_gradient, yvelocity_y_gradient, &
+#pragma hmpp & neighbours, neighbour_edges, surrogate_neighbours, &
+#pragma hmpp & tri_full_flag, number_of_boundaries, boundary_cells, boundary_edges]
+           
+
+            // Calculate executing time 
             fin_time = clock() / (CLOCKS_PER_SEC / 1000);
 
-            printf("\nFinish evolving with %d steps, time: %ld\n",
+            printf("\n :) Finish with %d steps, time: %ld (millisecnods)\n\n",
                     D->number_of_steps,
                     fin_time- ini_time);
-            // FIXME: exit the whole program
+            // Exit the whole program
             return D->time;
         }
 
@@ -1254,7 +1524,7 @@ double evolve( struct domain * D,
 #ifndef EVOLVE_ALL_IN_C
             return D->time;
 #else
-            printf("  Time %lf\n", D->time);
+            //printf(" C: Current t ime %lf\n", D->time);
 
             D->yieldtime += yieldstep;
             D->recorded_min_timestep = D->evolve_max_timestep;
@@ -1279,73 +1549,7 @@ void test_single( struct domain *D)
 
 void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
 {
-    int N = D->number_of_elements;
-    int N2 = 2*N, N3=N*3, N6=N*6;
-
-    double *centroid_coordinates = D->centroid_coordinates,
-            *vertex_coordinates = D->vertex_coordinates,
-            
-            *stage_centroid_values = D->stage_centroid_values,
-            *stage_vertex_values = D->stage_vertex_values,
-            *stage_edge_values = D->stage_edge_values,
-            *stage_x_gradient = D->stage_x_gradient,
-            *stage_y_gradient = D->stage_y_gradient,
-
-            *xmom_centroid_values = D->xmom_centroid_values,
-            *xmom_vertex_values = D->xmom_vertex_values,
-            *xmom_edge_values = D->xmom_edge_values,
-            *xmom_x_gradient = D->xmom_x_gradient,
-            *xmom_y_gradient = D->xmom_y_gradient,
-            
-            *ymom_centroid_values = D->ymom_centroid_values,
-            *ymom_vertex_values = D->ymom_vertex_values,
-            *ymom_edge_values = D->ymom_edge_values,
-            *ymom_x_gradient = D->ymom_x_gradient,
-            *ymom_y_gradient = D->ymom_y_gradient
-            ;
-    long *number_of_boundaries = D->number_of_boundaries,
-            *surrogate_neighbours = D->surrogate_neighbours,
-            *neighbours = D->neighbours;
     
-
-#pragma hmpp cptGradients allocate, data[centroid_coordinates], size={N2}
-#pragma hmpp cptGradients allocate, data[vertex_coordinates], size={N6}
-#pragma hmpp cptGradients allocate, data[number_of_boundaries], size={N}
-#pragma hmpp cptGradients allocate, data[surrogate_neighbours], size={N3}
-#pragma hmpp cptGradients allocate, data[neighbours], size={N3}
-#pragma hmpp cptGradients allocate, data[stage_centroid_values], size={N}
-#pragma hmpp cptGradients allocate, data[stage_vertex_values], size={N3}
-#pragma hmpp cptGradients allocate, data[stage_edge_values], size={N3}
-#pragma hmpp cptGradients allocate, data[stage_x_gradient], size={N}
-#pragma hmpp cptGradients allocate, data[stage_y_gradient], size={N}
-
-    
-
-#pragma hmpp cptGradients allocate, data[xmom_centroid_values], size={N}
-#pragma hmpp cptGradients allocate, data[xmom_vertex_values], size={N3}
-#pragma hmpp cptGradients allocate, data[xmom_edge_values], size={N3}
-#pragma hmpp cptGradients allocate, data[xmom_x_gradient], size={N}
-#pragma hmpp cptGradients allocate, data[xmom_y_gradient], size={N}
-    
-
-
-#pragma hmpp cptGradients allocate, data[ymom_centroid_values], size={N}
-#pragma hmpp cptGradients allocate, data[ymom_vertex_values], size={N3}
-#pragma hmpp cptGradients allocate, data[ymom_edge_values], size={N3}
-#pragma hmpp cptGradients allocate, data[ymom_x_gradient], size={N}
-#pragma hmpp cptGradients allocate, data[ymom_y_gradient], size={N}
-    
-
-
-#pragma hmpp advancedload data[centroid_coordinates, vertex_coordinates, &
-#pragma hmpp & number_of_boundaries, surrogate_neighbours, neighbours, &
-#pragma hmpp & stage_centroid_values, stage_vertex_values, stage_edge_values, &
-#pragma hmpp & stage_x_gradient, stage_y_gradient, &
-#pragma hmpp & xmom_centroid_values, xmom_vertex_values, xmom_edge_values, &
-#pragma hmpp & xmom_x_gradient, xmom_y_gradient, &
-#pragma hmpp & ymom_centroid_values, ymom_vertex_values, ymom_edge_values, &
-#pragma hmpp & ymom_x_gradient, ymom_y_gradient]
-
     // stage
     extrapolate_second_order_and_limit_by_vertex(
             D->number_of_elements,
@@ -1410,14 +1614,6 @@ void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
             D->ymom_y_gradient
             );
 
-#pragma hmpp delegatedstore data[centroid_coordinates, vertex_coordinates, &
-#pragma hmpp & number_of_boundaries, surrogate_neighbours, neighbours, &
-#pragma hmpp & stage_centroid_values, stage_vertex_values, stage_edge_values, &
-#pragma hmpp & stage_x_gradient, stage_y_gradient, &
-#pragma hmpp & xmom_centroid_values, xmom_vertex_values, xmom_edge_values, &
-#pragma hmpp & xmom_x_gradient, xmom_y_gradient, &
-#pragma hmpp & ymom_centroid_values, ymom_vertex_values, ymom_edge_values, &
-#pragma hmpp & ymom_x_gradient, ymom_y_gradient]
 }
 
 
