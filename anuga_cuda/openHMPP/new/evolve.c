@@ -1279,6 +1279,73 @@ void test_single( struct domain *D)
 
 void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
 {
+    int N = D->number_of_elements;
+    int N2 = 2*N, N3=N*3, N6=N*6;
+
+    double *centroid_coordinates = D->centroid_coordinates,
+            *vertex_coordinates = D->vertex_coordinates,
+            
+            *stage_centroid_values = D->stage_centroid_values,
+            *stage_vertex_values = D->stage_vertex_values,
+            *stage_edge_values = D->stage_edge_values,
+            *stage_x_gradient = D->stage_x_gradient,
+            *stage_y_gradient = D->stage_y_gradient,
+
+            *xmom_centroid_values = D->xmom_centroid_values,
+            *xmom_vertex_values = D->xmom_vertex_values,
+            *xmom_edge_values = D->xmom_edge_values,
+            *xmom_x_gradient = D->xmom_x_gradient,
+            *xmom_y_gradient = D->xmom_y_gradient,
+            
+            *ymom_centroid_values = D->ymom_centroid_values,
+            *ymom_vertex_values = D->ymom_vertex_values,
+            *ymom_edge_values = D->ymom_edge_values,
+            *ymom_x_gradient = D->ymom_x_gradient,
+            *ymom_y_gradient = D->ymom_y_gradient
+            ;
+    long *number_of_boundaries = D->number_of_boundaries,
+            *surrogate_neighbours = D->surrogate_neighbours,
+            *neighbours = D->neighbours;
+    
+
+#pragma hmpp cptGradients allocate, data[centroid_coordinates], size={N2}
+#pragma hmpp cptGradients allocate, data[vertex_coordinates], size={N6}
+#pragma hmpp cptGradients allocate, data[number_of_boundaries], size={N}
+#pragma hmpp cptGradients allocate, data[surrogate_neighbours], size={N3}
+#pragma hmpp cptGradients allocate, data[neighbours], size={N3}
+#pragma hmpp cptGradients allocate, data[stage_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[stage_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[stage_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[stage_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[stage_y_gradient], size={N}
+
+    
+
+#pragma hmpp cptGradients allocate, data[xmom_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[xmom_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[xmom_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[xmom_y_gradient], size={N}
+    
+
+
+#pragma hmpp cptGradients allocate, data[ymom_centroid_values], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_vertex_values], size={N3}
+#pragma hmpp cptGradients allocate, data[ymom_edge_values], size={N3}
+#pragma hmpp cptGradients allocate, data[ymom_x_gradient], size={N}
+#pragma hmpp cptGradients allocate, data[ymom_y_gradient], size={N}
+    
+
+
+#pragma hmpp advancedload data[centroid_coordinates, vertex_coordinates, &
+#pragma hmpp & number_of_boundaries, surrogate_neighbours, neighbours, &
+#pragma hmpp & stage_centroid_values, stage_vertex_values, stage_edge_values, &
+#pragma hmpp & stage_x_gradient, stage_y_gradient, &
+#pragma hmpp & xmom_centroid_values, xmom_vertex_values, xmom_edge_values, &
+#pragma hmpp & xmom_x_gradient, xmom_y_gradient, &
+#pragma hmpp & ymom_centroid_values, ymom_vertex_values, ymom_edge_values, &
+#pragma hmpp & ymom_x_gradient, ymom_y_gradient]
+
     // stage
     extrapolate_second_order_and_limit_by_vertex(
             D->number_of_elements,
@@ -1342,6 +1409,15 @@ void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
             D->ymom_x_gradient,
             D->ymom_y_gradient
             );
+
+#pragma hmpp delegatedstore data[centroid_coordinates, vertex_coordinates, &
+#pragma hmpp & number_of_boundaries, surrogate_neighbours, neighbours, &
+#pragma hmpp & stage_centroid_values, stage_vertex_values, stage_edge_values, &
+#pragma hmpp & stage_x_gradient, stage_y_gradient, &
+#pragma hmpp & xmom_centroid_values, xmom_vertex_values, xmom_edge_values, &
+#pragma hmpp & xmom_x_gradient, xmom_y_gradient, &
+#pragma hmpp & ymom_centroid_values, ymom_vertex_values, ymom_edge_values, &
+#pragma hmpp & ymom_x_gradient, ymom_y_gradient]
 }
 
 
