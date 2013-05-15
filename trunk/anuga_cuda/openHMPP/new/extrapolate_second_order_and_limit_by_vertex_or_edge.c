@@ -478,61 +478,9 @@ void extrapolate_second_order_and_limit_by_vertex(
         double quantity_y_gradient[N]
         )
 {
-// Copy in routine
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> allocate, &
-    #pragma hmpp & args[*::N].hostdata="N", &
-    #pragma hmpp & args[*::N2].hostdata="N2", &
-    #pragma hmpp & args[*::N3].hostdata="N3", &
-    #pragma hmpp & args[extraFromGradient::N6].hostdata="N6", &
-    #pragma hmpp & args[cptGradients::centroids].hostdata="domain_centroid_coordinates", &
-    #pragma hmpp & args[cptGradients::centroids].size={N2},&
-    #pragma hmpp & args[cptGradients::centroid_values].hostdata="quantity_centroid_values", &
-    #pragma hmpp & args[cptGradients::centroid_values].size={N}, &
-    #pragma hmpp & args[cptGradients::number_of_boundaries].hostdata="domain_number_of_boundaries", &
-    #pragma hmpp & args[cptGradients::number_of_boundaries].size={N}, &
-    #pragma hmpp & args[cptGradients::surrogate_neighbours].hostdata="domain_surrogate_neighbours", &
-    #pragma hmpp & args[*::surrogate_neighbours].size={N3}, &
-    #pragma hmpp & args[cptGradients::a].hostdata="quantity_x_gradient", &
-    #pragma hmpp & args[cptGradients::a].size={N}, &
-    #pragma hmpp & args[cptGradients::b].hostdata="quantity_y_gradient", &
-    #pragma hmpp & args[cptGradients::b].size={N}, &
-    #pragma hmpp & args[extraFromGradient::vertex_coordinates].hostdata="domain_vertex_coordinates", &
-    #pragma hmpp & args[extraFromGradient::vertex_coordinates].size={N6}, & // 
-    #pragma hmpp & args[extraFromGradient::vertex_values].hostdata="quantity_vertex_values", &
-    #pragma hmpp & args[extraFromGradient::vertex_values].size={N3}, &
-    #pragma hmpp & args[extraFromGradient::edge_values].hostdata="quantity_edge_values", &
-    #pragma hmpp & args[extraFromGradient::edge_values].size={N3}, &
-    #pragma hmpp & args[lmtVByNeigh::beta].hostdata="beta", &
-    #pragma hmpp & args[lmtVByNeigh::neighbours].hostdata="domain_neighbours", &
-    #pragma hmpp & args[lmtVByNeigh::neighbours].size={N3}
-
-
-
-    #pragma hmpp <extra2LV> advancedload, args[ &
-    #pragma hmpp & cptGradients::N, &
-    #pragma hmpp & cptGradients::N2, & 
-    #pragma hmpp & cptGradients::N3, &
-    #pragma hmpp & extraFromGradient::N6,&
-    #pragma hmpp & cptGradients::centroids, &
-    #pragma hmpp & cptGradients::centroid_values, & 
-    #pragma hmpp & cptGradients::number_of_boundaries, & 
-    #pragma hmpp & cptGradients::surrogate_neighbours, & 
-    #pragma hmpp & cptGradients::a, & 
-    #pragma hmpp & cptGradients::b, & 
-    #pragma hmpp & extraFromGradient::vertex_coordinates, & 
-    #pragma hmpp & extraFromGradient::vertex_values, & 
-    #pragma hmpp & extraFromGradient::edge_values, & 
-    #pragma hmpp & lmtVByNeigh::beta, & 
-    #pragma hmpp & lmtVByNeigh::neighbours]
-    #endif
-
-
 
     #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> cptGradients callsite, asynchronous
-    #endif
+    #pragma hmpp cptGradients callsite
     #endif
     _compute_gradients(
             N,
@@ -546,19 +494,9 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_y_gradient);
 
     
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> cptGradients synchronize
-    #endif
-    #endif
-    //#pragma hmpp <extra2LV> cptGradients delegatedstore, &
-    //#pragma hmpp & args[a, b]
-
 
     #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> extraFromGradient callsite
-    #endif
+    #pragma hmpp extraFromGradient callsite
     #endif
     _extrapolate_from_gradient(
             N,
@@ -573,16 +511,10 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_x_gradient,
             quantity_y_gradient);
 
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> extraFromGradient synchronize
-    #endif
-    #endif
+
 
     #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> lmtVByNeigh callsite
-    #endif
+    #pragma hmpp lmtVByNeigh callsite
     #endif
     _limit_vertices_by_all_neighbours(
             N,
@@ -595,21 +527,6 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_x_gradient,
             quantity_y_gradient);
     
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_LMT_V
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> lmtVByNeigh synchronize
-    #endif
-    #endif
-
-
-    // Copy back routine
-    #ifdef TESTING_EXTRA_2_LV_GROUP
-    #pragma hmpp <extra2LV> delegatedstore, args[ &
-    #pragma hmpp & cptGradients::a, & 
-    #pragma hmpp & cptGradients::b, &
-    #pragma hmpp & extraFromGradient::vertex_values, & 
-    #pragma hmpp & extraFromGradient::edge_values]
-    #endif
 }
 
 

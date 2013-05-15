@@ -44,6 +44,13 @@ void myFunc2(int n, int C[n], int D[n])
     }
 }
 
+void temp(int n, int *E, int *F)
+{
+    printf(" In GPU\n");
+#pragma hmpp myCall2 callsite
+    myFunc2(n, E, F);
+}
+
 
 void main(void) {
     int n = 10, i;
@@ -62,12 +69,24 @@ void main(void) {
     printf(" In GPU\n");
 #pragma hmpp myCall callsite
     myFunc(n, X, Y);
+#pragma hmpp delegatedstore data[Y]
+    for(i = 0; i< n; i++)
+        printf("%d ", Y[i]);
+    printf("\n");
+    
+    for(i = 0; i< n; i++)
+        printf("%d ", Z[i]);
+    printf("\n");
 
-    printf(" In GPU\n");
-#pragma hmpp myCall2 callsite
-    myFunc2(n, X, Z);
+    temp(n, X, Z);
+    for(i = 0; i< n; i++)
+        printf("%d ", Z[i]);
+    printf("\n");
+#pragma hmpp delegatedstore data[Z]
+    for(i = 0; i< n; i++)
+        printf("%d ", Z[i]);
+    printf("\n");
 
-#pragma hmpp delegatedstore data[Y, Z]
 
 
 #pragma hmpp myCall release
