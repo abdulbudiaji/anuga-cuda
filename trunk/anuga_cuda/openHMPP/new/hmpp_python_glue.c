@@ -412,7 +412,7 @@ PyObject *hmpp_compute_fluxes(PyObject *self, PyObject *args)
     if ( !step )
     {   
         get_python_domain(&D, domain);
-        print_domain_struct(&D);
+        //print_domain_struct(&D);
         //fflush(stdout);
     }
     
