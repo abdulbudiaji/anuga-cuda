@@ -47,8 +47,8 @@ mesh_filename = "merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
 mesh_filename = merimbula_dir + mesh_filename
-yieldstep = 50
-finaltime = 500
+yieldstep = 10
+finaltime = 10
 verbose = True
 
 #--------------------------------------------------------------------------
@@ -101,6 +101,8 @@ for i in range(len(sys.argv)):
     elif '-r' in sys.argv[i] or sys.argv[i] == '-rg':
         domain.rearranged_domain = True
 
+#domain.using_gpu = True
+#finaltime = 20
 
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
 domain.set_datadir('Data')

@@ -1,0 +1,54 @@
+
+memcpyHtoDasync:   72 calls
+	 gputime=7823 cputime=13086
+
+_protect_sw: 1303 calls
+	 gputime=11691 cputime=6255] thread = [0..22(22), 0..0(0), 
+
+extrapolate_velocity_second_order_true: 1303 calls
+	 gputime=22203 cputime=5944] thread = [0..20(20), 0..0(0), 
+
+extrapolate_second_order_sw_true: 1303 calls
+	 gputime=444891 cputime=5822] thread = [0..62(62), 0..0(0), 
+
+_balance_deep_and_shallow: 1303 calls
+	 gputime=30578 cputime=5973] thread = [0..39(39), 0..0(0), 
+
+_interpolate_from_vertices_to_edges: 3909 calls
+	 gputime=97582 cputime=16312] thread = [0..16(16), 0..0(0), 
+
+evaluate_segment_reflective: 2604 calls
+	 gputime=28554 cputime=11025] thread = [0..22(22), 0..0(0), 
+
+compute_fluxes_central_structure_CUDA: 1301 calls
+	 gputime=595860 cputime=6272] thread = [0..62(62), 0..0(0), 
+
+memcpyDtoHasync: 1301 calls
+	 gputime=81995 cputime=1034003
+
+gravity_wb: 1301 calls
+	 gputime=206081 cputime=86490..46080(46080)] thread = [0..34(34), 0..0(0), 
+
+memcpyDtoH: 1301 calls
+	 gputime=481600 cputime=1087617
+
+_manning_friction_flat: 1301 calls
+	 gputime=7264 cputime=12270] thread = [0..26(26), 0..0(0), 
+
+update: 3903 calls
+	 gputime=98680 cputime=17592] thread = [0..22(22), 0..0(0), 
+
+memset32_post: 6514 calls
+	 gputime=37702 cputime=23576] thread = [0..6(6), 0..0(0), 
+
+set_boundary_values_from_edges: 1301 calls
+	 gputime=6618 cputime=6080] thread = [0..11(11), 0..1(1), 
+
+update_centroids_of_velocities_and_height: 1301 calls
+	 gputime=23866 cputime=5670] thread = [0..19(19), 0..1(1), 
+
+extrapolate_first_order: 3903 calls
+	 gputime=140432 cputime=16446] thread = [0..16(16), 0..0(0), 
+
+total: 35224 calls
+	 gputime=2323420 cputime=22825920..46080(1701)] thread = [0..62(19), 0..1(0), 
