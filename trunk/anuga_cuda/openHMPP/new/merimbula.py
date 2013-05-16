@@ -46,8 +46,8 @@ from anuga import create_domain_from_file
 mesh_filename = "../merimbula_43200.tsh"   ; x0 = 756000.0 ; x1 = 756500.0
 #mesh_filename = "test-100.tsh" ; x0 = 0.25 ; x1 = 0.5
 #mesh_filename = "test-20.tsh" ; x0 = 250.0 ; x1 = 350.0
-yieldstep = 50
-finaltime = 50
+yieldstep = 10
+finaltime = 10
 verbose = True
 
 #--------------------------------------------------------------------------
