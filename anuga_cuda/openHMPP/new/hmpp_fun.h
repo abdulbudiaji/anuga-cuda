@@ -48,6 +48,10 @@ double evolve(struct domain * D, double yieldstep,
             double epsilon, int skip_initial_step,
             int step);
 
+void allocate_upload_data(struct domain *D);
+
+void download_data(struct domain *D);
+
 int _distribute_to_vertices_and_edges(struct domain * D);
 
 int _extrapolate_second_order_sw(struct domain * D);

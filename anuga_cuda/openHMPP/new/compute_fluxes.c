@@ -16,7 +16,7 @@
 #define TOLERANCE 1e-8
 #endif
 
-
+#define USING_ORIGINAL_CUDA
 //double max(double a, double b)
 //{ return (a >= b) ? a : b; }
 //
@@ -24,7 +24,7 @@
 //{ return (a <= b) ? a : b; }
 
 
-
+/*
 double sqrt(double x)
 {
     double mx = 32000;
@@ -39,7 +39,7 @@ double sqrt(double x)
     }
     return mx;
 }
-
+*/
 
 
 /*
@@ -274,16 +274,31 @@ int _flux_function_central(
     denom = s_max - s_min;
     if (denom < epsilon) { // FIXME (Ole): Try using h0 here
         //memset(edgeflux, 0, 3 * sizeof (double));
+        edgeflux[0]=0.0;
+        edgeflux[1]=0.0;
+        edgeflux[2]=0.0;
         *max_speed = 0.0;
     }
     else {
         inverse_denominator = 1.0 / denom;
 #ifdef USING_ORIGINAL_CUDA
-        for (i = 0; i < 3; i++) {
-            edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
-            edgeflux[i] += s_max *s_min *(q_right_rotated[i] -q_left_rotated[i]);
-            edgeflux[i] *= inverse_denominator;
-        }
+        //#pragma hmppcg noparallel
+        //for (i = 0; i < 3; i++) {
+        //    edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
+        //    edgeflux[i] += s_max *s_min *(q_right_rotated[i] -q_left_rotated[i]);
+        //    edgeflux[i] *= inverse_denominator;
+        //}
+        edgeflux[0] = s_max * flux_left[0] - s_min * flux_right[0];
+        edgeflux[0]+=s_max *s_min *(q_right_rotated[0] -q_left_rotated[0]);
+        edgeflux[0] *= inverse_denominator;
+
+        edgeflux[1] = s_max * flux_left[1] - s_min * flux_right[1];
+        edgeflux[1]+=s_max *s_min *(q_right_rotated[1] -q_left_rotated[1]);
+        edgeflux[1] *= inverse_denominator;
+        
+        edgeflux[2] = s_max * flux_left[2] - s_min * flux_right[2];
+        edgeflux[2]+=s_max *s_min *(q_right_rotated[2] -q_left_rotated[2]);
+        edgeflux[2] *= inverse_denominator;
 #else
         *edgeflux0 = s_max * flux_left[0] - s_min * flux_right[0];
         *edgeflux0 += s_max *s_min *(q_right_rotated[0] -q_left_rotated[0]);
@@ -365,21 +380,32 @@ void compute_fluxes_central_structure_CUDA(
         int optimise_dry_cells)
 {
     int k;
-    for(k=0; k<N; k++)
-    {
-        int i, m, n;
-        int ki, nm = 0, ki2;
+    int i, m, n;
+    int ki, nm = 0, ki2;
 
-        double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
-        timestep[k] = evolve_max_timestep;
+    double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
 
 #ifdef USING_ORIGINAL_CUDA
-        double ql[3], qr[3], edgeflux[3];
+    double ql[3], qr[3], edgeflux[3];
 #else
-        double ql0, ql1, ql2,
-               qr0, qr1, qr2,
-               edgeflux0, edgeflux1, edgeflux2;
+    double ql0, ql1, ql2,
+           qr0, qr1, qr2,
+           edgeflux0, edgeflux1, edgeflux2;
 #endif
+
+    #pragma hmppcg gridify(k), private(max_speed, max_speed_total, length,&
+    #pragma hmppcg & inv_area, zl, zr, i, m, n, ki, nm, ki2, ql, qr, &
+    #pragma hmppcg & edgeflux), global(timestep, neighbours, &
+    #pragma hmppcg & neighbour_edges, normals, edgelengths, radii, &
+    #pragma hmppcg & areas, tri_full_flag, stage_edge_values, &
+    #pragma hmppcg & xmom_boundary_values, ymom_boundary_values, &
+    #pragma hmppcg & stage_explicit_update, xmom_explicit_update, &
+    #pragma hmppcg & ymom_explicit_update, max_speed_array, &
+    #pragma hmppcg & evolve_max_timestep, g, epsilon, h0, &
+    #pragma hmppcg & limiting_threshold, optimise_dry_cells)
+    for(k=0; k<N; k++)
+    {
+        timestep[k] = evolve_max_timestep;
 
         // Loop through neighbours and compute edge flux for each
         for (i = 0; i < 3; i++) 
@@ -504,7 +530,7 @@ void compute_fluxes_central_structure_CUDA(
     }
 }
 
-
+ 
 
 #ifdef USING_LOCAL_DIRECTIVES
 #pragma hmpp cf_central_single codelet, target=CUDA args[*].transfer=atcall

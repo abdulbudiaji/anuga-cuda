@@ -404,6 +404,24 @@ def check_all(domain, test_domain):
     check_result(domain.quantities['yvelocity'].boundary_values, 
             test_domain.quantities['yvelocity'].boundary_values)
 
+N = domain.number_of_elements
+
+#for i in range(N):
+#    domain.neighbours[i][0] = 1#i+1
+#    domain.neighbours[i][1] = 1#i+2
+#    domain.neighbours[i][2] = 1#i+3
+#
+#domain.neighbours[N-3][0] = N-1
+#domain.neighbours[N-3][1] = N-2
+#domain.neighbours[N-3][2] = N-3
+#
+#domain.neighbours[N-2][0] = N-1
+#domain.neighbours[N-2][1] = N-2
+#domain.neighbours[N-2][2] = N-3
+#
+#domain.neighbours[N-1][0] = N-1
+#domain.neighbours[N-1][1] = N-2
+#domain.neighbours[N-1][2] = N-3
 
 
 for i in range(10):
@@ -412,8 +430,8 @@ for i in range(10):
 
 
     #hmpp_distribute_to_vertices_and_edges(
-    #hmpp_compute_fluxes(
-    hmpp_extrapolate_second_order_and_limit_by_vertex(
+    hmpp_compute_fluxes(
+    #hmpp_extrapolate_second_order_and_limit_by_vertex(
             domain,
             yieldstep,
             finaltime,
@@ -424,7 +442,7 @@ for i in range(10):
             num.int32( compute_fluxes_method ),
             num.int32( flow_algorithm ),
             num.int32( timestepping_method ),
-            num.int64( 2),
+            #num.int64( 2),
             num.int32( i)
             )
     
@@ -432,32 +450,32 @@ for i in range(10):
     #domain.protect_against_infinitesimal_and_negative_heights()
     #test_domain.distribute_to_vertices_and_edges()
     #test_domain.update_ghosts()
-    #aaaaaaaaaaaaaaaaaatest_domain.distribute_to_vertices_and_edges()
+    #test_domain.distribute_to_vertices_and_edges()
     #test_domain.update_boundary()
     #test_domain.update_extrema()
     #test_domain.extrapolate_second_order_sw()
     
-    hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
-            test_domain,
-            yieldstep,
-            finaltime,
-            0.0,
-            epsilon,
-            False,
-    
-            num.int32( compute_fluxes_method ),
-            num.int32( flow_algorithm ),
-            num.int32( timestepping_method ),
-            num.int64( 2),
-            num.int32( i)
-            )
+    #hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
+    #        test_domain,
+    #        yieldstep,
+    #        finaltime,
+    #        0.0,
+    #        epsilon,
+    #        False,
+    #
+    #        num.int32( compute_fluxes_method ),
+    #        num.int32( flow_algorithm ),
+    #        num.int32( timestepping_method ),
+    #        num.int64( 2),
+    #        num.int32( i)
+    #        )
     #for name in test_domain.conserved_quantities:
     #    Q = test_domain.quantities[name]
     #    #Q.extrapolate_second_order_and_limit_by_vertex()
     #    extrapolate_second_order_and_limit_by_vertex( Q)
     #test_domain.compute_fluxes()
-    #compute_fluxes_ext_central_structure(test_domain)
-    #gravity_wb_c(test_domain)
+    compute_fluxes_ext_central_structure(test_domain)
+    gravity_wb_c(test_domain)
     
     
     
