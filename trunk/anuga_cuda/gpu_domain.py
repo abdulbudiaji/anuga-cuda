@@ -3,8 +3,7 @@
 # System module
 import numpy 
 import sys
-import logging
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+import time
 
 
 
@@ -903,7 +902,7 @@ class GPU_domain(Domain):
 
                 block = (W1, W2, W3),
                 grid = ((N+W1*W2*W3-1)/(W1*W2*W3), 1),
-                #stream = self.stream[balance_stream]
+                stream = self.stream[balance_stream]
                 )
 
         else:
@@ -940,7 +939,7 @@ class GPU_domain(Domain):
                         self.areas_gpu,
                         block = (W1, W2, W3),
                         grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                        #stream = self.stream[ protect_swb2_stream ]
+                        stream = self.stream[ protect_swb2_stream ]
                         )
                     
             else:
@@ -956,7 +955,7 @@ class GPU_domain(Domain):
                         self.quantities['ymomentum'].centroid_values_gpu,
                         block = (W1, W2, W3),
                         grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                        #stream = self.stream[ protect_sw_stream ]
+                        stream = self.stream[ protect_sw_stream ]
                         )
 
 
@@ -991,7 +990,7 @@ class GPU_domain(Domain):
                     self.ymomentum_centroid_store_gpu,
                     block = (W1, W2, W3),
                     grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                    #stream = self.stream[ extra_2_sw_stream]
+                    stream = self.stream[ extra_2_sw_stream]
                     )
                 
                 W1 = self.extrapolate_second_order_sw_true_block
@@ -1023,7 +1022,7 @@ class GPU_domain(Domain):
                     self.quantities['ymomentum'].vertex_values_gpu,
                     block = (W1, W2, W3),
                     grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                    #stream = self.stream[ extra_2_sw_stream]
+                    stream = self.stream[ extra_2_sw_stream]
                     )
 
             else:
@@ -1187,7 +1186,7 @@ class GPU_domain(Domain):
                    self.quantities['ymomentum'].semi_implicit_update_gpu,
                    block = (W1, W2, W3),
                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                   #stream = self.stream[ manning_sloped_stream]
+                   stream = self.stream[ manning_sloped_stream]
                    )
             else:
                 W1 = self.manning_friction_flat_block
@@ -1207,7 +1206,7 @@ class GPU_domain(Domain):
                    
                    block = (W1, W2, W3),
                    grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                   #stream = self.stream[ manning_flat_stream ]
+                   stream = self.stream[ manning_flat_stream ]
                    )
             
         else:
@@ -1371,7 +1370,7 @@ class GPU_domain(Domain):
                     block = (W1, W2, W3),
                     grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
                     # FIXME: use 3 different stream 
-                    #stream = self.stream[ saxpy_stream ]
+                    stream = self.stream[ saxpy_stream ]
                     )
                     
         else:
@@ -1411,7 +1410,7 @@ class GPU_domain(Domain):
                 self.quantities['elevation'].edge_values_gpu,
                 block = (W1, W2, W3),
                 grid=((Nb+W1*W2*W3-1)/(W1*W2*W3),1),
-                #stream = self.stream[ set_boundary_from_edge_stream]
+                stream = self.stream[ set_boundary_from_edge_stream]
                 )
 
 
@@ -1437,7 +1436,7 @@ class GPU_domain(Domain):
                 self.quantities['yvelocity'].boundary_values_gpu,
                 block = (W1, W2, W3),
                 grid=((N+W1*W2*W3-1)/(W1*W2*W3),1),
-                #stream = self.stream[ set_boundary_from_edge_stream]
+                stream = self.stream[ set_boundary_from_edge_stream]
                 )
 
 
@@ -1499,14 +1498,14 @@ class GPU_domain(Domain):
                     self.max_speed_gpu,
                     block = (W1, W2, W3),
                     grid =((N+W1*W2*W3-1)/(W1*W2*W3), 1),
-                    #stream = self.stream[ cf_central_stream ]
+                    stream = self.stream[ cf_central_stream ]
                     )
                     
                 #drv.memcpy_dtoh( self.timestep_array, 
                 #        self.timestep_array_gpu)
                 drv.memcpy_dtoh_async( self.timestep_array, 
                         self.timestep_array_gpu, 
-                        #stream = self.stream[ cf_central_stream]
+                        stream = self.stream[ cf_central_stream]
                         ) 
 
                 W1 = self.gravity_wb_block
@@ -1526,7 +1525,7 @@ class GPU_domain(Domain):
                     self.edgelengths_gpu,
                     block = (W1, W2, W3),
                     grid =((N + W1*W2*W3-1)/(W1*W2*W3),1),
-                    #stream = self.stream[ cf_central_stream ]
+                    stream = self.stream[ cf_central_stream ]
                     )
 
             elif self.compute_fluxes_method == 'wb_3':
@@ -2216,6 +2215,13 @@ class GPU_domain(Domain):
             self.equip_kernel_functions()
                     
             #self.lock_array_page()
+            
+            
+            # Initial start time
+            ini_time = time.time()
+            start = drv.Event()
+            end = drv.Event()
+            start.record()
 
             self.allocate_device_array()
 
@@ -2223,7 +2229,13 @@ class GPU_domain(Domain):
             
             self.asynchronous_transfer()
             ctx.synchronize()
-
+            
+            # Finish data allocating and copying in
+            ini_evo = time.time()
+            end.record()
+            end.synchronize()
+            secs = start.time_till(end)*1e-3
+            print "Data copy in time: %3.7f" % secs
 
         
         elif self.cotesting:
@@ -2251,7 +2263,6 @@ class GPU_domain(Domain):
         kernel functions.
         """
             
-        import time
         st_time = time.time()
 
         #for t in Domain.evolve(self, yieldstep=yieldstep,
@@ -2468,7 +2479,16 @@ class GPU_domain(Domain):
 
 
         ctx.synchronize()
-        print time.time() - st_time
+
+        fin_evo = time.time()
+
+        # FIXME: copy back
+        fin_time = time.time()
+
+        print "\nData copy in time  %lf\n" % (ini_evo - ini_time)
+        print "Evolve time        %lf\n" % (fin_evo - ini_evo)
+        print "Data copy out time %lf\n" % (fin_time - fin_evo)
+        print "Whole time:        %lf\n" % (fin_time - ini_time)
         """ Pop up stack memory
         
         If not using PyCUDA auto_init context, we need to pop up 
@@ -2492,8 +2512,8 @@ def get_sourceModule(k_dir, k_name, rearranged_domain=False):
         defince_macro = ""
     return SourceModule(
             defince_macro + open( k_dir + k_name, "r").read(),
-            arch = 'compute_30',
-            code = 'sm_30',
+            arch = 'compute_20',
+            code = 'sm_20',
             options =['-use_fast_math', '--compiler-options', '-O3'],
             include_dirs=[ k_dir ]
             )
@@ -2920,12 +2940,6 @@ def test_manning_friction_implicit(domain):
                 S.append(0)
 
             
-        logging.debug( "    h is %s", h)
-        logging.debug( "    S is %s", S)
-        logging.debug( "  manning xmom_semi %s", xm1.semi_implicit_update)
-        logging.debug( "    correct %s", xm2.semi_implicit_update)
-        logging.debug( "  manning ymom_semi %s", ym1.semi_implicit_update)
-        logging.debug( "    correct %s", ym2.semi_implicit_update)
         if domain.use_sloped_mannings:
             raise Exception( " --> manning friction sloped ", res)
         else:
@@ -3199,8 +3213,6 @@ def test_compute_forcing_terms(domain):
     res.append( cpy_back_and_cmp( f1, f2, 'centroid_values', gpu))
 
     if res.count(True) != res.__len__():
-        logging.debug(" compute_forcing_terms %s" % xm1.semi_implicit_update)
-        logging.debug("    correct %s" % xm2.semi_implicit_update)
         raise Exception( " --> compute_forcing_terms ", res)
 
 
@@ -3387,10 +3399,6 @@ def test_balance_deep_and_shallow(domain):
 
 
     if res.count(True) != res.__len__():
-        logging.debug(" vertex_values_stage %s" % s1.vertex_values)
-        logging.debug("  stage_vertex correct %s" % s2.vertex_values)
-        logging.debug(" vertex_values_xm %s" % xm1.vertex_values)
-        logging.debug("  xm_vertex correct %s" % xm2.vertex_values)
         raise Exception( " --> balance_deep_and_shallow ", res)
         
 

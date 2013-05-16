@@ -1878,6 +1878,17 @@ if __name__ == '__main__':
 
 
     print " Number of elements is: %d" % domain1.number_of_elements
+
+    #N = domain2.number_of_elements
+    #for i in range(N):
+    #    domain2.neighbours[i][0]=i+1
+    #    domain2.neighbours[i][1]=i+2
+    #    domain2.neighbours[i][2]=i+3
+
+    #domain2.neighbours[N-1][0]=i-1
+    #domain2.neighbours[N-1][1]=i-2
+    #domain2.neighbours[N-1][2]=i-3
+
     """
     CUDA Function
     """
@@ -1886,8 +1897,8 @@ if __name__ == '__main__':
         from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
                 host_macro+ open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
-                arch = 'compute_30',
-                code = 'sm_30'
+                arch = 'compute_20',
+                code = 'sm_20'
                 #options = ['-use_fast_math', '--prec-div=false', '--compiler-options', '-O2']
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
