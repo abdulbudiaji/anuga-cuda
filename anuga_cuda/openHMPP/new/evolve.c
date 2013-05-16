@@ -1473,11 +1473,15 @@ double evolve( struct domain * D,
             )
 {
     double initial_time;
-    clock_t ini_time, fin_time;
+    static clock_t ini_time, ini_evo, fin_evo, fin_time;
 
+    if ( !step )
+    {
+        printf("\nStart evolve!\n");
+        // Start timing 
+        ini_time = clock() / (CLOCKS_PER_SEC / 1000);
+    }
 
-    // Start timing 
-    ini_time = clock() / (CLOCKS_PER_SEC / 1000);
 
 
 #ifdef USING_MIRROR_DATA
@@ -1701,9 +1705,9 @@ double evolve( struct domain * D,
 #pragma hmpp & xvelocity_x_gradient, xvelocity_y_gradient, &
 #pragma hmpp & yvelocity_x_gradient, yvelocity_y_gradient, &
 #pragma hmpp & neighbours, neighbour_edges, surrogate_neighbours, &
-#pragma hmpp & tri_full_flag, number_of_boundaries, boundary_cells, boundary_edges]
+#pragma hmpp & tri_full_flag, number_of_boundaries, &
+#pragma hmpp & boundary_cells, boundary_edges],asynchronous
 #endif 
-
 
 
 
@@ -1714,6 +1718,7 @@ double evolve( struct domain * D,
     int round = 10;
 #endif
 
+    ini_evo = clock() / (CLOCKS_PER_SEC / 1000);
 
 
     DEBUG_ASSERT( D->beta_w >= 0 && D->beta_w <= 2.0 );
@@ -1853,7 +1858,8 @@ double evolve( struct domain * D,
             D->time = D->finaltime;
             log_operator_timestepping_statistics(D);
                 
-
+            // End of evolve
+            fin_evo = clock() / (CLOCKS_PER_SEC / 1000);
         //
         // Update the host variable with the contents of the mirrored 
         // accelerator memory space 
@@ -1889,12 +1895,20 @@ double evolve( struct domain * D,
 #pragma hmpp & tri_full_flag, number_of_boundaries, boundary_cells, boundary_edges]
 #endif           
 
-            // Calculate executing time 
+            // End of all process
             fin_time = clock() / (CLOCKS_PER_SEC / 1000);
+            // Calculate executing time 
 
-            printf("\n :) Finish with %d steps, time: %ld (millisecnods)\n\n",
-                    D->number_of_steps,
-                    fin_time- ini_time);
+            printf("\n:) Finish with %dsteps\n", D->number_of_steps);
+            printf("Time :\n");
+            printf("     Data copy in time:  %ld(millisecnods)\n",
+                    ini_evo - ini_time);
+            printf("     Evolve time:        %ld(millisecnods)\n",
+                    fin_evo - ini_evo);
+            printf("     Data copy out time: %ld(millisecnods)\n",
+                    fin_time - fin_evo);
+            printf("     Whole time:         %ld(millisecnods)\n",
+                    fin_time - ini_time);
             // Exit the whole program
             return D->time;
         }
@@ -1903,7 +1917,9 @@ double evolve( struct domain * D,
         {
             log_operator_timestepping_statistics(D);
             // FIXME: yield(self.get_time())
+            
 #ifndef EVOLVE_ALL_IN_C
+            printf("\n:) Current with %dsteps\n", D->number_of_steps);
             return D->time;
 #else
             //printf(" C: Current t ime %lf\n", D->time);

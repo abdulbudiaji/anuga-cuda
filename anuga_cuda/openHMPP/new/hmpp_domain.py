@@ -110,7 +110,7 @@ class HMPP_domain(Domain):
             timestepping_method = 3
         else:
             timestepping_method = 4
-        print " The timestepping_method is '%s' %d" % (self.timestepping_method, timestepping_method)
+        #print " The timestepping_method is '%s' %d" % (self.timestepping_method, timestepping_method)
 
 
         if self.flow_algorithm == 'tsunami':
@@ -119,7 +119,7 @@ class HMPP_domain(Domain):
             flow_algorithm = 2
         else:
             flow_algorithm = 3
-        print " The flow_algorithm us '%s' %d" % (self.flow_algorithm, flow_algorithm)
+        #print " The flow_algorithm us '%s' %d" % (self.flow_algorithm, flow_algorithm)
        
 
         if self.compute_fluxes_method == 'original':
@@ -134,7 +134,7 @@ class HMPP_domain(Domain):
             compute_fluxes_method = 4
         else:
             compute_fluxes_method = 5
-        print " The compute_fluxes_method is '%s' %d" % (self.compute_fluxes_method, compute_fluxes_method)
+        #print " The compute_fluxes_method is '%s' %d" % (self.compute_fluxes_method, compute_fluxes_method)
 
     
         boundary_cnt = 2
