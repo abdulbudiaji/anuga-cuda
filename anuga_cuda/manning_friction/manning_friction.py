@@ -7,8 +7,8 @@ from anuga_cuda import *
 
 
 using_tsunami_domain = False
-testing_sloped = False
-using_rearranged_domain = True
+testing_sloped = True
+using_rearranged_domain = False
 
 if using_tsunami_domain:
     domain1 = generate_cairns_domain(False)

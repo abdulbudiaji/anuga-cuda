@@ -71,7 +71,7 @@ class GPU_domain(Domain):
             ghost_layer_width=2,
             using_gpu=False,
             cotesting=False,
-            stream= True,
+            stream= False,
             rearranged=False,
             domain=None): 
 
@@ -971,6 +971,9 @@ class GPU_domain(Domain):
     # 4th level cotesting
     # Using Stream
     def extrapolate_second_order_sw(self):
+        if self.cotesting:
+            test_extrapolate_second_order_sw(self)
+            
         if  self.using_gpu:
             N = self.number_of_elements
             W2 = 1
@@ -1839,6 +1842,9 @@ class GPU_domain(Domain):
 
     # 2nd level cotesting
     def update_boundary(self):
+        if self.cotesting:
+            test_update_boundary(self)
+
         if self.using_gpu:
             W2 = 1
             W3 = 1
@@ -2554,19 +2560,25 @@ def asy_cpy(a, a_gpu):
 def cpy_back(a, a_gpu):
     drv.memcpy_dtoh(a, a_gpu)
 
-def cpy_back_and_cmp(a, b, value_type, gpu = True):
+def cpy_back_and_cmp(a, b, value_type, gpu = True, rg = False):
     if gpu:
         if value_type is "centroid_values":
             cpy_back(a.centroid_values, a.centroid_values_gpu)
             return numpy.allclose(a.centroid_values, b.centroid_values)
         elif value_type is "vertex_values":
             cpy_back(a.vertex_values, a.vertex_values_gpu)
+            if rg:
+                return check_rearranged_array(
+                        b.vertex_values, a.vertex_values, 3)
             return numpy.allclose(a.vertex_values, b.vertex_values)
         elif value_type is "boundary_values":
             cpy_back(a.boundary_values, a.boundary_values_gpu)
             return numpy.allclose(a.boundary_values, b.boundary_values)
         elif value_type is "edge_values":
             cpy_back(a.edge_values, a.edge_values_gpu)
+            if rg:
+                return check_rearranged_array(
+                        b.edge_values, a.edge_values, 3)
             return numpy.allclose(a.edge_values, b.edge_values)
         elif value_type is "x_gradient_values":
             cpy_back(a.x_gradient, a.x_gradient_gpu)
@@ -2579,22 +2591,42 @@ def cpy_back_and_cmp(a, b, value_type, gpu = True):
             return numpy.allclose(a.explicit_update, b.explicit_update)
         elif value_type is "semi_implicit_update":
             cpy_back(a.semi_implicit_update, a.semi_implicit_update_gpu)
-            return numpy.allclose(a.semi_implicit_update,b.semi_implicit_update)
+            return numpy.allclose(a.semi_implicit_update,
+                b.semi_implicit_update)
         elif value_type is "areas":
             cpy_back(a.areas, a.areas_gpu)
             return numpy.allclose(a.areas, b.areas)
         elif value_type is "surrogate_neighbours":
             cpy_back(a.surrogate_neighbours, a.surrogate_neighbours_gpu)
+            if rg:
+                return check_rearranged_array(
+                        b.surrogate_neighbours, a.surrogate_neighbours, 3)
             return numpy.allclose(a.surrogate_neighbours, b.surrogate_neighbours)
         elif value_type is "number_of_boundaries":
             cpy_back(a.number_of_boundaries, a.number_of_boundaries_gpu)
-            return numpy.allclose(a.number_of_boundaries, b.number_of_boundaries)
+            return numpy.allclose(a.number_of_boundaries, 
+                    b.number_of_boundaries)
         elif value_type is "centroid_coordinates":
             cpy_back(a.centroid_coordinates, a.centroid_coordinates_gpu)
-            return numpy.allclose(a.centroid_coordinates, b.centroid_coordinates)
+            if rg:
+                return check_rearranged_array(
+                        b.centroid_coordinates, a.centroid_coordinates, 2)
+            return numpy.allclose(a.centroid_coordinates, 
+                    b.centroid_coordinates)
         elif value_type is "vertex_coordinates":
             cpy_back(a.vertex_coordinates, a.vertex_coordinates_gpu)
-            return numpy.allclose(a.vertex_coordinates, b.vertex_coordinates)
+            if rg:
+                return check_rearranged_array(
+                        b.vertex_coordinates, a.vertex_coordinates, 32)
+            return numpy.allclose(a.vertex_coordinates, 
+                    b.vertex_coordinates)
+        elif value_type is "edge_coordinates":
+            cpy_back(a.edge_coordinates, a.edge_coordinates_gpu)
+            if rg:
+                return check_rearranged_array(
+                        b.edge_coordinates, a.edge_coordinates, 32)
+            return numpy.allclose(a.edge_coordinates, 
+                    b.edge_coordinates)
         else:
             raise Exception('Unknown value_type %s' % value_type)
     else:
@@ -2647,7 +2679,9 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
+
     s1 = domain.quantities['stage']
     xm1 = domain.quantities['xmomentum']
     ym1 = domain.quantities['ymomentum']
@@ -2668,44 +2702,36 @@ def test_distribute_to_vertexs_and_edges(domain, IO = 'Output'):
     
 
     res = []
-    if IO == 'Input':
-        ipt = []
-        ipt.append( cpy_back_and_cmp( 
-                    domain, domain.cotesting_domain, 'vertex_coordinates' , gpu))
-        ipt.append( cpy_back_and_cmp( e1, e2, 'edge_values' , gpu))
-
-        if ipt.count(True) != ipt.__len__():
-            print " -> distribute_to_vertices_and_edges ",ipt
-        
 
 
     res.append( numpy.allclose( domain.flux_timestep,
         domain.cotesting_domain.flux_timestep))
-    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp(h1, h2,'vertex_values', gpu) )
-    res.append( cpy_back_and_cmp(xv1, xv2,'vertex_values', gpu) )
-    res.append( cpy_back_and_cmp(yv1, yv2,'vertex_values', gpu) )
-    if res.count(True) != res.__len__():
+    res.append( cpy_back_and_cmp(h1, h2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xv1, xv2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp(yv1, yv2,'vertex_values', gpu, rg))
+
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> distribute_to_vertices_and_edges ", res)
 
 
@@ -2715,6 +2741,7 @@ def test_evolve_one_euler_step(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
 
     s1 = domain.quantities['stage']
     xm1 = domain.quantities['xmomentum']
@@ -2746,22 +2773,22 @@ def test_evolve_one_euler_step(domain):
     res.append( numpy.allclose( domain.smallsteps, 
         domain.cotesting_domain.smallsteps ))
 
-    res.append( cpy_back_and_cmp( s1, s2, 'explicit_update' , gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'semi_implicit_update' , gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values' , gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'explicit_update' , gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'semi_implicit_update', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values' , gpu, rg))
 
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'explicit_update', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'explicit_update', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu,rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
     
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'explicit_update', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'explicit_update', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu,rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
     
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> evolve_one_euler_step ", res)
     
     
@@ -2771,6 +2798,7 @@ def test_update_ghosts(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
 
     sc = domain.cotesting_domain
 
@@ -2785,15 +2813,15 @@ def test_update_ghosts(domain):
     e2 = domain.cotesting_domain.quantities['elevation']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values' , gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values' , gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
 
     # This for update_timestep check point
-    res.append( cpy_back_and_cmp( e1, e2, 'edge_values' , gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'edge_values' , gpu, rg))
 
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         print " --> update_ghosts ",res
 
 
@@ -2803,10 +2831,11 @@ def test_update_extrema(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
     res = []
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> update_extrema ", res)
     
 
@@ -2816,6 +2845,7 @@ def test_update_timestep(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
     res = []
@@ -2836,7 +2866,7 @@ def test_update_timestep(domain):
     res.append( numpy.allclose(domain.flux_timestep , sc.flux_timestep ))
 
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> update_timestep ",res)
 
 
@@ -2846,21 +2876,23 @@ def test_update_conserved_quantities(domain, output =True):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
+
     for name in domain.conserved_quantities:
         Q1 = domain.quantities[name]
     
         Q2 = domain.cotesting_domain.quantities[name]
     
         res = []
-        res.append( cpy_back_and_cmp( Q1, Q2, "centroid_values", gpu))
+        res.append( cpy_back_and_cmp( Q1, Q2, "centroid_values", gpu, rg))
         if output:
             res.append( cpy_back_and_cmp( 
-                Q1, Q2, "semi_implicit_update", gpu))
-        res.append( cpy_back_and_cmp( Q1, Q2, "explicit_update", gpu))
+                Q1, Q2, "semi_implicit_update", gpu, rg))
+        res.append( cpy_back_and_cmp( Q1, Q2, "explicit_update", gpu, rg))
         res.append( numpy.allclose(
                 domain.timestep, domain.cotesting_domain.timestep))
         
-        if res.count(True) != res.__len__():
+        if res.count(True) + res.count(0) != res.__len__():
             if not res[0]:
                 cnt = 0
                 for i in range(Q1.centroid_values.shape[0]):
@@ -2885,6 +2917,7 @@ def test_manning_friction_implicit(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -2901,19 +2934,19 @@ def test_manning_friction_implicit(domain):
     f2 = sc.quantities['friction']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu,rg))
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu,rg))
 
-    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( f1, f2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( f1, f2, 'centroid_values', gpu, rg))
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         import math
         h = []
         S = []
@@ -2952,6 +2985,7 @@ def test_update_boundary(domain, inputOnly=False):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
     s1 = domain.quantities['stage']
@@ -2986,21 +3020,21 @@ def test_update_boundary(domain, inputOnly=False):
             ipt = []
             res = []
 
-            ipt.append( cpy_back_and_cmp(s1, s2,'edge_values', gpu) )
-            ipt.append( cpy_back_and_cmp(e1, e2,'edge_values', gpu) )
-            ipt.append( cpy_back_and_cmp(h1, h2,'edge_values', gpu) )
-            ipt.append( cpy_back_and_cmp(xm1, xm2,'edge_values', gpu) )
-            ipt.append( cpy_back_and_cmp(ym1, ym2,'edge_values', gpu) )
-            ipt.append( cpy_back_and_cmp(xv1, xv2,'edge_values', gpu) )
-            ipt.append( cpy_back_and_cmp(yv1, yv2,'edge_values', gpu) )
+            ipt.append( cpy_back_and_cmp(s1, s2,'edge_values', gpu, rg))
+            ipt.append( cpy_back_and_cmp(e1, e2,'edge_values', gpu, rg))
+            ipt.append( cpy_back_and_cmp(h1, h2,'edge_values', gpu, rg))
+            ipt.append( cpy_back_and_cmp(xm1, xm2,'edge_values', gpu, rg))
+            ipt.append( cpy_back_and_cmp(ym1, ym2,'edge_values', gpu, rg))
+            ipt.append( cpy_back_and_cmp(xv1, xv2,'edge_values', gpu, rg))
+            ipt.append( cpy_back_and_cmp(yv1, yv2,'edge_values', gpu, rg))
 
-            res.append( cpy_back_and_cmp(s1, s2,'boundary_values', gpu) )
-            res.append( cpy_back_and_cmp(e1, e2,'boundary_values', gpu) )
-            res.append( cpy_back_and_cmp(h1, h2,'boundary_values', gpu) )
-            res.append( cpy_back_and_cmp(xm1, xm2,'boundary_values', gpu) )
-            res.append( cpy_back_and_cmp(ym1, ym2,'boundary_values', gpu) )
-            res.append( cpy_back_and_cmp(xv1, xv2,'boundary_values', gpu) )
-            res.append( cpy_back_and_cmp(yv1, yv2,'boundary_values', gpu) )
+            res.append( cpy_back_and_cmp(s1, s2,'boundary_values', gpu,rg))
+            res.append( cpy_back_and_cmp(e1, e2,'boundary_values', gpu,rg))
+            res.append( cpy_back_and_cmp(h1, h2,'boundary_values', gpu,rg))
+            res.append( cpy_back_and_cmp(xm1,xm2,'boundary_values',gpu,rg))
+            res.append( cpy_back_and_cmp(ym1,ym2,'boundary_values',gpu,rg))
+            res.append( cpy_back_and_cmp(xv1,xv2,'boundary_values',gpu,rg))
+            res.append( cpy_back_and_cmp(yv1,yv2,'boundary_values',gpu,rg))
 
             #print " boundary_values from refl %s" % s1.boundary_values
             #print "     -> %s " % s2.boundary_values
@@ -3014,7 +3048,7 @@ def test_update_boundary(domain, inputOnly=False):
             #cpy_back(b, domain.boundary_index[tag][2] )
             #print "   edgd %s" % b, sc.boundary_edges[ids1]
             #print "   P %s" % (sc.boundary_cells[ids1] *3 + sc.boundary_edges[ids1])
-            if ipt.count( True) != ipt.__len__():
+            if ipt.count(True) + ipt.count(0) != ipt.__len__():
                print "\n  Input values check ", ipt
                if not res[0]:
                    print "se", s1.edge_values, s2.edge_values
@@ -3078,6 +3112,7 @@ def test_update_other_quantities(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
     h1 = domain.quantities['height']
@@ -3090,19 +3125,19 @@ def test_update_other_quantities(domain):
     
     res = []
 
-    res.append( cpy_back_and_cmp(h1, h2,'edge_values', gpu) )
-    res.append( cpy_back_and_cmp(xv1, xv2,'edge_values', gpu) )
-    res.append( cpy_back_and_cmp(yv1, yv2,'edge_values', gpu) )
+    res.append( cpy_back_and_cmp(h1, h2,'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xv1, xv2,'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp(yv1, yv2,'edge_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp(h1, h2,'vertex_values', gpu) )
-    res.append( cpy_back_and_cmp(xv1, xv2,'vertex_values', gpu) )
-    res.append( cpy_back_and_cmp(yv1, yv2,'vertex_values', gpu) )
+    res.append( cpy_back_and_cmp(h1, h2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xv1, xv2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp(yv1, yv2,'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp(h1, h2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(xv1, xv2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(yv1, yv2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(h1, h2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xv1, xv2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(yv1, yv2,'centroid_values', gpu, rg))
 
-    if res.count( True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
        raise Exception("Error in update_other_quantities", res)
 
 
@@ -3111,6 +3146,7 @@ def test_compute_fluxes(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
     s1 = domain.quantities['stage']
@@ -3136,22 +3172,22 @@ def test_compute_fluxes(domain):
     res.append( numpy.allclose(domain.flux_timestep, sc.flux_timestep))
 
 
-    res.append( cpy_back_and_cmp( s1, s2, 'explicit_update' , gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'edge_values' , gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'boundary_values' , gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'explicit_update' , gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values' , gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'boundary_values' , gpu, rg))
 
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'explicit_update', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'boundary_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'explicit_update', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'boundary_values', gpu, rg))
     
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'explicit_update', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'boundary_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'explicit_update', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'boundary_values', gpu, rg))
     
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         if not res[0]:
             print "   flux_timestep %.9lf %.9lf" % (
                     domain.flux_timestep, sc.flux_timestep)
@@ -3183,6 +3219,7 @@ def test_compute_forcing_terms(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -3199,20 +3236,20 @@ def test_compute_forcing_terms(domain):
     f2 = sc.quantities['friction']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'semi_implicit_update', gpu,rg))
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'semi_implicit_update', gpu,rg))
 
-    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( f1, f2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( f1, f2, 'centroid_values', gpu, rg))
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> compute_forcing_terms ", res)
 
 
@@ -3221,6 +3258,7 @@ def test_protect_against_infinitesimal_and_negative_heights(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -3235,16 +3273,16 @@ def test_protect_against_infinitesimal_and_negative_heights(domain):
     e2 = sc.quantities['elevation']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu, rg))
 
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> protect_against_infinitesimal_and_negative_heights ",res)
 
 
@@ -3253,6 +3291,7 @@ def test_extrapolate_second_order_sw(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -3267,17 +3306,17 @@ def test_extrapolate_second_order_sw(domain):
     e2 = sc.quantities['elevation']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu, rg))
 
     res.append( domain.epsilon == sc.epsilon)
     res.append( domain.minimum_allowed_height == sc.minimum_allowed_height)
@@ -3289,30 +3328,13 @@ def test_extrapolate_second_order_sw(domain):
     res.append( domain.beta_vh_dry == sc.beta_vh_dry)
     res.append( domain.optimise_dry_cells == sc.optimise_dry_cells)
 
-    res.append( cpy_back_and_cmp( domain, sc, "surrogate_neighbours", gpu))
-    res.append( cpy_back_and_cmp( domain, sc, "number_of_boundaries", gpu))
-    res.append( cpy_back_and_cmp( domain, sc, "centroid_coordinates", gpu))
-    res.append( cpy_back_and_cmp( domain, sc, "vertex_coordinates", gpu))
+    res.append( cpy_back_and_cmp( domain,sc,"surrogate_neighbours",gpu,rg))
+    res.append( cpy_back_and_cmp( domain,sc,"number_of_boundaries",gpu,rg))
+    res.append( cpy_back_and_cmp( domain,sc,"centroid_coordinates",gpu,rg))
+    res.append( cpy_back_and_cmp( domain,sc,"vertex_coordinates",gpu,rg))
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         print res
-        cnt = 0
-        print "\n  stage vertex_values"
-        print s1.vertex_values
-        print s2.vertex_values
-        print "\n  xmom vertex_values"
-        print xm1.vertex_values
-        print xm2.vertex_values
-        print "\n  ymom vertex_values"
-        print ym1.vertex_values
-        print ym2.vertex_values
-
-        for i in range(domain.number_of_elements):
-            if (xm1.vertex_values[i] != xm2.vertex_values[i]).any():
-                if cnt< 10:
-                    print i, xm1.vertex_values[i], xm2.vertex_values[i]
-                cnt += 1
-        print cnt
 
         #from anuga_cuda.extrapolate.extrapolate_second_order_sw import \
         #    extrapolate_second_order_sw_python as extra 
@@ -3371,6 +3393,7 @@ def test_balance_deep_and_shallow(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -3385,20 +3408,20 @@ def test_balance_deep_and_shallow(domain):
     e2 = sc.quantities['elevation']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu))
+    res.append( cpy_back_and_cmp( e1, e2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( e1, e2, 'vertex_values', gpu, rg))
 
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> balance_deep_and_shallow ", res)
         
 
@@ -3407,6 +3430,7 @@ def test_interpolate_from_vertices_to_edges(domain):
     ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -3419,17 +3443,17 @@ def test_interpolate_from_vertices_to_edges(domain):
     ym2 = sc.quantities['ymomentum']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu))
+    res.append( cpy_back_and_cmp( xm1, xm2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu))
+    res.append( cpy_back_and_cmp( ym1, ym2,'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu, rg))
 
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         for i in range(domain.number_of_elements):
             if not numpy.allclose(s1.edge_values[i], s2.edge_values[i]):
                 print i, s1.edge_values[i], s2.edge_values[i]
@@ -3441,6 +3465,7 @@ def test_extrapolate_second_order_and_limit_by_vertex(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -3453,28 +3478,28 @@ def test_extrapolate_second_order_and_limit_by_vertex(domain):
     ym2 = sc.quantities['ymomentum']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'x_gradient', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'y_gradient', gpu, rg))
 
 
-    res.append( cpy_back_and_cmp( x1, x2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( x1, x2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( x1, x2, 'edge_values', gpu))
-    res.append( cpy_back_and_cmp( x1, x2, 'x_gradient', gpu))
-    res.append( cpy_back_and_cmp( x1, x2, 'y_gradient', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( x1, x2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( x1, x2, 'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( x1, x2, 'x_gradient', gpu, rg))
+    res.append( cpy_back_and_cmp( x1, x2, 'y_gradient', gpu, rg))
 
 
-    res.append( cpy_back_and_cmp( y1, y2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( y1, y2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( y1, y2, 'edge_values', gpu))
-    res.append( cpy_back_and_cmp( y1, y2, 'x_gradient', gpu))
-    res.append( cpy_back_and_cmp( y1, y2, 'y_gradient', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( y1, y2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( y1, y2, 'edge_values', gpu, rg))
+    res.append( cpy_back_and_cmp( y1, y2, 'x_gradient', gpu, rg))
+    res.append( cpy_back_and_cmp( y1, y2, 'y_gradient', gpu, rg))
 
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> extrapolate_second_order_and_limit_by_vertex ", res)
 
     
@@ -3483,6 +3508,7 @@ def test_extrapolate_first_order(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
 
@@ -3495,21 +3521,21 @@ def test_extrapolate_first_order(domain):
     ym2 = sc.quantities['ymomentum']
 
     res = []
-    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( s1, s2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( s1, s2, 'edge_values', gpu, rg))
 
 
-    res.append( cpy_back_and_cmp( x1, x2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( x1, x2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( x1, x2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( x1, x2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( x1, x2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( x1, x2, 'edge_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp( y1, y2, 'centroid_values', gpu))
-    res.append( cpy_back_and_cmp( y1, y2, 'vertex_values', gpu))
-    res.append( cpy_back_and_cmp( y1, y2, 'edge_values', gpu))
+    res.append( cpy_back_and_cmp( y1, y2, 'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp( y1, y2, 'vertex_values', gpu, rg))
+    res.append( cpy_back_and_cmp( y1, y2, 'edge_values', gpu, rg))
 
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         raise Exception( " --> extrapolate_first_order ", res)
 
 
@@ -3518,6 +3544,7 @@ def test_update_centroids_of_velocities_and_height(domain):
     #ctx.synchronize()
 
     gpu = domain.using_gpu
+    rg = domain.rearranged_domain
     sc = domain.cotesting_domain
 
     s1 = domain.quantities['stage']
@@ -3539,23 +3566,23 @@ def test_update_centroids_of_velocities_and_height(domain):
             
     res = []
 
-    res.append( cpy_back_and_cmp(s1, s2,'boundary_values', gpu) )
-    res.append( cpy_back_and_cmp(e1, e2,'boundary_values', gpu) )
-    res.append( cpy_back_and_cmp(h1, h2,'boundary_values', gpu) )
-    res.append( cpy_back_and_cmp(xm1, xm2,'boundary_values', gpu) )
-    res.append( cpy_back_and_cmp(ym1, ym2,'boundary_values', gpu) )
-    res.append( cpy_back_and_cmp(xv1, xv2,'boundary_values', gpu) )
-    res.append( cpy_back_and_cmp(yv1, yv2,'boundary_values', gpu) )
+    res.append( cpy_back_and_cmp(s1, s2,'boundary_values', gpu, rg))
+    res.append( cpy_back_and_cmp(e1, e2,'boundary_values', gpu, rg))
+    res.append( cpy_back_and_cmp(h1, h2,'boundary_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xm1, xm2,'boundary_values', gpu, rg))
+    res.append( cpy_back_and_cmp(ym1, ym2,'boundary_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xv1, xv2,'boundary_values', gpu, rg))
+    res.append( cpy_back_and_cmp(yv1, yv2,'boundary_values', gpu, rg))
 
-    res.append( cpy_back_and_cmp(s1, s2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(e1, e2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(h1, h2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(xm1, xm2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(ym1, ym2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(xv1, xv2,'centroid_values', gpu) )
-    res.append( cpy_back_and_cmp(yv1, yv2,'centroid_values', gpu) )
+    res.append( cpy_back_and_cmp(s1, s2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(e1, e2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(h1, h2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xm1, xm2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(ym1, ym2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(xv1, xv2,'centroid_values', gpu, rg))
+    res.append( cpy_back_and_cmp(yv1, yv2,'centroid_values', gpu, rg))
 
-    if res.count(True) != res.__len__():
+    if res.count(True) + res.count(0) != res.__len__():
         if not res[12]:
             for i in range(domain.number_of_elements):
                 if not numpy.allclose(

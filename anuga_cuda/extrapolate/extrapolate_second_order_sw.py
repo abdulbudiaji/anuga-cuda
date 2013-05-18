@@ -1533,6 +1533,26 @@ if __name__ == '__main__':
 
         get_kernel_function_info(
             domain2.extrapolate_second_order_sw_true_func, W1,W2, W3)
+        
+        xmom_centroid_store = numpy.zeros_like(
+                domain2.quantities['xmomentum'].centroid_values)
+        ymom_centroid_store = numpy.zeros_like(
+                domain2.quantities['xmomentum'].centroid_values)
+
+        domain2.extrapolate_velocity_second_order_true_func(
+                numpy.int32(N),
+                numpy.float64( domain2.minimum_allowed_height),
+
+                drv.In( domain2.quantities['stage'].centroid_values ),
+                drv.In( domain2.quantities['elevation'].centroid_values ),
+                drv.In( domain2.quantities['xmomentum'].centroid_values ),
+                drv.InOut( xmom_centroid_store ),
+                drv.In( domain2.quantities['ymomentum'].centroid_values ),
+                drv.InOut( ymom_centroid_store ),
+                block = (W1, W2, W3),
+                grid=((N+W1*W2*W3-1)/(W1*W2*W3),1)
+                )
+
 
         domain2.extrapolate_second_order_sw_true_func(
             numpy.int32( N ),
@@ -1551,18 +1571,23 @@ if __name__ == '__main__':
     		drv.In( domain2.centroid_coordinates ), 
     		drv.In( domain2.quantities['stage'].centroid_values ), 
     		drv.In( domain2.quantities['elevation'].centroid_values ), 
-    		drv.In( domain2.quantities['xmomentum'].centroid_values ), 
-    		drv.In( domain2.quantities['ymomentum'].centroid_values ), 
+    		#drv.In( domain2.quantities['xmomentum'].centroid_values ), 
+    		#drv.In( domain2.quantities['ymomentum'].centroid_values ), 
+    		drv.In( xmom_centroid_store ), 
+    		drv.In( ymom_centroid_store ), 
     		drv.InOut( domain2.vertex_coordinates ), 
     		drv.InOut( domain2.quantities['stage'].vertex_values ), 
+    		drv.InOut( domain2.quantities['elevation'].vertex_values ), 
     		drv.InOut( domain2.quantities['xmomentum'].vertex_values ),
     		drv.InOut( domain2.quantities['ymomentum'].vertex_values ), 
-    		drv.InOut( domain2.quantities['elevation'].vertex_values ), 
             #drv.In( stage_centroid_store ),
             #drv.In( xmom_centroid_store ),
             #drv.In( ymom_centroid_store ),
             block = ( W1, 1, 1),
             grid = ( (N + W1 -1 ) / W1, 1) )
+
+
+
         #extrapolate_second_order_sw_cuda_TRUE_second_order(domain2)
     else:
         print "-----extrapolate velocity second order !! 1-------"
@@ -1602,12 +1627,18 @@ if __name__ == '__main__':
     svv1 = stage_h1.vertex_values
     svv2 = stage_h2.vertex_values
 
+    from anuga_cuda import check_rearranged_array 
     res = []
-    res.append( numpy.allclose(svv1, svv2))
+    #res.append( numpy.allclose(svv1, svv2))
+    res.append( check_rearranged_array(svv1, svv2, 3))
     res.append(numpy.allclose(xmom_h1.centroid_values,xmom_h2.centroid_values))
-    res.append(numpy.allclose(xmom_h1.vertex_values, xmom_h2.vertex_values))
+    #res.append(numpy.allclose(xmom_h1.vertex_values, xmom_h2.vertex_values))
+    res.append( check_rearranged_array(
+            xmom_h1.vertex_values, xmom_h2.vertex_values, 3))
     res.append(numpy.allclose(ymom_h1.centroid_values, ymom_h2.centroid_values))
-    res.append(numpy.allclose(ymom_h1.vertex_values, ymom_h2.vertex_values))
+    #res.append(numpy.allclose(ymom_h1.vertex_values, ymom_h2.vertex_values))
+    res.append( check_rearranged_array(
+            ymom_h1.vertex_values, ymom_h2.vertex_values, 3))
     print res
     if not res.count(True) == res.__len__():
         for i in range(domain1.number_of_elements):

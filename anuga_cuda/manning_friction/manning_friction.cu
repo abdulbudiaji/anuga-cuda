@@ -52,11 +52,6 @@ __global__ void _manning_friction_flat(
         }
     }
     
-    // For testing
-    //xmom[k] = h;
-    //ymom[k] = S;
-
-    //}
 }
 
 __global__ void _manning_friction_sloped(
