@@ -101,7 +101,7 @@ elif WorkingStation == "GTX480":
 
         "set_boundary_values_from_edges_fun" :512,
 
-        "update_centroids_fun" : 512,
+        "update_centroids_fun" : 768,
         "update_fun" : 512,
         }
 else:

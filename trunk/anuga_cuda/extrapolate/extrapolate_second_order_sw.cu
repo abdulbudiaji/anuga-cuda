@@ -172,7 +172,7 @@ __global__ void extrapolate_second_order_sw_true (
     double dqv[3], qmin, qmax, hmin, hmax;
     double hc, h0, h1, h2, beta_tmp, hfactor;
 
-    double dk, dv0, dv1, dv2;
+    double dv0, dv1, dv2;
 
 
     // extrapolate_velocity_second_order == 1 
@@ -397,9 +397,9 @@ __global__ void extrapolate_second_order_sw_true (
 
             //for (i=0;i<3;i++)
 #ifndef REARRANGED_DOMAIN
-            stage_vertex_values[k3 + 0] = stage_centroid_values[k] + dqv[0];
-            stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
-            stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+            stage_vertex_values[k3 + 0] = stage_centroid_values[k] +dqv[0];
+            stage_vertex_values[k3 + 1] = stage_centroid_values[k] +dqv[1];
+            stage_vertex_values[k3 + 2] = stage_centroid_values[k] +dqv[2];
 #else
             stage_vertex_values[k] = stage_centroid_values[k] + dqv[0];
             stage_vertex_values[k + N] = stage_centroid_values[k] + dqv[1];
@@ -519,7 +519,7 @@ __global__ void extrapolate_second_order_sw_true (
 #ifndef REARRANGED_DOMAIN
             for (k2 = k3; k2 < k3 + 3; k2++) {
 #else
-            for (k2 = k; k2 < N; k2+=N) {
+            for (k2 = k; k2 <= k+2*N; k2+=N) {
 #endif
                 // Find internal neighbour of triangle k
                 // k2 indexes the edges of triangle k
@@ -594,12 +594,12 @@ __global__ void extrapolate_second_order_sw_true (
             //{
 #ifndef REARRANGED_DOMAIN
             stage_vertex_values[k3] = stage_centroid_values[k] + dqv[0];
-            stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
-            stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+            stage_vertex_values[k3 + 1] = stage_centroid_values[k] +dqv[1];
+            stage_vertex_values[k3 + 2] = stage_centroid_values[k] +dqv[2];
 #else
             stage_vertex_values[k] = stage_centroid_values[k] + dqv[0];
             stage_vertex_values[k + N] = stage_centroid_values[k] + dqv[1];
-            stage_vertex_values[k + 2*N] = stage_centroid_values[k] + dqv[2];
+            stage_vertex_values[k + 2*N] = stage_centroid_values[k]+dqv[2];
 #endif
             //}
 
@@ -700,6 +700,7 @@ __global__ void extrapolate_second_order_sw_true (
     //dv0 = max(stage_vertex_values[k3]-bed_vertex_values[k3],minimum_allowed_height);
     //dv1 = max(stage_vertex_values[k3+1]-bed_vertex_values[k3+1],minimum_allowed_height);
     //dv2 = max(stage_vertex_values[k3+2]-bed_vertex_values[k3+2],minimum_allowed_height);
+    
 #ifndef REARRANGED_DOMAIN
     dv0 = max(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
     dv1 = max(stage_vertex_values[k3 + 1] - bed_vertex_values[k3 + 1], 0.);
@@ -718,7 +719,7 @@ __global__ void extrapolate_second_order_sw_true (
 #else
     dv0 = max(stage_vertex_values[k] - bed_vertex_values[k], 0.);
     dv1 = max(stage_vertex_values[k + N] - bed_vertex_values[k + N], 0.);
-    dv2 = max(stage_vertex_values[k + 2*N] - bed_vertex_values[k + 2*N], 0.);
+    dv2 = max(stage_vertex_values[k + 2*N] -bed_vertex_values[k + 2*N],0.);
 
     //Correct centroid and vertex values
     //xmom_centroid_values[k] = xmom_centroid_store[k];

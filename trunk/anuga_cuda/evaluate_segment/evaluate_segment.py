@@ -17,6 +17,11 @@ domain2 = generate_merimbula_domain( gpu=True )
 if using_rearranged_domain:
     domain2 = rearrange_domain(domain2)
     sort_domain(domain1)
+    print "\n Check input values"
+    domain2.rearranged_domain = True
+    check_rearranged_array( 
+            domain1.quantities['stage'].edge_values,
+            domain2.quantities['stage'].edge_values, 3)
 
 
 domain2.equip_kernel_functions()
@@ -104,7 +109,11 @@ for tag in domain1.tag_boundary_cells:
             yv2 = domain2.quantities['yvelocity'].boundary_values
 
 
-            print  "%s %d -- Reflective_boundary" % (tag, N)
+            print "%s %d -- Reflective_boundary" % (tag, N)
+            print "\n Check intermediate input value"
+            check_rearranged_array( 
+                    domain1.quantities['stage'].edge_values,
+                    domain2.quantities['stage'].edge_values, 3)
             cnt_s = 0
             cnt_e = 0
             cnt_h = 0
@@ -116,6 +125,8 @@ for tag in domain1.tag_boundary_cells:
                 k = ids[i]
                 if s1[k] != s2[k]:
                     cnt_s += 1
+                    if cnt_s < 10:
+                        print k, s1[k], s2[k]
                 if e1[k] != e2[k]:
                     cnt_e += 1
                 if h1[k] != h2[k]:
