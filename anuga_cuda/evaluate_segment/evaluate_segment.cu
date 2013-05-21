@@ -1,7 +1,8 @@
-//#define REARRANGED_DOMAIN
+#define REARRANGED_DOMAIN
 
 __global__ void evaluate_segment_reflective(
     int N,
+    int Nids,
     long * ids,
     long * vol_ids,
     long * edge_ids,
@@ -27,7 +28,7 @@ __global__ void evaluate_segment_reflective(
         threadIdx.x+threadIdx.y*blockDim.x+
         (blockIdx.x+blockIdx.y*gridDim.x)*blockDim.x*blockDim.y;
     
-    if (k >= N)
+    if (k >= Nids)
         return;
 
     long id = ids[k],

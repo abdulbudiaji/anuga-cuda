@@ -265,11 +265,11 @@ def rearrange_domain(domain, sort_flag=True, spare_domain=None):
 
 
         xmom_edge_values[i/3][i%3] = \
-							temp_dom.quantities['xmomentum'].edge_values[i][0]
+						temp_dom.quantities['xmomentum'].edge_values[i][0]
         xmom_edge_values[(i+N)/3][(i+N)%3] = \
-							temp_dom.quantities['xmomentum'].edge_values[i][1]
+						temp_dom.quantities['xmomentum'].edge_values[i][1]
         xmom_edge_values[(i+2*N)/3][(i+2*N)%3] = \
-							temp_dom.quantities['xmomentum'].edge_values[i][2]
+                        temp_dom.quantities['xmomentum'].edge_values[i][2]
 
 
         ymom_edge_values[i/3][i%3] = \
