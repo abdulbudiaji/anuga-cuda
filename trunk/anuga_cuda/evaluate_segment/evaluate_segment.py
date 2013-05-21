@@ -27,8 +27,8 @@ if using_rearranged_domain:
 domain2.equip_kernel_functions()
 
 
-domain1.distribute_to_vertices_and_edges()
-domain2.distribute_to_vertices_and_edges()
+#domain1.distribute_to_vertices_and_edges()
+#domain2.distribute_to_vertices_and_edges()
         
 
 #domain1.update_boundary()
@@ -48,6 +48,8 @@ for tag in domain1.tag_boundary_cells:
         W3 = 1
         
         if isinstance( B2, Reflective_boundary):
+            if not isinstance( B1, Reflective_boundary):
+                print "Error: B1 and B2 are not same in type!\n"
             import sys
             W1 = 0
             for i in range( len(sys.argv)):
@@ -65,6 +67,7 @@ for tag in domain1.tag_boundary_cells:
 
 
             domain2.evaluate_segment_reflective_func(
+                numpy.int32( domain2.number_of_elements),
                 numpy.int32( N ),
                 drv.In( numpy.asarray(ids) ),
                 drv.In( numpy.asarray( domain2.boundary_cells[ids]) ),
@@ -114,6 +117,8 @@ for tag in domain1.tag_boundary_cells:
             check_rearranged_array( 
                     domain1.quantities['stage'].edge_values,
                     domain2.quantities['stage'].edge_values, 3)
+            print numpy.allclose(s1, s2)
+            print "\n Check final input value"
             cnt_s = 0
             cnt_e = 0
             cnt_h = 0
@@ -121,12 +126,20 @@ for tag in domain1.tag_boundary_cells:
             cnt_ym = 0
             cnt_xv = 0
             cnt_yv = 0
+            vol_ids = domain2.boundary_cells[ids]
+            edge_ids = domain2.boundary_edges[ids]
             for i in range(N):
                 k = ids[i]
                 if s1[k] != s2[k]:
                     cnt_s += 1
+                    
+                    print "vol_ids: %ld " % vol_ids[i]
+                    print "edge_ids: %ld " % edge_ids[i]
+                    print vol_ids[i] + edge_ids[i]
+                    tmp = domain2.quantities['stage'].\
+                            edge_values.flat[vol_ids[i] + edge_ids[i]*N]
                     if cnt_s < 10:
-                        print k, s1[k], s2[k]
+                        print "Sb", k, s1[k], s2[k], tmp
                 if e1[k] != e2[k]:
                     cnt_e += 1
                 if h1[k] != h2[k]:

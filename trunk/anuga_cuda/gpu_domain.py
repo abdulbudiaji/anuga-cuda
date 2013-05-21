@@ -1842,9 +1842,6 @@ class GPU_domain(Domain):
 
     # 2nd level cotesting
     def update_boundary(self):
-        if self.cotesting:
-            test_update_boundary(self)
-
         if self.using_gpu:
             W2 = 1
             W3 = 1
@@ -1865,6 +1862,7 @@ class GPU_domain(Domain):
                 if isinstance(B, Reflective_boundary):
                     W1 = self.evaluate_segment_reflective_block
                     self.evaluate_segment_reflective_func(
+                        numpy.int32( self.number_of_elements ),
                         numpy.int32( N ),
                         self.boundary_index[tag][0],
                         self.boundary_index[tag][1],
