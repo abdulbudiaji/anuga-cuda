@@ -1856,7 +1856,7 @@ if __name__ == '__main__':
 
     testing_gpu_domain = True
     testing_python_version = False
-    using_rearranged_domain = False
+    using_rearranged_domain = True
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
@@ -1897,15 +1897,15 @@ if __name__ == '__main__':
         from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
                 host_macro+ open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
-                arch = 'compute_20',
-                code = 'sm_20'
+                arch = 'compute_30',
+                code = 'sm_30'
                 #options = ['-use_fast_math', '--prec-div=false', '--compiler-options', '-O2']
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
                 #"compute_fluxes_central_structure_cuda_single")
                 "compute_fluxes_central_structure_CUDA")
 
-        domain2.allocate_device_array()
+        #domain2.allocate_device_array()
 
         # Testing the mem coalscing
         #N = domain2.number_of_elements
@@ -1915,7 +1915,7 @@ if __name__ == '__main__':
         #domain2.neighbours[N-2][:] = [N-1, N-3, N-4]
         #domain2.neighbours[N-1][:] = [N-2, N-3, N-4]
 
-        domain2.asynchronous_transfer()
+        #domain2.asynchronous_transfer()
         ctx.synchronize()
 
         compute_fluxes_central_function.set_cache_config(drv.func_cache.PREFER_L1)
@@ -1950,42 +1950,42 @@ if __name__ == '__main__':
                 numpy.float64(domain2.H0 * 10),
                 numpy.uint32(domain2.optimise_dry_cells),
 
-                domain2.timestep_array_gpu,
-                domain2.neighbours_gpu,
-                domain2.neighbour_edges_gpu,
-                domain2.normals_gpu,
-                domain2.edgelengths_gpu,
-                domain2.radii_gpu,
-                domain2.areas_gpu,
-                domain2.tri_full_flag_gpu,
-                domain2.quantities['stage'].edge_values_gpu,
-                domain2.quantities['xmomentum'].edge_values_gpu,
-                domain2.quantities['ymomentum'].edge_values_gpu,
-                domain2.quantities['elevation'].edge_values_gpu,
-                domain2.quantities['stage'].boundary_values_gpu,
-                domain2.quantities['xmomentum'].boundary_values_gpu,
-                domain2.quantities['ymomentum'].boundary_values_gpu,
-                domain2.quantities['stage'].explicit_update_gpu,
-                domain2.quantities['xmomentum'].explicit_update_gpu,
-                domain2.quantities['ymomentum'].explicit_update_gpu,
-                domain2.max_speed_gpu,
+                drv.InOut( domain2.timestep_array),
+                drv.In( domain2.neighbours),
+                drv.In( domain2.neighbour_edges),
+                drv.In( domain2.normals),
+                drv.In( domain2.edgelengths),
+                drv.In( domain2.radii),
+                drv.In( domain2.areas),
+                drv.In( domain2.tri_full_flag),
+                drv.In( domain2.quantities['stage'].edge_values),
+                drv.In( domain2.quantities['xmomentum'].edge_values),
+                drv.In( domain2.quantities['ymomentum'].edge_values),
+                drv.In( domain2.quantities['elevation'].edge_values),
+                drv.In( domain2.quantities['stage'].boundary_values),
+                drv.In( domain2.quantities['xmomentum'].boundary_values),
+                drv.In( domain2.quantities['ymomentum'].boundary_values),
+                drv.InOut( domain2.quantities['stage'].explicit_update),
+                drv.InOut( domain2.quantities['xmomentum'].explicit_update),
+                drv.InOut( domain2.quantities['ymomentum'].explicit_update),
+                drv.InOut( domain2.max_speed),
                 block = (W1, W2, W3),
                 grid = ((domain2.number_of_elements+W1*W2*W3-1)/(W1*W2*W3), 1)
                 )
 
         #ctx.synchronize()
-        drv.memcpy_dtoh(domain2.quantities['stage'].explicit_update,
-                        domain2.quantities['stage'].explicit_update_gpu)
-        drv.memcpy_dtoh(domain2.quantities['xmomentum'].explicit_update,
-                        domain2.quantities['xmomentum'].explicit_update_gpu)
-        drv.memcpy_dtoh(domain2.quantities['ymomentum'].explicit_update,
-                        domain2.quantities['ymomentum'].explicit_update_gpu)
-        
-        drv.memcpy_dtoh(domain2.max_speed,
-                        domain2.max_speed_gpu)
-        
-        drv.memcpy_dtoh(domain2.timestep_array,
-                        domain2.timestep_array_gpu)
+        #drv.memcpy_dtoh(domain2.quantities['stage'].explicit_update,
+        #                domain2.quantities['stage'].explicit_update_gpu)
+        #drv.memcpy_dtoh(domain2.quantities['xmomentum'].explicit_update,
+        #                domain2.quantities['xmomentum'].explicit_update_gpu)
+        #drv.memcpy_dtoh(domain2.quantities['ymomentum'].explicit_update,
+        #                domain2.quantities['ymomentum'].explicit_update_gpu)
+        #
+        #drv.memcpy_dtoh(domain2.max_speed,
+        #                domain2.max_speed_gpu)
+        #
+        #drv.memcpy_dtoh(domain2.timestep_array,
+        #                domain2.timestep_array_gpu)
         
         #b = numpy.argsort(domain2.timestep_array)
         #domain2.flux_timestep = domain2.timestep_array[b[0]] 
