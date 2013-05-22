@@ -430,8 +430,8 @@ for i in range(10):
 
 
     #hmpp_distribute_to_vertices_and_edges(
-    hmpp_compute_fluxes(
-    #hmpp_extrapolate_second_order_and_limit_by_vertex(
+    #hmpp_compute_fluxes(
+    hmpp_extrapolate_second_order_and_limit_by_vertex(
             domain,
             yieldstep,
             finaltime,
@@ -442,7 +442,7 @@ for i in range(10):
             num.int32( compute_fluxes_method ),
             num.int32( flow_algorithm ),
             num.int32( timestepping_method ),
-            #num.int64( 2),
+            num.int64( 2),
             num.int32( i)
             )
     
@@ -455,27 +455,27 @@ for i in range(10):
     #test_domain.update_extrema()
     #test_domain.extrapolate_second_order_sw()
     
-    #hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
-    #        test_domain,
-    #        yieldstep,
-    #        finaltime,
-    #        0.0,
-    #        epsilon,
-    #        False,
-    #
-    #        num.int32( compute_fluxes_method ),
-    #        num.int32( flow_algorithm ),
-    #        num.int32( timestepping_method ),
-    #        num.int64( 2),
-    #        num.int32( i)
-    #        )
+    hmpp_extrapolate_second_order_and_limit_by_vertex_normal(
+            test_domain,
+            yieldstep,
+            finaltime,
+            0.0,
+            epsilon,
+            False,
+    
+            num.int32( compute_fluxes_method ),
+            num.int32( flow_algorithm ),
+            num.int32( timestepping_method ),
+            num.int64( 2),
+            num.int32( i)
+            )
     #for name in test_domain.conserved_quantities:
     #    Q = test_domain.quantities[name]
     #    #Q.extrapolate_second_order_and_limit_by_vertex()
     #    extrapolate_second_order_and_limit_by_vertex( Q)
     #test_domain.compute_fluxes()
-    compute_fluxes_ext_central_structure(test_domain)
-    gravity_wb_c(test_domain)
+    #compute_fluxes_ext_central_structure(test_domain)
+    #gravity_wb_c(test_domain)
     
     
     

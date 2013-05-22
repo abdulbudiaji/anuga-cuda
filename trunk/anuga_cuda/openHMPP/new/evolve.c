@@ -1948,6 +1948,7 @@ void test_single( struct domain *D)
 void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
 {
     
+    allocate_upload_data(D);
     // stage
     extrapolate_second_order_and_limit_by_vertex(
             D->number_of_elements,
@@ -2011,6 +2012,7 @@ void test_extrapolate_second_order_and_limit_by_vertex( struct domain *D)
             D->ymom_x_gradient,
             D->ymom_y_gradient
             );
+    download_data(D);
 
 }
 
