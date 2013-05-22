@@ -171,6 +171,7 @@ t0 = time.time()
 
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 	domain.write_time()
+	print domain.number_of_steps
 
 
 #barrier()
