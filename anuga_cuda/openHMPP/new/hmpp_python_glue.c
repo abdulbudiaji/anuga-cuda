@@ -313,7 +313,9 @@ PyObject *hmpp_extrapolate_second_order_and_limit_by_vertex(
     }
     
     // For testing single function
+
     test_extrapolate_second_order_and_limit_by_vertex(&D);
+
     return Py_BuildValue("");
 }
 
