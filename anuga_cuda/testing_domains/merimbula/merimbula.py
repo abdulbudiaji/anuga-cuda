@@ -167,12 +167,13 @@ domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, '
 # Evolution
 #------------------------------------------------------------------------------
 
-t0 = time.time()
+total_steps = 0
 
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
 	domain.write_time()
-	#print domain.number_of_steps
+	total_steps += domain.number_of_steps
 
+print "Total steps :", total_steps
 
 #barrier()
 

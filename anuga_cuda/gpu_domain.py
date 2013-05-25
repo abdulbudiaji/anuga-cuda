@@ -2280,9 +2280,13 @@ class GPU_domain(Domain):
             end.synchronize()
             secs = start.time_till(end)*1e-3
             print "Data copy in time: %3.7f" % secs
+        else:
+            ini_time = time.time()
+            ini_evo = time.time()
+            
 
         
-        elif self.cotesting:
+        if not self.using_gpu and self.cotesting:
             """ This is for testing purpose.
                 
             We shadow copy current generated domain variable, and 
