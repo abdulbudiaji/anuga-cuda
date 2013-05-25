@@ -383,6 +383,7 @@ if __name__ == '__main__':
     domain2 = generate_channel3_domain(True)
     domain2 = rearrange_domain( domain2)
 
+
     domain2.equip_kernel_functions()
 
     testing_domain3 = False

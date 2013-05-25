@@ -1897,8 +1897,8 @@ if __name__ == '__main__':
         from anuga_cuda import kernel_path as kp
         compute_fluxes_mod = SourceModule(
                 host_macro+ open( kp["compute_fluxes_dir"]+"compute_fluxes.cu").read(),
-                arch = 'compute_30',
-                code = 'sm_30'
+                arch = 'compute_20',
+                code = 'sm_20'
                 #options = ['-use_fast_math', '--prec-div=false', '--compiler-options', '-O2']
                 )
         compute_fluxes_central_function = compute_fluxes_mod.get_function(
@@ -2044,7 +2044,8 @@ if __name__ == '__main__':
         t1 = time.time()
         domain1.flux_timestep = compute_fluxes_ext_central_structure(domain1)
         #gravity_wb_c(domain1)
-        print "\n C compute flux duration is %lf\n" % (time.time()-t1)
+        t2 = time.time()
+        print "\n C compute flux duration is %lf\n" % (t2-t1)
     elif domain1.compute_fluxes_method == 'wb_3':
         from shallow_water_ext import compute_fluxes_ext_wb_3
         from shallow_water_ext import gravity_wb as gravity_wb_c

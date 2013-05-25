@@ -1,4 +1,4 @@
-#define REARRANGED_DOMAIN
+//#define REARRANGED_DOMAIN
 
 __global__ void evaluate_segment_reflective(
     int N,

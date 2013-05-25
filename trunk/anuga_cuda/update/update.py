@@ -37,12 +37,12 @@ get_kernel_function_info(domain2.update_func,
         W1,W2, W3)
 
 
-for i in domain1.evolve(yieldstep = 50, finaltime = 50):
-    pass
-    
-domain2.using_gpu = False
-for i in domain2.evolve(yieldstep = 50, finaltime = 50):
-    pass
+#for i in domain1.evolve(yieldstep = 50, finaltime = 50):
+#    pass
+#    
+#domain2.using_gpu = False
+#for i in domain2.evolve(yieldstep = 50, finaltime = 50):
+#    pass
     
 
 

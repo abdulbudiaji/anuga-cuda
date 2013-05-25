@@ -8,7 +8,7 @@ from anuga.shallow_water.boundaries import Reflective_boundary
 
 
 from anuga_cuda import *
-using_rearranged_domain = True
+using_rearranged_domain = False
 
 
 domain1 = generate_merimbula_domain( gpu=False )
@@ -112,11 +112,11 @@ for tag in domain1.tag_boundary_cells:
             yv2 = domain2.quantities['yvelocity'].boundary_values
 
 
-            print "%s %d -- Reflective_boundary" % (tag, N)
-            print "\n Check intermediate input value"
-            check_rearranged_array( 
-                    domain1.quantities['stage'].edge_values,
-                    domain2.quantities['stage'].edge_values, 3)
+            #print "%s %d -- Reflective_boundary" % (tag, N)
+            #print "\n Check intermediate input value"
+            #check_rearranged_array( 
+            #        domain1.quantities['stage'].edge_values,
+            #        domain2.quantities['stage'].edge_values, 3)
             print numpy.allclose(s1, s2)
             print "\n Check final input value"
             cnt_s = 0
