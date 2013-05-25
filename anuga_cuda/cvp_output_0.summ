@@ -1,48 +1,51 @@
 
-memcpyHtoD: 117993 calls
-	 gputime=11910652 cputime=19360690
+memcpyHtoDasync:   72 calls
+	 gputime=7797 cputime=13623
 
 _protect_sw:  815 calls
-	 gputime=8049 cputime=8223] thread = [0..22(22), 0..0(0), 
-
-memcpyDtoH: 46385 calls
-	 gputime=3830654 cputime=10209688
+	 gputime=7123 cputime=3515] thread = [0..22(22), 0..0(0), 
 
 extrapolate_velocity_second_order_true:  815 calls
-	 gputime=15527 cputime=8234] thread = [0..20(20), 0..0(0), 
+	 gputime=13865 cputime=3394] thread = [0..20(20), 0..0(0), 
 
 extrapolate_second_order_sw_true:  815 calls
-	 gputime=278082 cputime=9459] thread = [0..62(62), 0..0(0), 
+	 gputime=280122 cputime=3371] thread = [0..62(62), 0..0(0), 
 
 _balance_deep_and_shallow:  815 calls
-	 gputime=20698 cputime=9307] thread = [0..39(39), 0..0(0), 
+	 gputime=18917 cputime=3345] thread = [0..39(39), 0..0(0), 
 
 _interpolate_from_vertices_to_edges: 2445 calls
-	 gputime=65039 cputime=24207] thread = [0..16(16), 0..0(0), 
+	 gputime=61045 cputime=9572] thread = [0..16(16), 0..0(0), 
 
 evaluate_segment_reflective: 1628 calls
-	 gputime=21357 cputime=17773] thread = [0..22(22), 0..0(0), 
+	 gputime=17790 cputime=6650] thread = [0..22(22), 0..0(0), 
 
 compute_fluxes_central_structure_CUDA:  813 calls
-	 gputime=371234 cputime=9186] thread = [0..62(62), 0..0(0), 
+	 gputime=372475 cputime=3613] thread = [0..62(62), 0..0(0), 
+
+memcpyDtoHasync:  813 calls
+	 gputime=49887 cputime=795929
 
 gravity_wb:  813 calls
-	 gputime=96244 cputime=9243] thread = [0..34(34), 0..0(0), 
+	 gputime=93542 cputime=4590] thread = [0..34(34), 0..0(0), 
 
 _manning_friction_flat:  813 calls
-	 gputime=5429 cputime=8359] thread = [0..26(26), 0..0(0), 
+	 gputime=4573 cputime=4428] thread = [0..26(26), 0..0(0), 
 
 update: 2439 calls
-	 gputime=62084 cputime=23288] thread = [0..22(22), 0..0(0), 
+	 gputime=61463 cputime=10183] thread = [0..22(22), 0..0(0), 
+
+memset32_post: 4070 calls
+	 gputime=23578 cputime=14578] thread = [0..6(6), 0..0(0), 
 
 set_boundary_values_from_edges:  813 calls
-	 gputime=5623 cputime=7564] thread = [0..11(11), 0..1(1), 
+	 gputime=4225 cputime=3420] thread = [0..11(11), 0..1(1), 
 
 update_centroids_of_velocities_and_height:  813 calls
-	 gputime=16679 cputime=7767] thread = [0..19(19), 0..1(1), 
+	 gputime=14997 cputime=3318] thread = [0..19(19), 0..1(1), 
 
 extrapolate_first_order: 2439 calls
-	 gputime=91301 cputime=24624] thread = [0..16(16), 0..0(0), 
+	 gputime=87723 cputime=9643] thread = [0..16(16), 0..0(0), 
 
-total: 180654 calls
-	 gputime=16798651 cputime=29737612] thread = [0..62(2), 0..1(0), 
+total: 21231 calls
+	 gputime=1119123 cputime=893172] thread = [0..62(20), 0..1(0), 
