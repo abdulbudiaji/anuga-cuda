@@ -1,8 +1,16 @@
-WorkingStation = "GTX680"
+WorkingStation = "GTX480"
 if WorkingStation == "Xe":
     work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
-else:
+    archM = 'compute_20',
+    codeM = 'sm_20',
+elif WorkingStation == "GTX680":
     work_dir="/home/john/anuga_cuda/"
+    archM = 'compute_20',
+    codeM = 'sm_20',
+elif WorkingStation == "GTX480":
+    work_dir="/home/u5044856/anuga-cuda/anuga_cuda/"
+    archM = 'compute_30',
+    codeM = 'sm_30',
 
 
 testing_domain_path = work_dir+"testing_domains/"

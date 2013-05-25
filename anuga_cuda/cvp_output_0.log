@@ -1,7 +1,7 @@
 
 memcpyHtoDasync:  gputime=1.0  cputime=20.0 
 
-memcpyHtoDasync:  gputime=0.8  cputime=11.0 
+memcpyHtoD:  gputime=57.1  cputime=206.0 
 
 memcpyHtoDasync:  gputime=0.8  cputime=9.0 
 
