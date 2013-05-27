@@ -2874,11 +2874,11 @@ class GPU_domain(Domain):
 
 def get_sourceModule(k_dir, k_name, rearranged_domain=False):
     if rearranged_domain:
-        defince_macro = "#define REARRANGED_DOMAIN\n"
+        define_macro = "#define REARRANGED_DOMAIN\n"
     else:
-        defince_macro = ""
+        define_macro = ""
     return SourceModule(
-            defince_macro + open( k_dir + k_name, "r").read(),
+            define_macro + open( k_dir + k_name, "r").read(),
             arch = 'compute_20',
             code = 'sm_20',
             options =['-use_fast_math', '--compiler-options', '-O3'],

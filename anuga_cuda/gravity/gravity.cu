@@ -63,22 +63,14 @@ __global__ void gravity_wb(
     w1 = stage_vertex_values[k + N];
     w2 = stage_vertex_values[k + 2*N];
     
-    n0 = w1 - w0;
-    n1 = w2 - w0;
 
     x0 = vertex_coordinates[k];
     x1 = vertex_coordinates[k + 2*N];
-    sidex = x1 - x0;
-    wy = sidex*n1;
     x2 = vertex_coordinates[k + 4*N];
-    sidey = x2 - x0;
-    wy -= sidey*n0;
 
     
     y0 = vertex_coordinates[k + N];
     y1 = vertex_coordinates[k + 3*N];
-    x0 = y1-y0;
-    wx = x0*n1;
     y2 = vertex_coordinates[k + 5*N];
 #endif
 

@@ -104,7 +104,7 @@ for i in range(len(sys.argv)):
     elif '-r' in sys.argv[i] or sys.argv[i] == '-rg':
         domain.rearranged_domain = True
 
-domain.using_gpu = True
+#domain.using_gpu = True
 #finaltime = 20
 
 domain.set_quantity('stage', Set_Stage(x0, x1, 2.0))
