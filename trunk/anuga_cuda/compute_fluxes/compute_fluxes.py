@@ -1856,7 +1856,7 @@ if __name__ == '__main__':
 
     testing_gpu_domain = True
     testing_python_version = False
-    using_rearranged_domain = True
+    using_rearranged_domain = False
 
     # This will reorder edges in order to let the one bordering on
     # triangle with smaller index number compute first
@@ -1941,41 +1941,41 @@ if __name__ == '__main__':
 
         get_kernel_function_info(compute_fluxes_central_function,W1,W2, W3)
 
-        ini_time = time.time()
-        compute_fluxes_central_function(
-                numpy.int32(domain2.number_of_elements),
-                numpy.float64(domain2.evolve_max_timestep),
-                numpy.float64(domain2.g),
-                numpy.float64(domain2.epsilon),
-                numpy.float64(domain2.H0 * domain2.H0),
-                numpy.float64(domain2.H0 * 10),
-                numpy.int32(domain2.optimise_dry_cells),
+        #ini_time = time.time()
+        #compute_fluxes_central_function(
+        #        numpy.int32(domain2.number_of_elements),
+        #        numpy.float64(domain2.evolve_max_timestep),
+        #        numpy.float64(domain2.g),
+        #        numpy.float64(domain2.epsilon),
+        #        numpy.float64(domain2.H0 * domain2.H0),
+        #        numpy.float64(domain2.H0 * 10),
+        #        numpy.int32(domain2.optimise_dry_cells),
 
-                drv.InOut( domain2.timestep_array),
-                drv.In( domain2.neighbours),
-                drv.In( domain2.neighbour_edges),
-                drv.In( domain2.normals),
-                drv.In( domain2.edgelengths),
-                drv.In( domain2.radii),
-                drv.In( domain2.areas),
-                drv.In( domain2.tri_full_flag),
-                drv.In( domain2.quantities['stage'].edge_values),
-                drv.In( domain2.quantities['xmomentum'].edge_values),
-                drv.In( domain2.quantities['ymomentum'].edge_values),
-                drv.In( domain2.quantities['elevation'].edge_values),
-                drv.In( domain2.quantities['stage'].boundary_values),
-                drv.In( domain2.quantities['xmomentum'].boundary_values),
-                drv.In( domain2.quantities['ymomentum'].boundary_values),
-                drv.InOut( domain2.quantities['stage'].explicit_update),
-                drv.InOut( domain2.quantities['xmomentum'].explicit_update),
-                drv.InOut( domain2.quantities['ymomentum'].explicit_update),
-                drv.InOut( domain2.max_speed),
-                block = (W1, W2, W3),
-                grid =((domain2.number_of_elements+W1*W2*W3-1)/(W1*W2*W3), 1)
-                )
+        #        drv.InOut( domain2.timestep_array),
+        #        drv.In( domain2.neighbours),
+        #        drv.In( domain2.neighbour_edges),
+        #        drv.In( domain2.normals),
+        #        drv.In( domain2.edgelengths),
+        #        drv.In( domain2.radii),
+        #        drv.In( domain2.areas),
+        #        drv.In( domain2.tri_full_flag),
+        #        drv.In( domain2.quantities['stage'].edge_values),
+        #        drv.In( domain2.quantities['xmomentum'].edge_values),
+        #        drv.In( domain2.quantities['ymomentum'].edge_values),
+        #        drv.In( domain2.quantities['elevation'].edge_values),
+        #        drv.In( domain2.quantities['stage'].boundary_values),
+        #        drv.In( domain2.quantities['xmomentum'].boundary_values),
+        #        drv.In( domain2.quantities['ymomentum'].boundary_values),
+        #        drv.InOut( domain2.quantities['stage'].explicit_update),
+        #        drv.InOut( domain2.quantities['xmomentum'].explicit_update),
+        #        drv.InOut( domain2.quantities['ymomentum'].explicit_update),
+        #        drv.InOut( domain2.max_speed),
+        #        block = (W1, W2, W3),
+        #        grid =((domain2.number_of_elements+W1*W2*W3-1)/(W1*W2*W3), 1)
+        #        )
 
-        ctx.synchronize()
-        print time.time() - ini_time
+        #ctx.synchronize()
+        #print time.time() - ini_time
 
         compute_fluxes_central_function.prepare(
                 "idddddiPPPPPPPPPPPPPPPPPPP"
