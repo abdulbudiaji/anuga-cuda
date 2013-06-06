@@ -1,18 +1,27 @@
 # -*- coding: utf-8 -*-
-"""Class Parallel_shallow_water_domain -
-2D triangular domains for finite-volume computations of
-the shallow water equation, with extra structures to allow
-communication between other Parallel_domains and itself
 
-This module contains a specialisation of class Domain
-from module shallow_water.py
 
-Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
-Geoscience Australia, 2004-2005
+import ctypes
+import sys
 
-"""
+
+import numpy
+
+
+# This is used to fix the dlopen() issues for python
+# and make the reference links (like OpenHMPP global)
+flags = sys.getdlopenflags()
+sys.setdlopenflags(flags | ctypes.RTLD_GLOBAL)
+
+from hmpp_python_glue import *
+sys.setdlopenflags(flags)
+
 
 from anuga import Domain
+from anuga import Reflective_boundary
+from anuga import Dirichlet_boundary
+from anuga import Time_boundary
+from anuga import Transmissive_boundary
 
 import numpy as num
 
@@ -56,23 +65,109 @@ class HMPP_domain(Domain):
                         geo_reference=geo_reference) #jj added this
 
 
+    def convert_boundary_elements(self):
+        fileHandle = open('boundary_names', 'w')
+        for name in self.tag_boundary_cells:
+            B = self.boundary_map[name]
+            if B is None:
+                continue
+
+
+            fileHandle.write("%s\n" % name)
+            if isinstance(B, Reflective_boundary):
+                fileHandle.write("0\n")
+            elif isinstance(B, Dirichlet_boundary):
+                fileHandle.write("1\n")
+            else:
+                print B
+
+
+            if name == 'open':
+                self.openArr = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
+            elif name == 'exterior':
+                self.exterior = numpy.asarray(self.tag_boundary_cells[name], dtype=numpy.int64)
+        fileHandle.close()
 
 
     def evolve(self,
                 yieldstep=0.0,
-                finaltime=0.0,
+                finaltime=1.0,
                 duration=0.0,
                 skip_initial_step=False):
         
-        print self.number_of_elements
+
+        if self.store is True and self.get_time() == self.get_starttime():
+            self.initialise_storage()
 
         from hmpp_python_glue import hmpp_evolve
+        from anuga.config import epsilon
 
-        hmpp_evolve(self,
-                yieldstep,
-                finaltime,
-                duration,
-                skip_initial_step)
+        if self.timestepping_method == 'euler':
+            timestepping_method = 1
+        elif self.timestepping_method == 'rk2':
+            timestepping_method = 2
+        elif self.timestepping_method == 'rk3':
+            timestepping_method = 3
+        else:
+            timestepping_method = 4
+        #print " The timestepping_method is '%s' %d" % (self.timestepping_method, timestepping_method)
 
 
+        if self.flow_algorithm == 'tsunami':
+            flow_algorithm = 1
+        elif self.flow_algorithm == 'yusuke':
+            flow_algorithm = 2
+        else:
+            flow_algorithm = 3
+        #print " The flow_algorithm us '%s' %d" % (self.flow_algorithm, flow_algorithm)
+       
+
+        if self.compute_fluxes_method == 'original':
+            compute_fluxes_method = 0
+        elif self.compute_fluxes_method == 'wb_1':
+            compute_fluxes_method = 1
+        elif self.compute_fluxes_method == 'wb_2':
+            compute_fluxes_method = 2
+        elif self.compute_fluxes_method == 'wb_3':
+            compute_fluxes_method = 3
+        elif self.compute_fluxes_method == 'tsunami':
+            compute_fluxes_method = 4
+        else:
+            compute_fluxes_method = 5
+        #print " The compute_fluxes_method is '%s' %d" % (self.compute_fluxes_method, compute_fluxes_method)
+
+    
+        boundary_cnt = 2
+        self.convert_boundary_elements()                
+            
+        import time 
+        ini_time = time.time()
+
+        yield_step = 0
+        while True :
+            tmp_timestep = hmpp_evolve(self,
+                    yieldstep,
+                    finaltime,
+                    duration,
+                    epsilon,
+                    skip_initial_step,
+
+                    numpy.int32( compute_fluxes_method ),
+                    numpy.int32( flow_algorithm ),
+                    numpy.int32( timestepping_method ),
+                    numpy.int64( boundary_cnt ),
+                    numpy.int32( yield_step )
+                    )
+
+            yield_step = 1
+            print " Python: tmp_timestep %lf " % tmp_timestep
+
+            #cmd = raw_input("HMPP_DOMAIN: Quit?[q]")
+            #if 'q' in cmd or 'Q' in cmd:
+            #    break
+            if tmp_timestep >= finaltime - epsilon: 
+                fin_time = time.time()
+                print " Evolve finish, time last : %lf" % (fin_time - ini_time)
+
+                break
 

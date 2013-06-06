@@ -1,7 +1,15 @@
-#include "fun.h"
+#include "hmpp_fun.h"
+// First function
 
 //#define NON_DIRECTIVES_EXTRA2_VERTEX
-//#define NON_DIRECTIVES_EXTRA2_VERTEX_EXTRA_FROM_GRA
+#define NON_DIRECTIVES_EXTRA2_VERTEX_CPTGRA
+// Second function
+#define NON_DIRECTIVES_EXTRA2_VERTEX_EXTRA_FROM_GRA
+// Third function
+#define NON_DIRECTIVES_EXTRA2_VERTEX_LMT_V
+#define NON_DIRECTIVES_EXTRA2_VERTEX_LMT_E
+
+
 
 double fmax(double x, double y) {  
     //Return maximum of two doubles
@@ -262,14 +270,14 @@ void _extrapolate_from_gradient(
         y2 = vertex_coordinates[k6 + 5];
 
         // Extrapolate to Vertices
-        vertex_values[k3+0] = centroid_values[k] + a[k]*(x0-x) + b[k]*(y0-y);
-        vertex_values[k3+1] = centroid_values[k] + a[k]*(x1-x) + b[k]*(y1-y);
-        vertex_values[k3+2] = centroid_values[k] + a[k]*(x2-x) + b[k]*(y2-y);
+        vertex_values[k3+0] = 1;//centroid_values[k] + a[k]*(x0-x) + b[k]*(y0-y);
+        vertex_values[k3+1] = 1;//centroid_values[k] + a[k]*(x1-x) + b[k]*(y1-y);
+        vertex_values[k3+2] = 1;//centroid_values[k] + a[k]*(x2-x) + b[k]*(y2-y);
 
         // Extrapolate to Edges (midpoints)
-        edge_values[k3+0] = k3;//0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
-        edge_values[k3+1] = k3;//0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
-        edge_values[k3+2] = k3;//0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
+        edge_values[k3+0] = 0.5*(vertex_values[k3 + 1]+vertex_values[k3 + 2]);
+        edge_values[k3+1] = 0.5*(vertex_values[k3 + 2]+vertex_values[k3 + 0]);
+        edge_values[k3+2] = 0.5*(vertex_values[k3 + 0]+vertex_values[k3 + 1]);
 
     }
 }
@@ -470,7 +478,8 @@ void extrapolate_second_order_and_limit_by_vertex(
         double quantity_y_gradient[N]
         )
 {
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_CPTGRA
+
+    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
     #pragma hmpp cptGradients callsite
     #endif
     _compute_gradients(
@@ -484,12 +493,9 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_x_gradient,
             quantity_y_gradient);
 
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_CPTGRA
-    #pragma hmpp cptGradients synchronize
-    #endif
+    
 
-
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_EXTRA_FROM_GRA
+    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
     #pragma hmpp extraFromGradient callsite
     #endif
     _extrapolate_from_gradient(
@@ -505,12 +511,9 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_x_gradient,
             quantity_y_gradient);
 
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_EXTRA_FROM_GRA
-    #pragma hmpp extraFromGradient synchronize
-    #endif
 
-/*
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_LMT_V
+
+    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX
     #pragma hmpp lmtVByNeigh callsite
     #endif
     _limit_vertices_by_all_neighbours(
@@ -524,11 +527,6 @@ void extrapolate_second_order_and_limit_by_vertex(
             quantity_x_gradient,
             quantity_y_gradient);
     
-    #ifndef NON_DIRECTIVES_EXTRA2_VERTEX_LMT_V
-    #pragma hmpp lmtVByNeigh synchronize
-    #endif
-*/
-
 }
 
 
@@ -576,7 +574,6 @@ void extrapolate_second_order_and_limit_by_vertex_normal(
             quantity_x_gradient,
             quantity_y_gradient);
 
-/*
     _limit_vertices_by_all_neighbours(
             N,
             N3,
@@ -587,8 +584,6 @@ void extrapolate_second_order_and_limit_by_vertex_normal(
             domain_neighbours,
             quantity_x_gradient,
             quantity_y_gradient);
-
-*/
 }
 
 void extrapolate_second_order_and_limit_by_edge(
