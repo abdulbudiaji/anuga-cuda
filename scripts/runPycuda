@@ -4,13 +4,32 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:/usr/local/cuda/lib:/home/u5044856
 
 export PYTHONPATH=/usr/lib/python2.7/dist-packages/:/usr/bin/python:/home/u5044856/anuga_core/source:/usr/include/python2.7/numpy:/home/u5044856/anuga-cuda:/home/u5044856/.local/lib/python2.7/site-packages/:$PYTHONPATH
 
+
+
+export CUDA_PROFILE_CONFIG=".cp_config"
+export CUDA_PROFILE_CSV=1
+compute_profile=cvp_output_0
+export CUDA_PROFILE_LOG="$compute_profile.csv"
+export CUDA_PROFILE=1
+export CUDA_INSTALL_PATH=/usr/local/cuda/
+
 export PATH=/usr/local/cuda/bin:/usr/bin/python:$PATH
+
+function_only=false
 
 if [ "$#" == 0 ]; then
     echo "Usage: runPycuda <script_name>"
 else
+    if [ "$1" == "-fo" ]; then
+        shift
+        function_only=true
+    fi
+
     file_name=${1##*/}
     file_dir=${1%/*}
+    if [ $file_name == $file_dir ]; then
+        file_dir=.
+    fi
     shift
 
     echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*"
@@ -18,13 +37,20 @@ else
     echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*\n"
     CUDA_PROFILE=1 python $file_dir/$file_name $@
     
-    pro_name=profile_$file_name.log
-    mv cuda_profile_0.log $file_dir/$pro_name
-    
-    echo -e "\n*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*"
-    echo -e "*-*- Showing profile result in $pro_name "
-    echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n"
-    pro_name=$pro_name
-    cat $file_dir/$pro_name
+    if [ $? == 0 ]; then
+        
+        echo -e "\n*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*"
+        echo -e "*-*- Showing profile result in $pro_name "
+        echo -e "*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*\n"
+        cvp_output < $compute_profile.csv > $compute_profile.log
+        cvp_summarize < $compute_profile.csv > $compute_profile.summ
+        #echo "CVP full output is in $CUDA_PROFILE_LOG.log, summary in $CUDA_PROFILE_LOG.summ" 
+
+        if [ $function_only ]; then
+            cat $compute_profile.summ #| grep -v thread
+        else
+            cat $compute_profile.summ
+        fi
+    fi
 fi
 
