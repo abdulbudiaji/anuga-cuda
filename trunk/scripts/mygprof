@@ -1,9 +1,16 @@
 #!/bin/bash
+
 if [ $# != 1 ] ; then
     echo "Usage: gprof.sh gravity.py"
 else
+    file_name=$(basename $1)
+    echo $file_name
+    dir_name=$(dirname $1)
+    echo $dir_name
+
     CUDA_PROFILE=1 python $1
-    pro_name=profile_$1.log
+    
+    pro_name=$dir_name/profile_$file_name.log
     mv cuda_profile_0.log $pro_name
     cat $pro_name
 fi

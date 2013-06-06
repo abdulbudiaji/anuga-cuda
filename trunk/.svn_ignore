@@ -1,4 +1,7 @@
 *.out
 *.log
 *.sww
+*.png
+.*swo
 
+*.py.log
