@@ -1,21 +1,30 @@
-#include<stdio.h>
-#include<stdlib.h>
-#include<string.h>
-#include<math.h>
-#include<assert.h>
+
+// OpenHMPP ANUGA compute_fluxes
+//
+// Zhe Weng 2013
 
 
-#define TOLERANCE_RANGE 1e-8
+//#include<stdio.h>
+//#include<stdlib.h>
+//#include<string.h>
+//#include<math.h>
+//#include<assert.h>
+
+#include "hmpp_fun.h"
+
+#ifndef TOLERANCE
+#define TOLERANCE 1e-8
+#endif
+
+#define USING_ORIGINAL_CUDA
+//double max(double a, double b)
+//{ return (a >= b) ? a : b; }
+//
+//double min(double a, double b)
+//{ return (a <= b) ? a : b; }
 
 
-double max(double a, double b)
-{ return (a >= b) ? a : b; }
-
-double min(double a, double b)
-{ return (a <= b) ? a : b; }
-
-
-
+/*
 double sqrt(double x)
 {
     double mx = 32000;
@@ -30,7 +39,7 @@ double sqrt(double x)
     }
     return mx;
 }
-
+*/
 
 
 /*
@@ -144,7 +153,9 @@ int _flux_function_central(
         double *max_speed) 
 #endif
 {
+#ifdef USING_ORIGINAL_CUDA
     int i;
+#endif
 
     double w_left, h_left, uh_left, vh_left, u_left;
     double w_right, h_right, uh_right, vh_right, u_right;
@@ -240,12 +251,12 @@ int _flux_function_central(
     //soundspeed_left  = fast_squareroot_approximation(g*h_left);
     //soundspeed_right = fast_squareroot_approximation(g*h_right);
 
-    s_max = max(u_left + soundspeed_left, u_right + soundspeed_right);
+    s_max = fmax(u_left + soundspeed_left, u_right + soundspeed_right);
     if (s_max < 0.0) {
         s_max = 0.0;
     }
 
-    s_min = min(u_left - soundspeed_left, u_right - soundspeed_right);
+    s_min = fmin(u_left - soundspeed_left, u_right - soundspeed_right);
     if (s_min > 0.0) {
         s_min = 0.0;
     }
@@ -263,16 +274,31 @@ int _flux_function_central(
     denom = s_max - s_min;
     if (denom < epsilon) { // FIXME (Ole): Try using h0 here
         //memset(edgeflux, 0, 3 * sizeof (double));
+        edgeflux[0]=0.0;
+        edgeflux[1]=0.0;
+        edgeflux[2]=0.0;
         *max_speed = 0.0;
     }
     else {
         inverse_denominator = 1.0 / denom;
 #ifdef USING_ORIGINAL_CUDA
-        for (i = 0; i < 3; i++) {
-            edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
-            edgeflux[i] += s_max *s_min *(q_right_rotated[i] -q_left_rotated[i]);
-            edgeflux[i] *= inverse_denominator;
-        }
+        //#pragma hmppcg noparallel
+        //for (i = 0; i < 3; i++) {
+        //    edgeflux[i] = s_max * flux_left[i] - s_min * flux_right[i];
+        //    edgeflux[i] += s_max *s_min *(q_right_rotated[i] -q_left_rotated[i]);
+        //    edgeflux[i] *= inverse_denominator;
+        //}
+        edgeflux[0] = s_max * flux_left[0] - s_min * flux_right[0];
+        edgeflux[0]+=s_max *s_min *(q_right_rotated[0] -q_left_rotated[0]);
+        edgeflux[0] *= inverse_denominator;
+
+        edgeflux[1] = s_max * flux_left[1] - s_min * flux_right[1];
+        edgeflux[1]+=s_max *s_min *(q_right_rotated[1] -q_left_rotated[1]);
+        edgeflux[1] *= inverse_denominator;
+        
+        edgeflux[2] = s_max * flux_left[2] - s_min * flux_right[2];
+        edgeflux[2]+=s_max *s_min *(q_right_rotated[2] -q_left_rotated[2]);
+        edgeflux[2] *= inverse_denominator;
 #else
         *edgeflux0 = s_max * flux_left[0] - s_min * flux_right[0];
         *edgeflux0 += s_max *s_min *(q_right_rotated[0] -q_left_rotated[0]);
@@ -288,7 +314,7 @@ int _flux_function_central(
 #endif
 
         // Maximal wavespeed
-        *max_speed = max(fabs(s_max), fabs(s_min));
+        *max_speed = fmax(fabs(s_max), fabs(s_min));
 
         // Rotate back
         //_rotate(edgeflux, n1, -n2);
@@ -317,7 +343,9 @@ int _flux_function_central(
 /*****************************************/
 
 
+#ifdef USING_LOCAL_DIRECTIVES
 #pragma hmpp cf_central codelet, target=CUDA args[*].transfer=atcall
+#endif
 void compute_fluxes_central_structure_CUDA(
         int N,
         int N3,
@@ -325,13 +353,13 @@ void compute_fluxes_central_structure_CUDA(
         int N2,
 
         double timestep[N],
-        int neighbours[N3],
-        int neighbour_edges[N3],
+        long neighbours[N3],
+        long neighbour_edges[N3],
         double normals[N6],
         double edgelengths[N3],
         double radii[N],
         double areas[N],
-        int tri_full_flag[N],
+        long tri_full_flag[N],
         double stage_edge_values[N3],
         double xmom_edge_values[N3],
         double ymom_edge_values[N3],
@@ -352,21 +380,32 @@ void compute_fluxes_central_structure_CUDA(
         int optimise_dry_cells)
 {
     int k;
-    for(k=0; k<N; k++)
-    {
-        int i, m, n;
-        int ki, nm = 0, ki2;
+    int i, m, n;
+    int ki, nm = 0, ki2;
 
-        double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
-        timestep[k] = evolve_max_timestep;
+    double max_speed, max_speed_total=0 , length, inv_area, zl, zr;
 
 #ifdef USING_ORIGINAL_CUDA
-        double ql[3], qr[3], edgeflux[3];
+    double ql[3], qr[3], edgeflux[3];
 #else
-        double ql0, ql1, ql2,
-               qr0, qr1, qr2,
-               edgeflux0, edgeflux1, edgeflux2;
+    double ql0, ql1, ql2,
+           qr0, qr1, qr2,
+           edgeflux0, edgeflux1, edgeflux2;
 #endif
+
+    #pragma hmppcg gridify(k), private(max_speed, max_speed_total, length,&
+    #pragma hmppcg & inv_area, zl, zr, i, m, n, ki, nm, ki2, ql, qr, &
+    #pragma hmppcg & edgeflux), global(timestep, neighbours, &
+    #pragma hmppcg & neighbour_edges, normals, edgelengths, radii, &
+    #pragma hmppcg & areas, tri_full_flag, stage_edge_values, &
+    #pragma hmppcg & xmom_boundary_values, ymom_boundary_values, &
+    #pragma hmppcg & stage_explicit_update, xmom_explicit_update, &
+    #pragma hmppcg & ymom_explicit_update, max_speed_array, &
+    #pragma hmppcg & evolve_max_timestep, g, epsilon, h0, &
+    #pragma hmppcg & limiting_threshold, optimise_dry_cells)
+    for(k=0; k<N; k++)
+    {
+        timestep[k] = evolve_max_timestep;
 
         // Loop through neighbours and compute edge flux for each
         for (i = 0; i < 3; i++) 
@@ -470,15 +509,15 @@ void compute_fluxes_central_structure_CUDA(
             if (tri_full_flag[k] == 1) {
                 //if (max_speed > elements[Depsilon]) {
                 if ( max_speed > epsilon) {
-                    timestep[k] = min(timestep[k], radii[k] / max_speed);
+                    timestep[k] = fmin(timestep[k], radii[k] / max_speed);
                     if (n >= 0) {
-                        timestep[k] = min(timestep[k], radii[n] / max_speed);
+                        timestep[k] = fmin(timestep[k], radii[n] / max_speed);
                     }
                 }
             }
 
             if (n < 0 ||  n > k){
-                max_speed_total = max(max_speed_total, max_speed);
+                max_speed_total = fmax(max_speed_total, max_speed);
             }
         } // End edge i (and neighbour n)
 
@@ -491,9 +530,11 @@ void compute_fluxes_central_structure_CUDA(
     }
 }
 
+ 
 
-
+#ifdef USING_LOCAL_DIRECTIVES
 #pragma hmpp cf_central_single codelet, target=CUDA args[*].transfer=atcall
+#endif
 void compute_fluxes_central_structure_cuda_single(
         int N,
         int N3,
@@ -554,7 +595,7 @@ void compute_fluxes_central_structure_cuda_single(
         double length, inv_area;
 
 
-        int i, j, m, ni;
+        int i, m, ni;
         int ki, nm;
 
         max_speed_total = 0;
@@ -774,7 +815,7 @@ void compute_fluxes_central_structure_cuda_single(
                 }
             }
             if (ni < 0 ||  ni > k){
-                max_speed_total = max(max_speed_total, max_speed);
+                max_speed_total = fmax(max_speed_total, max_speed);
             }
         }
 
@@ -1068,25 +1109,25 @@ int main(int argc, char *argv[])
 
     for (cnt_s=cnt_x=cnt_y=cnt_m=i=0; i < N; i++)
     {
-        if ( fabs(su[i] - test_stage_explicit_update[i]) >= TOLERANCE_RANGE)
+        if ( fabs(su[i] - test_stage_explicit_update[i]) >= TOLERANCE)
         {
             cnt_s++;
             if (cnt_s <= 10)
                 printf(" sta %d %lf %lf\n", i, su[i], test_stage_explicit_update[i]);
         }
-        if ( fabs(xu[i] - test_xmom_explicit_update[i]) >= TOLERANCE_RANGE)
+        if ( fabs(xu[i] - test_xmom_explicit_update[i]) >= TOLERANCE)
         {
             cnt_x++;
             if (cnt_x <= 10)
                 printf(" xmom %d %lf %lf\n", i, xu[i], test_xmom_explicit_update[i]);
         }
-        if ( fabs(yu[i] - test_ymom_explicit_update[i]) >= TOLERANCE_RANGE)
+        if ( fabs(yu[i] - test_ymom_explicit_update[i]) >= TOLERANCE)
         {
             cnt_y++;
             if (cnt_y <= 10)
                 printf(" ymom %d %lf %lf\n", i, yu[i], test_ymom_explicit_update[i]);
         }
-        if ( fabs(max_speed_array[i] -test_max_speed_array[i]) >=TOLERANCE_RANGE)
+        if ( fabs(max_speed_array[i] -test_max_speed_array[i]) >=TOLERANCE)
         {    
             cnt_m++;
             if (cnt_m <= 10)
