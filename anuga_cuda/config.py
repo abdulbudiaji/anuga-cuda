@@ -9,8 +9,8 @@ elif WorkingStation == "GTX680":
     codeM = 'sm_20',
 elif WorkingStation == "GTX480":
     work_dir="/home/u5044856/anuga-cuda/anuga_cuda/"
-    archM = 'compute_30',
-    codeM = 'sm_30',
+    archM = 'compute_20',
+    codeM = 'sm_20',
 
 
 testing_domain_path = work_dir+"testing_domains/"
