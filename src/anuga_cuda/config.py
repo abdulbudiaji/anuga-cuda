@@ -1,14 +1,19 @@
+#!/usr/bin/env python
+
+
+import os
+
 WorkingStation = "GTX480"
+
+work_dir=os.environ['ANUGA_CUDA']+"/anuga_cuda/"
+
 if WorkingStation == "Xe":
-    work_dir="/home/659/zxw659/anuga-cuda/anuga_cuda/"
     archM = 'compute_20',
     codeM = 'sm_20',
 elif WorkingStation == "GTX680":
-    work_dir="/home/john/anuga_cuda/"
     archM = 'compute_20',
     codeM = 'sm_20',
 elif WorkingStation == "GTX480":
-    work_dir="/home/u5044856/anuga-cuda/anuga_cuda/"
     archM = 'compute_20',
     codeM = 'sm_20',
 
