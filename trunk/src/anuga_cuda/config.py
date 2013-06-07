@@ -18,7 +18,7 @@ elif WorkingStation == "GTX480":
     codeM = 'sm_20',
 
 
-testing_domain_path = work_dir+"testing_domains/"
+testing_domain_path = work_dir.replace( "src/anuga_cuda/", "tests/testing_domains/")
 
 merimbula_dir = testing_domain_path+"merimbula/"
 

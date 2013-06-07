@@ -1,3 +1,5 @@
+
+
 # Import kernel path and necessary directories
 from anuga_cuda.config import *
 
@@ -7,7 +9,7 @@ from anuga_cuda.gpu_domain_advanced import GPU_domain
 
 
 # Import utilities
-from anuga_cuda.utilities.sort_domain import *
-from anuga_cuda.utilities.utility import *
+from utilities.sort_domain import *
+from utilities.utility import *
 
 
