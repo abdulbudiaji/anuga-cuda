@@ -1,0 +1,4 @@
+This project is dependent on following packages
+
+1. ANUGA : anuga.anu.edu.au
+2. PyCUDA: documen.tician.de/pycuda
