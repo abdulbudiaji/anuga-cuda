@@ -10,7 +10,7 @@ Water flowing down a channel
 # Import standard shallow water domain and standard boundaries.
 import sys
 import anuga
-from anuga_cuda.gpu_domain import GPU_domain
+from anuga_cuda import GPU_domain
 
 
 finaltime= 1
