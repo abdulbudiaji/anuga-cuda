@@ -8,7 +8,7 @@ cofig = {
         'author' : 'Zhe Weng',
         'url' : 'http://code.google.com/p/anuga-cuda/',
         'download_url' : 'svn checkout http://anuga-cuda.googlecode.com/svn/trunk/ anuga-cuda-read-only',
-        'author_email' : 'u5044856@anu.edu.au',
+        'author_email' : 'wengcsyz@gmail.com',
         'version' : '0.1',
         'install_requires' : ['nose'],
         'packages' : ['Boost', 'ANUGA', 'Numpy', 'PyCUDA', 'CUDA'],
