@@ -45,7 +45,7 @@ kbc = kernel_block_configuration
 
 
 
-class GPU_domain(Domain):
+class CUDA_basic_domain(Domain):
     def __init__(self, 
             coordinates=None,
             vertices=None,
