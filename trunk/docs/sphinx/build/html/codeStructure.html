@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ANUGA CUDA Code Structure &mdash; anuga-cuda 1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="anuga-cuda 1 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to anuga-cuda’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to anuga-cuda’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">anuga-cuda 1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="anuga-cuda-code-structure">
+<h1>ANUGA CUDA Code Structure<a class="headerlink" href="#anuga-cuda-code-structure" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-os">
+<span id="os-system"></span><h2>OS System<a class="headerlink" href="#module-os" title="Permalink to this headline">¶</a></h2>
+<p>OS routines for Mac, NT, or Posix depending on what system we&#8217;re on.</p>
+<dl class="docutils">
+<dt>This exports:</dt>
+<dd><ul class="first last simple">
+<li>all functions from posix, nt, os2, or ce, e.g. unlink, stat, etc.</li>
+<li>os.path is one of the modules posixpath, or ntpath</li>
+<li>os.name is &#8216;posix&#8217;, &#8216;nt&#8217;, &#8216;os2&#8217;, &#8216;ce&#8217; or &#8216;riscos&#8217;</li>
+<li>os.curdir is a string representing the current directory (&#8216;.&#8217; or &#8216;:&#8217;)</li>
+<li>os.pardir is a string representing the parent directory (&#8216;..&#8217; or &#8216;::&#8217;)</li>
+<li>os.sep is the (or a most common) pathname separator (&#8216;/&#8217; or &#8216;:&#8217; or &#8216;\&#8217;)</li>
+<li>os.extsep is the extension separator (&#8216;.&#8217; or &#8216;/&#8217;)</li>
+<li>os.altsep is the alternate pathname separator (None or &#8216;/&#8217;)</li>
+<li>os.pathsep is the component separator used in $PATH etc</li>
+<li>os.linesep is the line separator in text files (&#8216;r&#8217; or &#8216;n&#8217; or &#8216;rn&#8217;)</li>
+<li>os.defpath is the default search path for executables</li>
+<li>os.devnull is the file path of the null device (&#8216;/dev/null&#8217;, etc.)</li>
+</ul>
+</dd>
+</dl>
+<p>Programs that import and use &#8216;os&#8217; stand a better chance of being
+portable between different platforms.  Of course, they must then
+only use functions that are defined by all platforms (e.g., unlink
+and opendir), and leave all pathname manipulation to os.path
+(e.g., split and join).</p>
+</div>
+<div class="section" id="module-anuga_cuda">
+<span id="advanced-version-class"></span><h2>Advanced Version Class<a class="headerlink" href="#module-anuga_cuda" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="anuga_cuda.CUDA_advanced_domain">
+<em class="property">class </em><tt class="descclassname">anuga_cuda.</tt><tt class="descname">CUDA_advanced_domain</tt><big>(</big><em>coordinates=None</em>, <em>vertices=None</em>, <em>boundary=None</em>, <em>source=None</em>, <em>triangles=None</em>, <em>conserved_quantities=None</em>, <em>evolved_quantities=None</em>, <em>other_quantities=None</em>, <em>tagged_elements=None</em>, <em>geo_reference=None</em>, <em>use_inscribed_circle=False</em>, <em>mesh_filename=None</em>, <em>use_cache=False</em>, <em>verbose=False</em>, <em>full_send_dict=None</em>, <em>ghost_recv_dict=None</em>, <em>starttime=0.0</em>, <em>processor=0</em>, <em>numproc=1</em>, <em>number_of_full_nodes=None</em>, <em>number_of_full_triangles=None</em>, <em>ghost_layer_width=2</em>, <em>using_gpu=False</em>, <em>cotesting=False</em>, <em>stream=False</em>, <em>rearranged=False</em>, <em>domain=None</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the CUDA based ANUGA domain in advanced version</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ANUGA CUDA Code Structure</a><ul>
+<li><a class="reference internal" href="#module-os">OS System</a></li>
+<li><a class="reference internal" href="#module-anuga_cuda">Advanced Version Class</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to anuga-cuda&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/codeStructure.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to anuga-cuda’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">anuga-cuda 1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Zhe Weng.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
