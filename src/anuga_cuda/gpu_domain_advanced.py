@@ -45,7 +45,9 @@ kbc = kernel_block_configuration
 
 
 
-class GPU_domain(Domain):
+class CUDA_advanced_domain(Domain):
+    """This is the CUDA based ANUGA domain in advanced version"""
+
     def __init__(self, 
             coordinates=None,
             vertices=None,
