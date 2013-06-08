@@ -12,7 +12,7 @@ Contents:
    :maxdepth: 2
    
 
-   example.rst
+   codeStructure.rst
 
 
 Indices and tables
