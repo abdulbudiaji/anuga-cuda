@@ -1,4 +1,0 @@
-#!/bin/bash
-
-nvcc -Xptxas -v -arch=compute_11 -code=sm_11 compute_fluxes.cu
-nvcc -Xptxas -v -arch=compute_11 -code=sm_11 gravity.cu

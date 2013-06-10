@@ -76,6 +76,20 @@ class CUDA_advanced_domain(Domain):
             stream= False,
             rearranged=False,
             domain=None): 
+        """Inits CUDA_advanced_domain class.
+        
+        Args:
+            Note only the newly added arguments will be illustrated here.
+            
+            using_gpu: boolean veriable to enable gpu version evolve
+            cotesting: boolean variable to enable pair-testing technology,
+                testing only
+            stream: boolean variable to enable concurrent Kernels 
+                (CUDA Streams)
+            rearranged: boolean variable to enable rearranged version
+            domain: python object, to upgrate existing instance from an 
+                original Shallow_Water_domain class.
+        """
 
         print "\n ****************************** "
         print " *** Using Advanced Version *** "
@@ -110,9 +124,10 @@ class CUDA_advanced_domain(Domain):
 
 
         self.using_gpu = using_gpu
-        self.cotesting = cotesting
-        self.rearranged_domain = rearranged
 
+        self.cotesting = cotesting
+
+        self.rearranged_domain = rearranged
 
 
         print '\n --> Device attributes'
@@ -121,29 +136,35 @@ class CUDA_advanced_domain(Domain):
         print '    Concurrent Kernels:', \
             bool(dev.get_attribute(
                 drv.device_attribute.CONCURRENT_KERNELS))
+        """ Show device capability on Concurrent kernel supports. """
+
+
+
         print "    Current cache/shared memory configure is ", \
             ctx.get_cache_config()
         ctx.set_cache_config(drv.func_cache.PREFER_L1)
         #ctx.set_cache_config(drv.func_cache.PREFER_SHARED)
         #ctx.set_cache_config(drv.func_cache.PREFER_EQUAL)
         #ctx.set_cache_config(drv.func_cache.PREFER_NONE)
+        """ Change the configuration of L1 cache and shared memory. """
 
 
         if stream:
             if bool(dev.get_attribute(
                 drv.device_attribute.CONCURRENT_KERNELS)):
                 self.using_stream = stream
+                """ A Boolean variable denotes whether to use stream 
+                    (concurrent kernel technology). Default value is False.
+                    Also if device not support such technology, this value
+                    will be set to False. """
+
             else:
                 print ' *** Disable stream ***'
                 self.using_stream = False
         else:
             self.using_stream = False
 
-        #self.end_event = drv.Event()
 
-
-        #if not cotesting:
-        #    self.equip_kernel_functions()
 
         if using_page_locked:
             self.timestep_array = drv.pagelocked_zeros(
@@ -156,12 +177,17 @@ class CUDA_advanced_domain(Domain):
                     dtype = numpy.float64)
  
 
+
     """ GPU_domain functions
     """
 
 
     def equip_kernel_functions(self):
-        """ Get kernel functions
+        """ Compile and equip kernel codes.
+        
+        Equip all the kernel functions and get the appropriate 
+        thread block configuration. Also set up the prepared call with 
+        specifying parameter types for all the kernel functions.
         """
 
         # compute_fluxes function
@@ -484,7 +510,8 @@ class CUDA_advanced_domain(Domain):
     def lock_host_page(self):
         """ Use page-locked memory
 
-        Register host pageable memory to lock their page.
+        Register host pageable memory to lock their page. This should be 
+        done when using the asynchronous transfer.
         """
 
         self.neighbours = get_page_locked_array(self.neighbours)
@@ -552,8 +579,7 @@ class CUDA_advanced_domain(Domain):
 
 
     def allocate_device_array(self):
-        """ Allocate device memory and copy data to device
-        """
+        """ Allocate device memory."""
 
         # auxiliary arrays
         self.timestep_array_gpu = get_device_array(self.timestep_array)
@@ -705,15 +731,18 @@ class CUDA_advanced_domain(Domain):
 
 
     def copy_back_necessary_data(self):
+        """Download results from device. """
+
         pass       
 
 
     def asynchronous_transfer(self):
-        """ Asynchronous transfer from host to device
-
-        Asynchronous transfer data from page-locked memory can hide 
-        transmission overheads by proceeding several transfer together and 
-        overlapping with kernel executing time
+        """Upload mesh information from host to device.
+        
+        When using page-locked host memory to store all mesh information,
+        asynchronous transfer data can hide transmission overheads by 
+        proceeding several transfers together and overlapping with kernel 
+        executing.
         """
 
         # auxiliary arrays
@@ -876,13 +905,16 @@ class CUDA_advanced_domain(Domain):
 
 
 
-    """ Reloading functions from ANUGA
-    """
+    """ Overrided functions from ANUGA Shallow_Water_domain."""
 
 
 
     # 5th level cotesting
     def apply_protection_against_isolated_degenerate_timesteps(self):
+        """Overrided function since max_speed array is required to be 
+        downloaded from device memory.
+        """
+
         if self.using_gpu:
             if self.protect_against_isolated_degenerate_timesteps is False:
                 return
@@ -920,6 +952,10 @@ class CUDA_advanced_domain(Domain):
     # 4th level cotesting
     # Using Stream
     def balance_deep_and_shallow(self):
+        """Overrided function to invoke balance_deep_and_shallow kernel 
+        function.
+        """
+
         if  self.using_gpu:
             N = self.number_of_elements
             W1 = self.balance_deep_and_shallow_block
@@ -960,6 +996,8 @@ class CUDA_advanced_domain(Domain):
     # 4th level cotesting
     # Using Stream
     def protect_against_infinitesimal_and_negative_heights(self):
+        """Overrided function to invoke protect series kernel functions."""
+
         if  self.using_gpu:
             N = self.number_of_elements
             W2 = 1
@@ -1000,7 +1038,6 @@ class CUDA_advanced_domain(Domain):
                         self.quantities['ymomentum'].centroid_values_gpu
                         )
 
-
         else:
             Domain.protect_against_infinitesimal_and_negative_heights(self)
 
@@ -1008,11 +1045,17 @@ class CUDA_advanced_domain(Domain):
             Domain.protect_against_infinitesimal_and_negative_heights(
                     self.cotesting_domain)
             test_protect_against_infinitesimal_and_negative_heights(self)
-            
+
+
 
     # 4th level cotesting
     # Using Stream
     def extrapolate_second_order_sw(self):
+        """Overrided function to invoke extrapolate_velocity_second_order,
+            extrapolate_second_order_sw_true and 
+            extrapolate_second_order_sw_false kernel functions.
+        """
+
         if  self.using_gpu:
             N = self.number_of_elements
             W2 = 1
@@ -1122,10 +1165,12 @@ class CUDA_advanced_domain(Domain):
         else:
             return numpy.array(A, dtype=typecode, copy=False)
 
-    
+
+
     # FIXME
     def get_absolute(self, points):
         """From geo_reference get_absolute"""
+
         is_list = isinstance(poins, list)
         points = self.ensure_numeric(points, list)
 
@@ -1163,6 +1208,7 @@ class CUDA_advanced_domain(Domain):
         return points
 
 
+
     # FIXME
     def get_vertex_coordinates(self, triangle_id=None, absolute=False):
         if self.using_gpu:
@@ -1194,11 +1240,12 @@ class CUDA_advanced_domain(Domain):
                     
 
 
-
     # 4th level cotesting
     # Using Stream
     def manning_friction_implicit(self):
-        """From shallow_water_domain"""  
+        """Overrided function to invoke manning_friction_sloped and 
+            manning_friction_flat kernel functions."""
+
         if self.using_gpu:
             N = self.number_of_elements
             W2 = 1
@@ -1268,7 +1315,9 @@ class CUDA_advanced_domain(Domain):
 
     # 4th level cotesting
     def manning_friction_explicit(self):
-        """From shallow_water_domain"""  
+        """Overrided function to invoke manning_friction_sloped and 
+            manning_friction_flat kernel functions."""
+
         if self.using_gpu:
             N = self.number_of_elements
             W2 = 1
@@ -1323,6 +1372,10 @@ class CUDA_advanced_domain(Domain):
 
     # 3rd level cotesting
     def compute_forcing_terms(self):
+        """Overrided function to invoke kernel version forcing term 
+            functions.
+        """
+
         if self.using_gpu:
             for f in self.forcing_terms:
                 f()
@@ -1339,6 +1392,9 @@ class CUDA_advanced_domain(Domain):
     # 3rd level cotesting
     # Using Stream
     def update_conserved_quantities(self):
+        """Overrided function to invoke update kernel function and for each
+            quantity set device memory of semi_implicit_update to 0."""
+
         if self.using_gpu :
             N = self.number_of_elements
             W1 = self.update_block 
@@ -1370,6 +1426,9 @@ class CUDA_advanced_domain(Domain):
     # 3rd level cotesting
     # Using asynchronous_transfer
     def backup_conserved_quantities(self):
+        """Overrided function to use device memory to temporarily backup
+            the centroid_values for quantity instances."""
+
         if self.using_gpu:
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
@@ -1396,6 +1455,10 @@ class CUDA_advanced_domain(Domain):
     # 3rd level cotesting
     # Using Stream
     def saxpy_conserved_quantities(self, a, b):
+        """Overrided function to invoke saxpy_centroid_values kernel 
+            function.
+        """
+
         if self.using_gpu:
             N = self.number_of_elements
             W1 = self.saxpy_centroid_values_block
@@ -1436,6 +1499,10 @@ class CUDA_advanced_domain(Domain):
     # 3rd level 
     # Using Stream
     def update_centroids_of_velocities_and_height(self):
+        """Overrided function to invoke set_boundary_values_from_edges and
+            update_centroids_of_velocities_and_height kernel functions.
+        """
+
         if self.using_gpu:
             N = self.number_of_elements
             Nb = self.quantities['stage'].boundary_values.shape[0]
@@ -1498,6 +1565,10 @@ class CUDA_advanced_domain(Domain):
 
     # 3th level cotesting
     def compute_fluxes(self):
+        """Overrided function to invoke compute_fluxes and gravity series 
+            kernel functions, and download calculated timestep information.
+        """
+
         if self.using_gpu :
             N = self.number_of_elements
             W2 = 1
@@ -1600,6 +1671,8 @@ class CUDA_advanced_domain(Domain):
     # For cotesting purpose
     # 3rd level cotesting purpose
     def update_timestep(self, yieldstep, finaltime):
+        """Overrided function only for testing purpose."""
+
         Domain.update_timestep(self, yieldstep, finaltime)
         if self.cotesting:
             Domain.update_timestep(
@@ -1613,6 +1686,8 @@ class CUDA_advanced_domain(Domain):
     # For cotesting purpose
     # 2nd level cotesting
     def apply_fractional_steps(self):
+        """Overrided function only for testing purpose."""
+
         pass
         #Domain.apply_fractional_steps(self)
         #if self.cotesting:
@@ -1623,6 +1698,8 @@ class CUDA_advanced_domain(Domain):
     # For cotesting purpose
     # 2nd level cotesting
     def update_ghosts(self):
+        """Overrided function only for testing purpose."""
+
         Domain.update_ghosts(self)
         if self.cotesting:
             Domain.update_ghosts(self.cotesting_domain)
@@ -1632,6 +1709,8 @@ class CUDA_advanced_domain(Domain):
 
     # 2nd level cotesting
     def distribute_to_vertices_and_edges(self):
+        """Overrided function to invoke protect series kernel functions."""
+
         if  self.using_gpu:
             N = self.number_of_elements
             W2 = 1
