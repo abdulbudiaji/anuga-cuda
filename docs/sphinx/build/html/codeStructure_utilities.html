@@ -34,9 +34,6 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
           <a href="codeStructure_openHMPP.html" title="anuga-cuda OpenHMPP Code Structure"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">anuga-cuda 1 documentation</a> &raquo;</li> 
@@ -50,257 +47,14 @@
             
   <div class="section" id="anuga-cuda-utilities-code-structure">
 <h1>anuga-cuda Utilities Code Structure<a class="headerlink" href="#anuga-cuda-utilities-code-structure" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-utilities.check_result">
-<span id="check-result-correctness"></span><h2>Check result correctness<a class="headerlink" href="#module-utilities.check_result" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="utilities.check_result.approx_equal">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">approx_equal</tt><big>(</big><em>a</em>, <em>b</em>, <em>approx=True</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#approx_equal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.approx_equal" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check result with tolerance.</p>
-<p>return abs(a-b) &lt;= abs(a)*tolerance</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.check_all">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">check_all</tt><big>(</big><em>domain</em>, <em>test_domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#check_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.check_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check all the result</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.check_result">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">check_result</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#check_result"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.check_result" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check result correctness.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_balance_deep_and_shallow">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_balance_deep_and_shallow</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_balance_deep_and_shallow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_balance_deep_and_shallow" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for balance_deep_and_shallow</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_compute_fluxes">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_compute_fluxes</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_compute_fluxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_compute_fluxes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for compute_fluxes</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_compute_forcing_terms">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_compute_forcing_terms</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_compute_forcing_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_compute_forcing_terms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for compute_forcing_terms</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_distribute_to_vertexs_and_edges">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_distribute_to_vertexs_and_edges</tt><big>(</big><em>domain</em>, <em>IO='Output'</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_distribute_to_vertexs_and_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_distribute_to_vertexs_and_edges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pair-testing check point for distribute_to_vertices_and_edges</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_evolve_one_euler_step">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_evolve_one_euler_step</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_evolve_one_euler_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_evolve_one_euler_step" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for evolve_one_euler_step</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_extrapolate_first_order">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_extrapolate_first_order</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_extrapolate_first_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_extrapolate_first_order" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for extrapolate_first_order</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_extrapolate_second_order_and_limit_by_vertex">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_extrapolate_second_order_and_limit_by_vertex</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_extrapolate_second_order_and_limit_by_vertex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_extrapolate_second_order_and_limit_by_vertex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for 
-extrapolate_second_order_and_limit_by_vertex</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_extrapolate_second_order_sw">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_extrapolate_second_order_sw</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_extrapolate_second_order_sw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_extrapolate_second_order_sw" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for extrapolate_second_order_sw</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_interpolate_from_vertices_to_edges">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_interpolate_from_vertices_to_edges</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_interpolate_from_vertices_to_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_interpolate_from_vertices_to_edges" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for interpolate_from_vertices_to_edges</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_manning_friction_implicit">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_manning_friction_implicit</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_manning_friction_implicit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_manning_friction_implicit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for manning_friction_implicit</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_protect_against_infinitesimal_and_negative_heights">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_protect_against_infinitesimal_and_negative_heights</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_protect_against_infinitesimal_and_negative_heights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_protect_against_infinitesimal_and_negative_heights" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for 
-protect_against_infinitesimal_and_negative_heights</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_update_boundary">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_update_boundary</tt><big>(</big><em>domain</em>, <em>inputOnly=False</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_update_boundary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_update_boundary" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for update_boundary</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_update_centroids_of_velocities_and_height">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_update_centroids_of_velocities_and_height</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_update_centroids_of_velocities_and_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_update_centroids_of_velocities_and_height" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for 
-update_centroids_of_velocities_and_height</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_update_conserved_quantities">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_update_conserved_quantities</tt><big>(</big><em>domain</em>, <em>output=True</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_update_conserved_quantities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_update_conserved_quantities" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for update_conserved_quantities</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_update_extrema">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_update_extrema</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_update_extrema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_update_extrema" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for update_extrema</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_update_ghosts">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_update_ghosts</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_update_ghosts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_update_ghosts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for update_ghosts</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_update_other_quantities">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_update_other_quantities</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_update_other_quantities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_update_other_quantities" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for update_other_quantities</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.check_result.test_update_timestep">
-<tt class="descclassname">utilities.check_result.</tt><tt class="descname">test_update_timestep</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/check_result.html#test_update_timestep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.check_result.test_update_timestep" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pari-testing check point for update_timestep</p>
-</dd></dl>
-
+<div class="section" id="check-result-correctness">
+<h2>Check result correctness<a class="headerlink" href="#check-result-correctness" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-utilities.sort_domain">
-<span id="sort-and-rearrange-mesh-information"></span><h2>Sort and rearrange mesh information<a class="headerlink" href="#module-utilities.sort_domain" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="utilities.sort_domain.check_rearranged_array">
-<tt class="descclassname">utilities.sort_domain.</tt><tt class="descname">check_rearranged_array</tt><big>(</big><em>a</em>, <em>b</em>, <em>configure=3</em><big>)</big><a class="reference internal" href="_modules/utilities/sort_domain.html#check_rearranged_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.sort_domain.check_rearranged_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check rearranged array.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.sort_domain.rearrange_domain">
-<tt class="descclassname">utilities.sort_domain.</tt><tt class="descname">rearrange_domain</tt><big>(</big><em>domain</em>, <em>sort_flag=True</em>, <em>spare_domain=None</em><big>)</big><a class="reference internal" href="_modules/utilities/sort_domain.html#rearrange_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.sort_domain.rearrange_domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Rearrange the mesh information stored in memory.</p>
-<p>This will help to better meet the requirements of coalesced memory 
-access.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.sort_domain.rearrange_domain_check">
-<tt class="descclassname">utilities.sort_domain.</tt><tt class="descname">rearrange_domain_check</tt><big>(</big><em>domain1</em>, <em>domain2</em><big>)</big><a class="reference internal" href="_modules/utilities/sort_domain.html#rearrange_domain_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.sort_domain.rearrange_domain_check" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check rearranged mesh information</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.sort_domain.sort_domain">
-<tt class="descclassname">utilities.sort_domain.</tt><tt class="descname">sort_domain</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/sort_domain.html#sort_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.sort_domain.sort_domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sort the neighbour order of mesh entities</p>
-<p>This is used to ensure the calculation sequence in paralle as same as 
-that in sequential</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.sort_domain.sort_domain_check">
-<tt class="descclassname">utilities.sort_domain.</tt><tt class="descname">sort_domain_check</tt><big>(</big><em>domain2</em><big>)</big><a class="reference internal" href="_modules/utilities/sort_domain.html#sort_domain_check"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.sort_domain.sort_domain_check" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check the sorted domain information.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.sort_domain.swap_domain">
-<tt class="descclassname">utilities.sort_domain.</tt><tt class="descname">swap_domain</tt><big>(</big><em>domain</em>, <em>i</em>, <em>j</em>, <em>k</em><big>)</big><a class="reference internal" href="_modules/utilities/sort_domain.html#swap_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.sort_domain.swap_domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Swap information of two mesh entities.</p>
-<p>This is used to ensure the calculation sequence in parallel.</p>
-</dd></dl>
-
+<div class="section" id="sort-and-rearrange-mesh-information">
+<h2>Sort and rearrange mesh information<a class="headerlink" href="#sort-and-rearrange-mesh-information" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-utilities.utility">
-<span id="general-utilities"></span><h2>General utilities<a class="headerlink" href="#module-utilities.utility" title="Permalink to this headline">¶</a></h2>
-<dl class="function">
-<dt id="utilities.utility.asy_cpy">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">asy_cpy</tt><big>(</big><em>a</em>, <em>a_gpu</em>, <em>auto_init_context=True</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#asy_cpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.asy_cpy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Data transfer from host to device.</p>
-<p>Asynchronous will be enabled when auto_init_context is True, otherwise
-use normal transfer.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.utility.cpy_back">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">cpy_back</tt><big>(</big><em>a</em>, <em>a_gpu</em>, <em>auto_init_context=True</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#cpy_back"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.cpy_back" title="Permalink to this definition">¶</a></dt>
-<dd><p>Data transfer from device to host.</p>
-<p>Asynchronous will be enabled when auto_init_context is True, otherwise
-use normal transfer.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.utility.cpy_back_and_cmp">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">cpy_back_and_cmp</tt><big>(</big><em>a</em>, <em>b</em>, <em>value_type</em>, <em>gpu=True</em>, <em>rg=False</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#cpy_back_and_cmp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.cpy_back_and_cmp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Download mesh information and check result.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.utility.get_device_array">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">get_device_array</tt><big>(</big><em>a</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#get_device_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.get_device_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Allocate device memory</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.utility.get_kernel_function_info">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">get_kernel_function_info</tt><big>(</big><em>a</em>, <em>W1=0</em>, <em>W2=1</em>, <em>W3=1</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#get_kernel_function_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.get_kernel_function_info" title="Permalink to this definition">¶</a></dt>
-<dd><p>Show kernel information</p>
-<dl class="docutils">
-<dt>Including </dt>
-<dd><ol class="first last arabic simple">
-<li>max #threads per block,</li>
-<li>active warps per MP,</li>
-<li>thread block per MP,</li>
-<li>usage of shared memory,</li>
-<li>const memory ,</li>
-<li>local memory</li>
-<li>registers</li>
-<li>hardware occupancy</li>
-<li>limitation of the hardware occupancy</li>
-</ol>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.utility.get_page_locked_array">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">get_page_locked_array</tt><big>(</big><em>a</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#get_page_locked_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.get_page_locked_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replace the pageable array to page-locked array</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.utility.get_sourceModule">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">get_sourceModule</tt><big>(</big><em>k_dir</em>, <em>k_name</em>, <em>rearranged_domain=False</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#get_sourceModule"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.get_sourceModule" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compile kernel code and return the PyCUDA function object</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="utilities.utility.number_domain_method">
-<tt class="descclassname">utilities.utility.</tt><tt class="descname">number_domain_method</tt><big>(</big><em>domain</em><big>)</big><a class="reference internal" href="_modules/utilities/utility.html#number_domain_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utilities.utility.number_domain_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert mesh information stored in text string to ingeger.</p>
-<p>This is used in hmpp_pyhton_glue.</p>
-<dl class="docutils">
-<dt>Return value:</dt>
-<dd>(compute_fluxes_method, flow_algorithm, timestepping_method)</dd>
-</dl>
-</dd></dl>
-
+<div class="section" id="general-utilities">
+<h2>General utilities<a class="headerlink" href="#general-utilities" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -313,9 +67,9 @@ use normal transfer.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">anuga-cuda Utilities Code Structure</a><ul>
-<li><a class="reference internal" href="#module-utilities.check_result">Check result correctness</a></li>
-<li><a class="reference internal" href="#module-utilities.sort_domain">Sort and rearrange mesh information</a></li>
-<li><a class="reference internal" href="#module-utilities.utility">General utilities</a></li>
+<li><a class="reference internal" href="#check-result-correctness">Check result correctness</a></li>
+<li><a class="reference internal" href="#sort-and-rearrange-mesh-information">Sort and rearrange mesh information</a></li>
+<li><a class="reference internal" href="#general-utilities">General utilities</a></li>
 </ul>
 </li>
 </ul>
@@ -351,9 +105,6 @@ use normal transfer.</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
         <li class="right" >
           <a href="codeStructure_openHMPP.html" title="anuga-cuda OpenHMPP Code Structure"
              >previous</a> |</li>
