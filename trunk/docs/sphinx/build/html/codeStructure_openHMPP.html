@@ -54,8 +54,23 @@
             
   <div class="section" id="anuga-cuda-openhmpp-code-structure">
 <h1>anuga-cuda OpenHMPP Code Structure<a class="headerlink" href="#anuga-cuda-openhmpp-code-structure" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="python-class">
-<h2>Python Class<a class="headerlink" href="#python-class" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-anuga_HMPP">
+<span id="python-class"></span><h2>Python Class<a class="headerlink" href="#module-anuga_HMPP" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="anuga_HMPP.HMPP_domain">
+<em class="property">class </em><tt class="descclassname">anuga_HMPP.</tt><tt class="descname">HMPP_domain</tt><big>(</big><em>coordinates=None</em>, <em>vertices=None</em>, <em>boundary=None</em>, <em>source=None</em>, <em>triangular=None</em>, <em>conserved_quantities=None</em>, <em>evolved_quantities=None</em>, <em>other_quantities=None</em>, <em>tagged_elements=None</em>, <em>geo_reference=None</em>, <em>use_inscribed_circle=False</em>, <em>mesh_fulename=None</em>, <em>use_cache=False</em>, <em>verbose=False</em>, <em>full_send_dict=None</em>, <em>ghost_recv_dict=None</em>, <em>starttime=0.0</em>, <em>processor=0</em>, <em>numproc=1</em>, <em>number_of_full_nodes=None</em>, <em>number_of_full_triangles=None</em>, <em>ghost_layer_width=2</em><big>)</big><a class="headerlink" href="#anuga_HMPP.HMPP_domain" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="anuga_HMPP.HMPP_domain.convert_boundary_elements">
+<tt class="descname">convert_boundary_elements</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_HMPP.HMPP_domain.convert_boundary_elements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="anuga_HMPP.HMPP_domain.evolve">
+<tt class="descname">evolve</tt><big>(</big><em>yieldstep=0.0</em>, <em>finaltime=1.0</em>, <em>duration=0.0</em>, <em>skip_initial_step=False</em><big>)</big><a class="headerlink" href="#anuga_HMPP.HMPP_domain.evolve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
@@ -68,7 +83,7 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">anuga-cuda OpenHMPP Code Structure</a><ul>
-<li><a class="reference internal" href="#python-class">Python Class</a></li>
+<li><a class="reference internal" href="#module-anuga_HMPP">Python Class</a></li>
 </ul>
 </li>
 </ul>
