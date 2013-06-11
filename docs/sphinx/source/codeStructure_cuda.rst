@@ -1,5 +1,5 @@
-ANUGA CUDA Code Structure
-=========================
+anuga-cuda CUDA Code Structure
+==============================
 
 
 Advanced Version Class 
@@ -16,9 +16,11 @@ Basic Version Class
 .. autoclass:: CUDA_basic_domain
 
 
+
+<!--
 Single Class
 ------------
 .. py:module: anuga_cuda
 .. py:class:: CUDA_advanced_domain
-
+-->
 
