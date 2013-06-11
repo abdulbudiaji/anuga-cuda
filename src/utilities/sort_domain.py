@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
 def swap_domain(domain, i, j, k):
+    """Swap information of two mesh entities.
+    
+    This is used to ensure the calculation sequence in parallel.
+    """
+
     neighbours = domain.neighbours[i]
     
     s_neighbours = domain.surrogate_neighbours[i]
@@ -51,6 +56,12 @@ def swap_domain(domain, i, j, k):
 
 
 def sort_domain(domain):
+    """Sort the neighbour order of mesh entities
+
+    This is used to ensure the calculation sequence in paralle as same as 
+    that in sequential 
+    """
+
     for i in range(domain.number_of_elements):
         
         neighbours = domain.neighbours[i]
@@ -82,6 +93,8 @@ def sort_domain(domain):
 
 
 def sort_domain_check(domain2):
+    """Check the sorted domain information."""
+
     from anuga_cuda.merimbula_data.generate_domain import domain_create
 
     domain1 = domain_create()
@@ -150,6 +163,12 @@ def sort_domain_check(domain2):
 
 
 def rearrange_domain(domain, sort_flag=True, spare_domain=None):
+    """Rearrange the mesh information stored in memory.
+    
+    This will help to better meet the requirements of coalesced memory 
+    access.
+    """
+
     import copy 
 
     if spare_domain == None:
@@ -325,6 +344,8 @@ def rearrange_domain(domain, sort_flag=True, spare_domain=None):
 
 
 def check_rearranged_array(a, b, configure=3):
+    """Check rearranged array."""
+
     import numpy 
     counter = 0
     N = a.shape[0]
@@ -372,11 +393,16 @@ def check_rearranged_array(a, b, configure=3):
                 
                 counter +=1
     
+    if counter == 0:
+        # This is used to tell apart the False and 0
+        counter = -1
     return counter
 
 
     
 def rearrange_domain_check(domain1, domain2):
+    """Check rearranged mesh information"""
+
     neighbours = domain1.neighbours
     neighbour_edges = domain1.neighbour_edges
     surrogate_neighbours = domain1.surrogate_neighbours
