@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-"""********** ********** ********** ********** **********
-    Get kernel function info
-********** ********** ********** ********** **********"""
 def get_kernel_function_info(a, W1=0, W2=1, W3=1):
     """Show kernel information
     
