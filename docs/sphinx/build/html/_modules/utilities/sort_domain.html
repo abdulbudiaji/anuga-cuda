@@ -1,0 +1,776 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utilities.sort_domain &mdash; anuga-cuda 1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="anuga-cuda 1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">anuga-cuda 1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for utilities.sort_domain</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+
+<div class="viewcode-block" id="swap_domain"><a class="viewcode-back" href="../../codeStructure_utilities.html#utilities.sort_domain.swap_domain">[docs]</a><span class="k">def</span> <span class="nf">swap_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Swap information of two mesh entities.</span>
+<span class="sd">    </span>
+<span class="sd">    This is used to ensure the calculation sequence in parallel.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">neighbours</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    
+    <span class="n">s_neighbours</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">surrogate_neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">normals</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">edgelengths</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">edgelengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="n">vertex_coordinates</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">vertex_coordinates</span>
+    <span class="n">edge_coordinates</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">edge_coordinates</span>
+
+
+    <span class="n">stage_edge_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">xmom_edge_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">ymom_edge_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">bed_edge_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="n">stage_vertex_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">xmom_vertex_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">ymom_vertex_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">bed_vertex_values</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    
+
+    <span class="n">neighbours</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">neighbours</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+    <span class="n">s_neighbours</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">s_neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">s_neighbours</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+    <span class="n">normals</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">2</span><span class="p">],</span> <span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">2</span><span class="p">],</span> <span class="n">normals</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">normals</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">normals</span><span class="p">[</span><span class="n">j</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">edgelengths</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">edgelengths</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">edgelengths</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">edgelengths</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+    <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> 
+    <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> 
+
+    <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> 
+    <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> 
+
+    <span class="n">stage_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">stage_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">stage_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">stage_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">xmom_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">xmom_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">xmom_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">xmom_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">ymom_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">ymom_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">ymom_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">ymom_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">bed_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">bed_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">bed_edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">bed_edge_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+    <span class="n">stage_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">stage_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">stage_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">stage_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">xmom_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">xmom_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">xmom_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">xmom_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">ymom_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">ymom_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">ymom_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">ymom_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+    <span class="n">bed_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">bed_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">bed_vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">bed_vertex_values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+
+</div>
+<div class="viewcode-block" id="sort_domain"><a class="viewcode-back" href="../../codeStructure_utilities.html#utilities.sort_domain.sort_domain">[docs]</a><span class="k">def</span> <span class="nf">sort_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sort the neighbour order of mesh entities</span>
+
+<span class="sd">    This is used to ensure the calculation sequence in paralle as same as </span>
+<span class="sd">    that in sequential </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">number_of_elements</span><span class="p">):</span>
+        
+        <span class="n">neighbours</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">i</span> <span class="ow">and</span> \
+                <span class="p">(</span><span class="n">neighbours</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;</span><span class="n">neighbours</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">swap_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">i</span> <span class="ow">and</span> \
+                <span class="p">(</span><span class="n">neighbours</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="n">neighbours</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">swap_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;</span><span class="n">i</span> <span class="ow">and</span> \
+               <span class="p">(</span><span class="n">neighbours</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">or</span> <span class="n">neighbours</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">&lt;</span><span class="n">neighbours</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">swap_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+    
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">domain</span><span class="o">.</span><span class="n">number_of_elements</span><span class="p">):</span>
+        <span class="n">n1</span><span class="p">,</span> <span class="n">n2</span><span class="p">,</span> <span class="n">n3</span> <span class="o">=</span> <span class="n">domain</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">domain</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">n1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">:</span>
+                <span class="n">domain</span><span class="o">.</span><span class="n">neighbour_edges</span><span class="p">[</span><span class="n">n1</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">domain</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">n2</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">:</span>
+                <span class="n">domain</span><span class="o">.</span><span class="n">neighbour_edges</span><span class="p">[</span><span class="n">n2</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">domain</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">n3</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">:</span>
+                <span class="n">domain</span><span class="o">.</span><span class="n">neighbour_edges</span><span class="p">[</span><span class="n">n3</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>                
+                    
+
+</div>
+<div class="viewcode-block" id="sort_domain_check"><a class="viewcode-back" href="../../codeStructure_utilities.html#utilities.sort_domain.sort_domain_check">[docs]</a><span class="k">def</span> <span class="nf">sort_domain_check</span><span class="p">(</span><span class="n">domain2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check the sorted domain information.&quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">anuga_cuda.merimbula_data.generate_domain</span> <span class="kn">import</span> <span class="n">domain_create</span>
+
+    <span class="n">domain1</span> <span class="o">=</span> <span class="n">domain_create</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">domain1</span><span class="o">.</span><span class="n">number_of_elements</span><span class="p">):</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">spe_bubble_sort</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">domain1</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;###### tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%d</span><span class="s"> - </span><span class="si">%d</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+                <span class="k">continue</span>
+            
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">surrogate_neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">surrogate_neighbours</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%d</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ surrogate_neighbours &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+                
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span>\
+                     <span class="n">domain1</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ normals &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">edgelengths</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">edgelengths</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ edgelengths &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span>\
+                     <span class="n">domain1</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ vertex_coordinates &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span>\
+                     <span class="n">domain1</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">k</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ edge_coordinates &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ stage_edge_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+    
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ xmom_edge_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ ymom_edge_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, edge: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ bed_edge_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, vertex: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ stage_vertex_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+    
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, vertex: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ xmom_vertex_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, vertex: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ ymom_vertex_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="p">]</span> <span class="o">!=</span> \
+                    <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">print</span> <span class="s">&quot;tri: </span><span class="si">%ld</span><span class="s">, vertex: </span><span class="si">%ld</span><span class="s"> - </span><span class="si">%d</span><span class="s"> @ bed_vertex_values &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">)</span>
+
+
+</div>
+<div class="viewcode-block" id="rearrange_domain"><a class="viewcode-back" href="../../codeStructure_utilities.html#utilities.sort_domain.rearrange_domain">[docs]</a><span class="k">def</span> <span class="nf">rearrange_domain</span><span class="p">(</span><span class="n">domain</span><span class="p">,</span> <span class="n">sort_flag</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">spare_domain</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Rearrange the mesh information stored in memory.</span>
+<span class="sd">    </span>
+<span class="sd">    This will help to better meet the requirements of coalesced memory </span>
+<span class="sd">    access.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">copy</span> 
+
+    <span class="k">if</span> <span class="n">spare_domain</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">new_dom</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">domain</span><span class="p">)</span>
+	
+        <span class="k">if</span> <span class="n">sort_flag</span><span class="p">:</span>
+            <span class="n">sort_domain</span><span class="p">(</span><span class="n">new_dom</span><span class="p">)</span>
+            <span class="n">temp_dom</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">new_dom</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">temp_dom</span> <span class="o">=</span> <span class="n">domain</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_dom</span> <span class="o">=</span> <span class="n">domain</span>
+        <span class="n">temp_dom</span> <span class="o">=</span> <span class="n">spare_domain</span>
+
+    <span class="n">N</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">number_of_elements</span>
+
+    <span class="n">neighbours</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">neighbours</span>
+    <span class="n">neighbour_edges</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">neighbour_edges</span>
+    <span class="n">surrogate_neighbours</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">surrogate_neighbours</span>
+    <span class="n">normals</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">normals</span>
+    <span class="n">edgelengths</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">edgelengths</span>
+
+    <span class="n">vertex_coordinates</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">vertex_coordinates</span>
+    <span class="n">edge_coordinates</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">edge_coordinates</span>
+    <span class="n">centroid_coordinates</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">centroid_coordinates</span>
+
+
+    <span class="n">stage_edge_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">xmom_edge_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">ymom_edge_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">bed_edge_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+
+    <span class="n">stage_vertex_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">xmom_vertex_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">ymom_vertex_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">bed_vertex_values</span> <span class="o">=</span> <span class="n">new_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">neighbours</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">neighbours</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">neighbours</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">neighbour_edges</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">neighbour_edges</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">neighbour_edges</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">neighbour_edges</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">neighbour_edges</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">neighbour_edges</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="n">surrogate_neighbours</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+										<span class="n">temp_dom</span><span class="o">.</span><span class="n">surrogate_neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">surrogate_neighbours</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+										<span class="n">temp_dom</span><span class="o">.</span><span class="n">surrogate_neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">surrogate_neighbours</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+										<span class="n">temp_dom</span><span class="o">.</span><span class="n">surrogate_neighbours</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">6</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">normals</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">normals</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">normals</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">normals</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span>
+        <span class="n">normals</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">5</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">normals</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+
+
+        <span class="n">edgelengths</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edgelengths</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">edgelengths</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edgelengths</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">edgelengths</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edgelengths</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+        
+        <span class="c">#vertex_coordinates[i/2][i%2] = \</span>
+		<span class="c">#							temp_dom.vertex_coordinates[i*3][0]</span>
+        <span class="c">#vertex_coordinates[(i+N)/2][(i+N)%2] = \</span>
+		<span class="c">#							temp_dom.vertex_coordinates[i*3][1]</span>
+        <span class="c">#vertex_coordinates[(i+N*2)/2][(i+N*2)%2] = \</span>
+		<span class="c">#							temp_dom.vertex_coordinates[i*3+1][0]</span>
+        <span class="c">#vertex_coordinates[(i+N*3)/2][(i+N*3)%2] = \</span>
+		<span class="c">#							temp_dom.vertex_coordinates[i*3+1][1]</span>
+        <span class="c">#vertex_coordinates[(i+N*4)/2][(i+N*4)%2] = \</span>
+		<span class="c">#							temp_dom.vertex_coordinates[i*3+2][0]</span>
+        <span class="c">#vertex_coordinates[(i+N*5)/2][(i+N*5)%2] = \</span>
+        <span class="c">#							temp_dom.vertex_coordinates[i*3+2][1]</span>
+
+        <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> \
+									<span class="n">temp_dom</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">]</span> <span class="o">=</span> \
+									<span class="n">temp_dom</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> \
+									<span class="n">temp_dom</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+									<span class="n">temp_dom</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> \
+									<span class="n">temp_dom</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">vertex_coordinates</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> \
+        							<span class="n">temp_dom</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+        
+        <span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">edge_coordinates</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">edge_coordinates</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">edge_coordinates</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">edge_coordinates</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">edge_coordinates</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+
+        <span class="n">centroid_coordinates</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">centroid_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">centroid_coordinates</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">temp_dom</span><span class="o">.</span><span class="n">centroid_coordinates</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">stage_edge_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">stage_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">stage_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="n">xmom_edge_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+						<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xmom_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+						<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xmom_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="n">ymom_edge_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ymom_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ymom_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="n">bed_edge_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">bed_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">bed_edge_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+
+        <span class="n">stage_vertex_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">stage_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">stage_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="n">xmom_vertex_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xmom_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xmom_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="n">ymom_vertex_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ymom_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ymom_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+
+        <span class="n">bed_vertex_values</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">bed_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">bed_vertex_values</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> \
+							<span class="n">temp_dom</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">new_dom</span>
+
+
+</div>
+<div class="viewcode-block" id="check_rearranged_array"><a class="viewcode-back" href="../../codeStructure_utilities.html#utilities.sort_domain.check_rearranged_array">[docs]</a><span class="k">def</span> <span class="nf">check_rearranged_array</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">configure</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check rearranged array.&quot;&quot;&quot;</span>
+
+    <span class="kn">import</span> <span class="nn">numpy</span> 
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">configure</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; N * 2 &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> \
+		    	<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="p">:</span>
+                <span class="n">counter</span> <span class="o">+=</span><span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">configure</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; N * 3 &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span> <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="p">)</span> <span class="ow">and</span> \
+	        	<span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="p">)</span> <span class="ow">and</span> \
+                <span class="n">numpy</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span> <span class="p">)</span> <span class="p">):</span>
+                <span class="k">if</span> <span class="n">counter</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">3</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">3</span><span class="p">],</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">],</span> \
+                            <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">3</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]</span>
+
+                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">elif</span> <span class="n">configure</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; N * 6 &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">6</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="ow">or</span> \
+                <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="ow">or</span> \
+	    	    <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="ow">or</span> \
+	    	    <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="ow">or</span> \
+	    	    <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">4</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]</span> <span class="ow">or</span> \
+	    	    <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span><span class="o">%</span><span class="mi">6</span><span class="p">]:</span>
+
+	    		<span class="n">counter</span> <span class="o">+=</span><span class="mi">1</span>
+
+    <span class="k">elif</span> <span class="n">configure</span> <span class="o">==</span> <span class="mi">32</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; N*3 * 2&quot;&quot;&quot;</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">N</span><span class="o">/</span><span class="mi">3</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="o">/</span><span class="mi">2</span><span class="p">][</span><span class="n">i</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> \
+		    	<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> \
+		    	<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> \
+		    	<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> \
+		    	<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> \
+		    	<span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">b</span><span class="p">[(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">][(</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">)</span><span class="o">%</span><span class="mi">2</span><span class="p">]</span> <span class="p">:</span>
+                
+                <span class="n">counter</span> <span class="o">+=</span><span class="mi">1</span>
+    
+    <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c"># This is used to tell apart the False and 0</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">counter</span>
+
+
+    </div>
+<div class="viewcode-block" id="rearrange_domain_check"><a class="viewcode-back" href="../../codeStructure_utilities.html#utilities.sort_domain.rearrange_domain_check">[docs]</a><span class="k">def</span> <span class="nf">rearrange_domain_check</span><span class="p">(</span><span class="n">domain1</span><span class="p">,</span> <span class="n">domain2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check rearranged mesh information&quot;&quot;&quot;</span>
+
+    <span class="n">neighbours</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">neighbours</span>
+    <span class="n">neighbour_edges</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">neighbour_edges</span>
+    <span class="n">surrogate_neighbours</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">surrogate_neighbours</span>
+    <span class="n">normals</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">normals</span>
+    <span class="n">edgelengths</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">edgelengths</span>
+
+    <span class="n">vertex_coordinates</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">vertex_coordinates</span>
+    <span class="n">edge_coordinates</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">edge_coordinates</span>
+    <span class="n">centroid_coordinates</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">centroid_coordinates</span>
+
+
+    <span class="n">stage_edge_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">xmom_edge_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">ymom_edge_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">bed_edge_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+
+    <span class="n">stage_vertex_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">xmom_vertex_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">ymom_vertex_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">bed_vertex_values</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+
+
+    <span class="n">vc</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">vertex_coordinates</span>
+    <span class="n">xc</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">edge_coordinates</span>
+    <span class="n">cc</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">centroid_coordinates</span>
+
+
+    <span class="n">se</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">xe</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">ye</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+    <span class="n">be</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span>
+
+    <span class="n">sv</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">xv</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">yv</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+    <span class="n">bv</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span>
+
+
+
+    <span class="n">N</span> <span class="o">=</span> <span class="n">domain1</span><span class="o">.</span><span class="n">number_of_elements</span>
+
+    <span class="n">cnt_nb</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">neighbours</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">neighbours</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_nbedge</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">neighbour_edges</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">neighbour_edges</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_surrnb</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">surrogate_neighbours</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">surrogate_neighbours</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_norm</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">normals</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">normals</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">cnt_el</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">edgelengths</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">edgelengths</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_vc</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">vertex_coordinates</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">vertex_coordinates</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+    <span class="n">cnt_ec</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">edge_coordinates</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+    
+    <span class="n">edgeC</span> <span class="o">=</span> <span class="n">edge_coordinates</span>
+    <span class="n">ec_2</span> <span class="o">=</span> <span class="n">domain2</span><span class="o">.</span><span class="n">edge_coordinates</span><span class="o">.</span><span class="n">flat</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">edgeC</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">ec_2</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">or</span> <span class="n">edgeC</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">ec_2</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="p">]</span> <span class="ow">or</span> \
+            <span class="n">edgeC</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="n">ec_2</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="n">edgeC</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="n">ec_2</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">3</span><span class="p">]</span> <span class="ow">or</span>\
+            <span class="n">edgeC</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="n">ec_2</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">4</span><span class="p">]</span> <span class="ow">or</span> <span class="n">edgeC</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">3</span><span class="o">+</span><span class="mi">2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="n">ec_2</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="n">N</span><span class="o">*</span><span class="mi">5</span><span class="p">]:</span>
+            <span class="k">print</span> <span class="n">i</span>
+
+    <span class="n">cnt_cc</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span>
+            <span class="n">centroid_coordinates</span><span class="p">,</span> <span class="n">domain2</span><span class="o">.</span><span class="n">centroid_coordinates</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">cnt_se</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">stage_edge_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_xe</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">xmom_edge_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_ye</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">ymom_edge_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_be</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">bed_edge_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;elevation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">edge_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_sv</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">stage_vertex_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;stage&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_xv</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">xmom_vertex_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;xmomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_yv</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">ymom_vertex_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&#39;ymomentum&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">cnt_bv</span> <span class="o">=</span> <span class="n">check_rearranged_array</span><span class="p">(</span> <span class="n">bed_vertex_values</span><span class="p">,</span>
+            <span class="n">domain2</span><span class="o">.</span><span class="n">quantities</span><span class="p">[</span><span class="s">&quot;elevation&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">vertex_values</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="c">#for i in range(N):</span>
+    <span class="c">#    if neighbours[i][0] != domain2.neighbours[i/3][i%3] or \</span>
+	<span class="c">#		neighbours[i][1] != domain2.neighbours[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		neighbours[i][2] != domain2.neighbours[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, neighbours[i], domain2.neighbours[i/3][i%3], \</span>
+    <span class="c">#                    domain2.neighbours[(i+N)/3][(i+N)%3], \</span>
+    <span class="c">#                    domain2.neighbours[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_nb+=1</span>
+
+    <span class="c">#    if neighbour_edges[i][0] != domain2.neighbour_edges[i/3][i%3] or \</span>
+	<span class="c">#		neighbour_edges[i][1] != \</span>
+    <span class="c">#            domain2.neighbour_edges[(i+N)/3][(i+N)%3]or\</span>
+	<span class="c">#		neighbour_edges[i][2] != \</span>
+    <span class="c">#            domain2.neighbour_edges[(i+N*2)/3][(i+N*2)%3]:</span>
+	<span class="c">#		cnt_nbedge+=1</span>
+    <span class="c">#    </span>
+    <span class="c">#    if surrogate_neighbours[i][0] != \</span>
+    <span class="c">#            domain2.surrogate_neighbours[i/3][i%3]or\</span>
+	<span class="c">#		surrogate_neighbours[i][1] !=\</span>
+    <span class="c">#            domain2.surrogate_neighbours[(i+N)/3][(i+N)%3]or\</span>
+	<span class="c">#		surrogate_neighbours[i][2] !=\</span>
+    <span class="c">#            domain2.surrogate_neighbours[(i+N*2)/3][(i+N*2)%3]:</span>
+	<span class="c">#		cnt_surrnb +=1</span>
+
+    <span class="c">#    if normals[i][0] != domain2.normals[i/6][i%6] or \</span>
+	<span class="c">#		    normals[i][1] != domain2.normals[(i+N)/6][(i+N)%6] or \</span>
+	<span class="c">#		    normals[i][2] != domain2.normals[(i+N*2)/6][(i+N*2)%6] or \</span>
+	<span class="c">#		    normals[i][3] != domain2.normals[(i+N*3)/6][(i+N*3)%6] or \</span>
+	<span class="c">#		    normals[i][4] != domain2.normals[(i+N*4)/6][(i+N*4)%6] or \</span>
+	<span class="c">#		    normals[i][5] != domain2.normals[(i+N*5)/6][(i+N*5)%6]:</span>
+	<span class="c">#		cnt_norm +=1</span>
+
+    <span class="c">#    if edgelengths[i][0] != domain2.edgelengths[i/3][i%3] or \</span>
+	<span class="c">#		edgelengths[i][1] != domain2.edgelengths[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		edgelengths[i][2] != domain2.edgelengths[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, edgelengths[i], domain2.edgelengths[i/3][i%3], \</span>
+    <span class="c">#                    domain2.edgelengths[(i+N)/3][(i+N)%3], \</span>
+    <span class="c">#                    domain2.edgelengths[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_el +=1</span>
+
+
+    <span class="c">#    if vertex_coordinates[i*3][0] != \</span>
+    <span class="c">#            domain2.vertex_coordinates[i/2][i%2] or \</span>
+	<span class="c">#		vertex_coordinates[i*3][1] != \</span>
+    <span class="c">#            domain2.vertex_coordinates[(i+N)/2][(i+N)%2] or \</span>
+	<span class="c">#		vertex_coordinates[i*3 + 1][0] != \</span>
+    <span class="c">#            domain2.vertex_coordinates[(i+N*2)/2][(i+N*2)%2] or \</span>
+	<span class="c">#		vertex_coordinates[i*3 + 1][1] != \</span>
+    <span class="c">#            domain2.vertex_coordinates[(i+N*3)/2][(i+N*3)%2] or \</span>
+	<span class="c">#		vertex_coordinates[i*3 + 2][0] != \</span>
+    <span class="c">#            domain2.vertex_coordinates[(i+N*4)/2][(i+N*4)%2] or \</span>
+	<span class="c">#		vertex_coordinates[i*3 + 2][1] != \</span>
+    <span class="c">#            domain2.vertex_coordinates[(i+N*5)/2][(i+N*5)%2] :</span>
+    <span class="c">#        cnt_vc +=1</span>
+
+
+    <span class="c">#    if edge_coordinates[i*3][0] != \</span>
+    <span class="c">#            domain2.edge_coordinates[i/2][i%2] or \</span>
+	<span class="c">#		edge_coordinates[i*3][1] != \</span>
+    <span class="c">#            domain2.edge_coordinates[(i+N)/2][(i+N)%2] or \</span>
+	<span class="c">#		edge_coordinates[i*3 + 1][0] != \</span>
+    <span class="c">#            domain2.edge_coordinates[(i+N*2)/2][(i+N*2)%2] or \</span>
+	<span class="c">#		edge_coordinates[i*3 + 1][1] != \</span>
+    <span class="c">#            domain2.edge_coordinates[(i+N*3)/2][(i+N*3)%2] or \</span>
+	<span class="c">#		edge_coordinates[i*3 + 2][0] != \</span>
+    <span class="c">#            domain2.edge_coordinates[(i+N*4)/2][(i+N*4)%2] or \</span>
+	<span class="c">#		edge_coordinates[i*3 + 2][1] != \</span>
+    <span class="c">#            domain2.edge_coordinates[(i+N*5)/2][(i+N*5)%2] :</span>
+    <span class="c">#        cnt_ec +=1</span>
+
+
+    <span class="c">#    if centroid_coordinates[i][0] !=\</span>
+    <span class="c">#            domain2.centroid_coordinates[i/2][i%2] or \</span>
+	<span class="c">#		centroid_coordinates[i][1] != \</span>
+    <span class="c">#            domain2.centroid_coordinates[(i+N)/2][(i+N)%2] :</span>
+    <span class="c">#        cnt_cc +=1</span>
+
+
+    <span class="c">#    if stage_edge_values[i][0] != \</span>
+    <span class="c">#            domain2.quantities[&quot;stage&quot;].edge_values[i/3][i%3] or \</span>
+	<span class="c">#	    stage_edge_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;stage&quot;].edge_values[(i+N)/3][(i+N)%3] \</span>
+    <span class="c">#        or stage_edge_values[i][2] != \</span>
+    <span class="c">#        domain2.quantities[&quot;stage&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, stage_edge_values[i], \</span>
+    <span class="c">#                domain2.quantities[&quot;stage&quot;].edge_values[i/3][i%3], \</span>
+    <span class="c">#                domain2.quantities[&quot;stage&quot;].edge_values[(i+N)/3][(i+N)%3],\</span>
+    <span class="c">#                domain2.quantities[&quot;stage&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_se+=1</span>
+
+    <span class="c">#    if xmom_edge_values[i][0] != \</span>
+    <span class="c">#            domain2.quantities[&quot;xmomentum&quot;].edge_values[i/3][i%3] or \</span>
+	<span class="c">#		xmom_edge_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;xmomentum&quot;].edge_values[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		xmom_edge_values[i][2] != \</span>
+    <span class="c">#            domain2.quantities[&quot;xmomentum&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, xmom_edge_values[i], domain2.quantities[&quot;xmomentum&quot;].edge_values[i/3][i%3], domain2.quantities[&quot;xmomentum&quot;].edge_values[(i+N)/3][(i+N)%3], domain2.quantities[&quot;xmomentum&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_xe+=1</span>
+
+    <span class="c">#    if ymom_edge_values[i][0] != \</span>
+    <span class="c">#        domain2.quantities[&quot;ymomentum&quot;].edge_values[i/3][i%3] or \</span>
+	<span class="c">#		ymom_edge_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;ymomentum&quot;].edge_values[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		ymom_edge_values[i][2] != \</span>
+    <span class="c">#            domain2.quantities[&quot;ymomentum&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, ymom_edge_values[i], domain2.quantities[&quot;ymomentum&quot;].edge_values[i/3][i%3], domain2.quantities[&quot;ymomentum&quot;].edge_values[(i+N)/3][(i+N)%3], domain2.quantities[&quot;ymomentum&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_ye+=1</span>
+
+    <span class="c">#    if bed_edge_values[i][0] != \</span>
+    <span class="c">#        domain2.quantities[&quot;elevation&quot;].edge_values[i/3][i%3] or \</span>
+	<span class="c">#		bed_edge_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;elevation&quot;].edge_values[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		bed_edge_values[i][2] != \</span>
+    <span class="c">#            domain2.quantities[&quot;elevation&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, bed_edge_values[i], domain2.quantities[&quot;elevation&quot;].edge_values[i/3][i%3], domain2.quantities[&quot;elevation&quot;].edge_values[(i+N)/3][(i+N)%3], domain2.quantities[&quot;elevation&quot;].edge_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_be+=1</span>
+
+    <span class="c">#    # Vertex values</span>
+
+    <span class="c">#    if stage_vertex_values[i][0] != \</span>
+    <span class="c">#        domain2.quantities[&quot;stage&quot;].vertex_values[i/3][i%3] or \</span>
+	<span class="c">#		stage_vertex_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;stage&quot;].vertex_values[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		stage_vertex_values[i][2] != \</span>
+    <span class="c">#            domain2.quantities[&quot;stage&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, stage_vertex_values[i], domain2.quantities[&quot;stage&quot;].vertex_values[i/3][i%3], domain2.quantities[&quot;stage&quot;].vertex_values[(i+N)/3][(i+N)%3], domain2.quantities[&quot;stage&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_sv +=1</span>
+
+    <span class="c">#    if xmom_vertex_values[i][0] != \</span>
+    <span class="c">#        domain2.quantities[&quot;xmomentum&quot;].vertex_values[i/3][i%3] or \</span>
+	<span class="c">#		xmom_vertex_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;xmomentum&quot;].vertex_values[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		xmom_vertex_values[i][2] != \</span>
+    <span class="c">#            domain2.quantities[&quot;xmomentum&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, xmom_vertex_values[i], domain2.quantities[&quot;xmomentum&quot;].vertex_values[i/3][i%3], domain2.quantities[&quot;xmomentum&quot;].vertex_values[(i+N)/3][(i+N)%3], domain2.quantities[&quot;xmomentum&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_xv +=1</span>
+
+    <span class="c">#    if ymom_vertex_values[i][0] != \</span>
+    <span class="c">#        domain2.quantities[&quot;ymomentum&quot;].vertex_values[i/3][i%3] or \</span>
+	<span class="c">#		ymom_vertex_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;ymomentum&quot;].vertex_values[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		ymom_vertex_values[i][2] != \</span>
+    <span class="c">#            domain2.quantities[&quot;ymomentum&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, ymom_vertex_values[i], domain2.quantities[&quot;ymomentum&quot;].vertex_values[i/3][i%3], domain2.quantities[&quot;ymomentum&quot;].vertex_values[(i+N)/3][(i+N)%3], domain2.quantities[&quot;ymomentum&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_yv +=1</span>
+
+    <span class="c">#    if bed_vertex_values[i][0] != \</span>
+    <span class="c">#        domain2.quantities[&quot;elevation&quot;].vertex_values[i/3][i%3] or \</span>
+	<span class="c">#		bed_vertex_values[i][1] != \</span>
+    <span class="c">#            domain2.quantities[&quot;elevation&quot;].vertex_values[(i+N)/3][(i+N)%3] or \</span>
+	<span class="c">#		bed_vertex_values[i][2] != \</span>
+    <span class="c">#            domain2.quantities[&quot;elevation&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]:</span>
+    <span class="c">#        if cnt_nb &lt; 5:</span>
+    <span class="c">#            print i, bed_vertex_values[i], domain2.quantities[&quot;elevation&quot;].vertex_values[i/3][i%3], domain2.quantities[&quot;elevation&quot;].vertex_values[(i+N)/3][(i+N)%3], domain2.quantities[&quot;elevation&quot;].vertex_values[(i+N*2)/3][(i+N*2)%3]</span>
+    <span class="c">#        cnt_bv +=1</span>
+
+    <span class="k">if</span> <span class="n">cnt_nb</span> <span class="ow">or</span> <span class="n">cnt_nbedge</span> <span class="ow">or</span> <span class="n">cnt_surrnb</span> <span class="ow">or</span> <span class="n">cnt_norm</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;nb=</span><span class="si">%d</span><span class="s">, nb_edge=</span><span class="si">%d</span><span class="s"> surrnb=</span><span class="si">%d</span><span class="s"> norm=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">cnt_nb</span><span class="p">,</span> <span class="n">cnt_nbedge</span><span class="p">,</span> <span class="n">cnt_surrnb</span><span class="p">,</span> <span class="n">cnt_norm</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cnt_el</span> <span class="ow">or</span> <span class="n">cnt_vc</span> <span class="ow">or</span> <span class="n">cnt_ec</span> <span class="ow">or</span> <span class="n">cnt_cc</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;elen=</span><span class="si">%d</span><span class="s">, vc=</span><span class="si">%d</span><span class="s"> ec=</span><span class="si">%d</span><span class="s"> cc=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">cnt_el</span><span class="p">,</span> <span class="n">cnt_vc</span><span class="p">,</span> <span class="n">cnt_ec</span><span class="p">,</span> <span class="n">cnt_cc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cnt_se</span> <span class="ow">or</span> <span class="n">cnt_xe</span> <span class="ow">or</span> <span class="n">cnt_ye</span> <span class="ow">or</span> <span class="n">cnt_be</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;se=</span><span class="si">%d</span><span class="s">, xe=</span><span class="si">%d</span><span class="s"> ye=</span><span class="si">%d</span><span class="s"> be=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">cnt_se</span><span class="p">,</span> <span class="n">cnt_xe</span><span class="p">,</span> <span class="n">cnt_ye</span><span class="p">,</span> <span class="n">cnt_be</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cnt_sv</span> <span class="ow">or</span> <span class="n">cnt_xv</span> <span class="ow">or</span> <span class="n">cnt_yv</span> <span class="ow">or</span> <span class="n">cnt_bv</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;sv=</span><span class="si">%d</span><span class="s">, xv=</span><span class="si">%d</span><span class="s"> yv=</span><span class="si">%d</span><span class="s"> bv=</span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> \
+            <span class="p">(</span><span class="n">cnt_sv</span><span class="p">,</span> <span class="n">cnt_xv</span><span class="p">,</span> <span class="n">cnt_yv</span><span class="p">,</span> <span class="n">cnt_bv</span><span class="p">)</span>
+
+
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">anuga_cuda</span> <span class="kn">import</span> <span class="n">generate_merimbula_domain</span>
+
+    <span class="kn">from</span> <span class="nn">anuga_cuda.compute_fluxes.compute_fluxes</span> <span class="kn">import</span> <span class="n">spe_bubble_sort</span>
+
+    <span class="n">domain1</span> <span class="o">=</span> <span class="n">generate_merimbula_domain</span><span class="p">()</span>
+    <span class="n">domain2</span> <span class="o">=</span> <span class="n">generate_merimbula_domain</span><span class="p">()</span>
+    <span class="c">#sort_domain(domain2)</span>
+    <span class="c">#sort_domain_check(domain2)</span>
+	
+    <span class="c">#sort_domain(domain1)</span>
+    <span class="k">print</span> <span class="s">&quot; **** rearrange_domain **** &quot;</span>
+    <span class="n">domain2</span><span class="o">=</span><span class="n">rearrange_domain</span><span class="p">(</span><span class="n">domain2</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s">&quot; **** check domain ****&quot;</span>
+    <span class="n">rearrange_domain_check</span><span class="p">(</span><span class="n">domain1</span><span class="p">,</span> <span class="n">domain2</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">anuga-cuda 1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Zhe Weng.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

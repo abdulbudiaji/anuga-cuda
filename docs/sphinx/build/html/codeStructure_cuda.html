@@ -54,34 +54,34 @@
             
   <div class="section" id="anuga-cuda-cuda-code-structure">
 <h1>anuga-cuda CUDA Code Structure<a class="headerlink" href="#anuga-cuda-cuda-code-structure" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-anuga_cuda">
-<span id="advanced-version-class"></span><h2>Advanced Version Class<a class="headerlink" href="#module-anuga_cuda" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-anuga_cuda.gpu_domain_advanced">
+<span id="advanced-version-class"></span><h2>Advanced Version Class<a class="headerlink" href="#module-anuga_cuda.gpu_domain_advanced" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="anuga_cuda.CUDA_advanced_domain">
-<em class="property">class </em><tt class="descclassname">anuga_cuda.</tt><tt class="descname">CUDA_advanced_domain</tt><big>(</big><em>coordinates=None</em>, <em>vertices=None</em>, <em>boundary=None</em>, <em>source=None</em>, <em>triangles=None</em>, <em>conserved_quantities=None</em>, <em>evolved_quantities=None</em>, <em>other_quantities=None</em>, <em>tagged_elements=None</em>, <em>geo_reference=None</em>, <em>use_inscribed_circle=False</em>, <em>mesh_filename=None</em>, <em>use_cache=False</em>, <em>verbose=False</em>, <em>full_send_dict=None</em>, <em>ghost_recv_dict=None</em>, <em>starttime=0.0</em>, <em>processor=0</em>, <em>numproc=1</em>, <em>number_of_full_nodes=None</em>, <em>number_of_full_triangles=None</em>, <em>ghost_layer_width=2</em>, <em>using_gpu=False</em>, <em>cotesting=False</em>, <em>stream=False</em>, <em>rearranged=False</em>, <em>domain=None</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain">
+<em class="property">class </em><tt class="descclassname">anuga_cuda.gpu_domain_advanced.</tt><tt class="descname">CUDA_advanced_domain</tt><big>(</big><em>coordinates=None</em>, <em>vertices=None</em>, <em>boundary=None</em>, <em>source=None</em>, <em>triangles=None</em>, <em>conserved_quantities=None</em>, <em>evolved_quantities=None</em>, <em>other_quantities=None</em>, <em>tagged_elements=None</em>, <em>geo_reference=None</em>, <em>use_inscribed_circle=False</em>, <em>mesh_filename=None</em>, <em>use_cache=False</em>, <em>verbose=False</em>, <em>full_send_dict=None</em>, <em>ghost_recv_dict=None</em>, <em>starttime=0.0</em>, <em>processor=0</em>, <em>numproc=1</em>, <em>number_of_full_nodes=None</em>, <em>number_of_full_triangles=None</em>, <em>ghost_layer_width=2</em>, <em>using_gpu=False</em>, <em>cotesting=False</em>, <em>stream=False</em>, <em>rearranged=False</em>, <em>domain=None</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is the CUDA based ANUGA domain in advanced version</p>
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.allocate_device_array">
-<tt class="descname">allocate_device_array</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.allocate_device_array" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.allocate_device_array">
+<tt class="descname">allocate_device_array</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.allocate_device_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.allocate_device_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Allocate device memory.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.apply_fractional_steps">
-<tt class="descname">apply_fractional_steps</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.apply_fractional_steps" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.apply_fractional_steps">
+<tt class="descname">apply_fractional_steps</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.apply_fractional_steps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.apply_fractional_steps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function only for testing purpose.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.apply_protection_against_isolated_degenerate_timesteps">
-<tt class="descname">apply_protection_against_isolated_degenerate_timesteps</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.apply_protection_against_isolated_degenerate_timesteps" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.apply_protection_against_isolated_degenerate_timesteps">
+<tt class="descname">apply_protection_against_isolated_degenerate_timesteps</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.apply_protection_against_isolated_degenerate_timesteps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.apply_protection_against_isolated_degenerate_timesteps" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function since max_speed array is required to be 
 downloaded from device memory.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.asynchronous_transfer">
-<tt class="descname">asynchronous_transfer</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.asynchronous_transfer" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.asynchronous_transfer">
+<tt class="descname">asynchronous_transfer</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.asynchronous_transfer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.asynchronous_transfer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Upload mesh information from host to device.</p>
 <p>When using page-locked host memory to store all mesh information,
 asynchronous transfer data can hide transmission overheads by 
@@ -90,54 +90,54 @@ executing.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.backup_conserved_quantities">
-<tt class="descname">backup_conserved_quantities</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.backup_conserved_quantities" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.backup_conserved_quantities">
+<tt class="descname">backup_conserved_quantities</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.backup_conserved_quantities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.backup_conserved_quantities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to use device memory to temporarily backup
 the centroid_values for quantity instances.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.balance_deep_and_shallow">
-<tt class="descname">balance_deep_and_shallow</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.balance_deep_and_shallow" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.balance_deep_and_shallow">
+<tt class="descname">balance_deep_and_shallow</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.balance_deep_and_shallow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.balance_deep_and_shallow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke balance_deep_and_shallow kernel 
 function.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.compute_fluxes">
-<tt class="descname">compute_fluxes</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.compute_fluxes" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.compute_fluxes">
+<tt class="descname">compute_fluxes</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.compute_fluxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.compute_fluxes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke compute_fluxes and gravity series 
 kernel functions, and download calculated timestep information.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.compute_forcing_terms">
-<tt class="descname">compute_forcing_terms</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.compute_forcing_terms" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.compute_forcing_terms">
+<tt class="descname">compute_forcing_terms</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.compute_forcing_terms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.compute_forcing_terms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke kernel version forcing term 
 functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.copy_back_necessary_data">
-<tt class="descname">copy_back_necessary_data</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.copy_back_necessary_data" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.copy_back_necessary_data">
+<tt class="descname">copy_back_necessary_data</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.copy_back_necessary_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.copy_back_necessary_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Download results from device.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.distribute_to_vertices_and_edges">
-<tt class="descname">distribute_to_vertices_and_edges</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.distribute_to_vertices_and_edges" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.distribute_to_vertices_and_edges">
+<tt class="descname">distribute_to_vertices_and_edges</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.distribute_to_vertices_and_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.distribute_to_vertices_and_edges" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke protect series kernel functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.ensure_numeric">
-<tt class="descname">ensure_numeric</tt><big>(</big><em>A</em>, <em>typecode=None</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.ensure_numeric" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.ensure_numeric">
+<tt class="descname">ensure_numeric</tt><big>(</big><em>A</em>, <em>typecode=None</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.ensure_numeric"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.ensure_numeric" title="Permalink to this definition">¶</a></dt>
 <dd><p>From numerical_tools</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.equip_kernel_functions">
-<tt class="descname">equip_kernel_functions</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.equip_kernel_functions" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.equip_kernel_functions">
+<tt class="descname">equip_kernel_functions</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.equip_kernel_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.equip_kernel_functions" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compile and equip kernel codes.</p>
 <p>Equip all the kernel functions and get the appropriate 
 thread block configuration. Also set up the prepared call with 
@@ -145,128 +145,128 @@ specifying parameter types for all the kernel functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.evolve">
-<tt class="descname">evolve</tt><big>(</big><em>yieldstep=None</em>, <em>finaltime=None</em>, <em>duration=None</em>, <em>skip_initial_step=False</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.evolve" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve">
+<tt class="descname">evolve</tt><big>(</big><em>yieldstep=None</em>, <em>finaltime=None</em>, <em>duration=None</em>, <em>skip_initial_step=False</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.evolve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.evolve_one_euler_step">
-<tt class="descname">evolve_one_euler_step</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.evolve_one_euler_step" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve_one_euler_step">
+<tt class="descname">evolve_one_euler_step</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.evolve_one_euler_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve_one_euler_step" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.evolve_one_rk2_step">
-<tt class="descname">evolve_one_rk2_step</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.evolve_one_rk2_step" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve_one_rk2_step">
+<tt class="descname">evolve_one_rk2_step</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.evolve_one_rk2_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve_one_rk2_step" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.evolve_one_rk3_step">
-<tt class="descname">evolve_one_rk3_step</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.evolve_one_rk3_step" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve_one_rk3_step">
+<tt class="descname">evolve_one_rk3_step</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.evolve_one_rk3_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.evolve_one_rk3_step" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.extrapolate_second_order_sw">
-<tt class="descname">extrapolate_second_order_sw</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.extrapolate_second_order_sw" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.extrapolate_second_order_sw">
+<tt class="descname">extrapolate_second_order_sw</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.extrapolate_second_order_sw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.extrapolate_second_order_sw" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke extrapolate_velocity_second_order,
 extrapolate_second_order_sw_true and 
 extrapolate_second_order_sw_false kernel functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.get_absolute">
-<tt class="descname">get_absolute</tt><big>(</big><em>points</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.get_absolute" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.get_absolute">
+<tt class="descname">get_absolute</tt><big>(</big><em>points</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.get_absolute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.get_absolute" title="Permalink to this definition">¶</a></dt>
 <dd><p>From geo_reference get_absolute</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.get_vertex_coordinates">
-<tt class="descname">get_vertex_coordinates</tt><big>(</big><em>triangle_id=None</em>, <em>absolute=False</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.get_vertex_coordinates" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.get_vertex_coordinates">
+<tt class="descname">get_vertex_coordinates</tt><big>(</big><em>triangle_id=None</em>, <em>absolute=False</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.get_vertex_coordinates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.get_vertex_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.lock_host_page">
-<tt class="descname">lock_host_page</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.lock_host_page" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.lock_host_page">
+<tt class="descname">lock_host_page</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.lock_host_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.lock_host_page" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use page-locked memory</p>
 <p>Register host pageable memory to lock their page. This should be 
 done when using the asynchronous transfer.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.manning_friction_explicit">
-<tt class="descname">manning_friction_explicit</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.manning_friction_explicit" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.manning_friction_explicit">
+<tt class="descname">manning_friction_explicit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.manning_friction_explicit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.manning_friction_explicit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke manning_friction_sloped and 
 manning_friction_flat kernel functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.manning_friction_implicit">
-<tt class="descname">manning_friction_implicit</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.manning_friction_implicit" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.manning_friction_implicit">
+<tt class="descname">manning_friction_implicit</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.manning_friction_implicit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.manning_friction_implicit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke manning_friction_sloped and 
 manning_friction_flat kernel functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.protect_against_infinitesimal_and_negative_heights">
-<tt class="descname">protect_against_infinitesimal_and_negative_heights</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.protect_against_infinitesimal_and_negative_heights" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.protect_against_infinitesimal_and_negative_heights">
+<tt class="descname">protect_against_infinitesimal_and_negative_heights</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.protect_against_infinitesimal_and_negative_heights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.protect_against_infinitesimal_and_negative_heights" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke protect series kernel functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.saxpy_conserved_quantities">
-<tt class="descname">saxpy_conserved_quantities</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.saxpy_conserved_quantities" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.saxpy_conserved_quantities">
+<tt class="descname">saxpy_conserved_quantities</tt><big>(</big><em>a</em>, <em>b</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.saxpy_conserved_quantities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.saxpy_conserved_quantities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke saxpy_centroid_values kernel 
 function.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.store_timestep">
-<tt class="descname">store_timestep</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.store_timestep" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.store_timestep">
+<tt class="descname">store_timestep</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.store_timestep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.store_timestep" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.update_boundary">
-<tt class="descname">update_boundary</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.update_boundary" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_boundary">
+<tt class="descname">update_boundary</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.update_boundary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_boundary" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.update_centroids_of_velocities_and_height">
-<tt class="descname">update_centroids_of_velocities_and_height</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.update_centroids_of_velocities_and_height" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_centroids_of_velocities_and_height">
+<tt class="descname">update_centroids_of_velocities_and_height</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.update_centroids_of_velocities_and_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_centroids_of_velocities_and_height" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke set_boundary_values_from_edges and
 update_centroids_of_velocities_and_height kernel functions.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.update_conserved_quantities">
-<tt class="descname">update_conserved_quantities</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.update_conserved_quantities" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_conserved_quantities">
+<tt class="descname">update_conserved_quantities</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.update_conserved_quantities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_conserved_quantities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function to invoke update kernel function and for each
 quantity set device memory of semi_implicit_update to 0.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.update_extrema">
-<tt class="descname">update_extrema</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.update_extrema" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_extrema">
+<tt class="descname">update_extrema</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.update_extrema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_extrema" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.update_ghosts">
-<tt class="descname">update_ghosts</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.update_ghosts" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_ghosts">
+<tt class="descname">update_ghosts</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.update_ghosts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_ghosts" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function only for testing purpose.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.update_other_quantities">
-<tt class="descname">update_other_quantities</tt><big>(</big><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.update_other_quantities" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_other_quantities">
+<tt class="descname">update_other_quantities</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.update_other_quantities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_other_quantities" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="anuga_cuda.CUDA_advanced_domain.update_timestep">
-<tt class="descname">update_timestep</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.update_timestep" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_timestep">
+<tt class="descname">update_timestep</tt><big>(</big><em>yieldstep</em>, <em>finaltime</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_advanced.html#CUDA_advanced_domain.update_timestep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.update_timestep" title="Permalink to this definition">¶</a></dt>
 <dd><p>Overrided function only for testing purpose.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="anuga_cuda.CUDA_advanced_domain.using_stream">
-<tt class="descname">using_stream</tt><em class="property"> = None</em><a class="headerlink" href="#anuga_cuda.CUDA_advanced_domain.using_stream" title="Permalink to this definition">¶</a></dt>
+<dt id="anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.using_stream">
+<tt class="descname">using_stream</tt><em class="property"> = None</em><a class="headerlink" href="#anuga_cuda.gpu_domain_advanced.CUDA_advanced_domain.using_stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>A Boolean variable denotes whether to use stream
 (concurrent kernel technology). Default value is False.
 Also if device not support such technology, this value
@@ -276,19 +276,14 @@ will be set to False.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-anuga_cuda">
-<span id="basic-version-class"></span><h2>Basic Version Class<a class="headerlink" href="#module-anuga_cuda" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-anuga_cuda.gpu_domain_basic">
+<span id="basic-version-class"></span><h2>Basic Version Class<a class="headerlink" href="#module-anuga_cuda.gpu_domain_basic" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="anuga_cuda.CUDA_basic_domain">
-<em class="property">class </em><tt class="descclassname">anuga_cuda.</tt><tt class="descname">CUDA_basic_domain</tt><big>(</big><em>coordinates=None</em>, <em>vertices=None</em>, <em>boundary=None</em>, <em>source=None</em>, <em>triangles=None</em>, <em>conserved_quantities=None</em>, <em>evolved_quantities=None</em>, <em>other_quantities=None</em>, <em>tagged_elements=None</em>, <em>geo_reference=None</em>, <em>use_inscribed_circle=False</em>, <em>mesh_filename=None</em>, <em>use_cache=False</em>, <em>verbose=False</em>, <em>full_send_dict=None</em>, <em>ghost_recv_dict=None</em>, <em>starttime=0.0</em>, <em>processor=0</em>, <em>numproc=1</em>, <em>number_of_full_nodes=None</em>, <em>number_of_full_triangles=None</em>, <em>ghost_layer_width=2</em>, <em>using_gpu=False</em>, <em>cotesting=False</em>, <em>stream=False</em>, <em>rearranged=False</em>, <em>domain=None</em><big>)</big><a class="headerlink" href="#anuga_cuda.CUDA_basic_domain" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="anuga_cuda.gpu_domain_basic.CUDA_basic_domain">
+<em class="property">class </em><tt class="descclassname">anuga_cuda.gpu_domain_basic.</tt><tt class="descname">CUDA_basic_domain</tt><big>(</big><em>coordinates=None</em>, <em>vertices=None</em>, <em>boundary=None</em>, <em>source=None</em>, <em>triangles=None</em>, <em>conserved_quantities=None</em>, <em>evolved_quantities=None</em>, <em>other_quantities=None</em>, <em>tagged_elements=None</em>, <em>geo_reference=None</em>, <em>use_inscribed_circle=False</em>, <em>mesh_filename=None</em>, <em>use_cache=False</em>, <em>verbose=False</em>, <em>full_send_dict=None</em>, <em>ghost_recv_dict=None</em>, <em>starttime=0.0</em>, <em>processor=0</em>, <em>numproc=1</em>, <em>number_of_full_nodes=None</em>, <em>number_of_full_triangles=None</em>, <em>ghost_layer_width=2</em>, <em>using_gpu=False</em>, <em>cotesting=False</em>, <em>stream=False</em>, <em>rearranged=False</em>, <em>domain=None</em><big>)</big><a class="reference internal" href="_modules/anuga_cuda/gpu_domain_basic.html#CUDA_basic_domain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#anuga_cuda.gpu_domain_basic.CUDA_basic_domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>This</p>
+</dd></dl>
 
-<p>&lt;!&#8211;
-Single Class
-&#8212;&#8212;&#8212;&#8212;
-.. py:module: anuga_cuda
-.. py:class:: CUDA_advanced_domain
-&#8211;&gt;</p>
 </div>
 </div>
 
@@ -301,8 +296,8 @@ Single Class
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">anuga-cuda CUDA Code Structure</a><ul>
-<li><a class="reference internal" href="#module-anuga_cuda">Advanced Version Class</a></li>
-<li><a class="reference internal" href="#module-anuga_cuda">Basic Version Class</a></li>
+<li><a class="reference internal" href="#module-anuga_cuda.gpu_domain_advanced">Advanced Version Class</a></li>
+<li><a class="reference internal" href="#module-anuga_cuda.gpu_domain_basic">Basic Version Class</a></li>
 </ul>
 </li>
 </ul>

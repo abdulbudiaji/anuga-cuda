@@ -15,12 +15,7 @@ Basic Version Class
 .. automodule:: anuga_cuda.gpu_domain_basic
 .. autoclass:: CUDA_basic_domain
 
+   This 
 
 
-<!---
-Single Class
-------------
-.. py:module: anuga_cuda
-.. py:class:: CUDA_advanced_domain
--->
 
