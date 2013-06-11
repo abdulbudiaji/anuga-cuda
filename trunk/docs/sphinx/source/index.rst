@@ -11,7 +11,9 @@ Contents:
 .. toctree::
    :maxdepth: 2
    
-   codeStructure.rst
+   codeStructure_cuda.rst
+   codeStructure_openHMPP.rst
+   codeStructure_utilities.rst
 
 
 Indices and tables
