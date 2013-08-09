@@ -912,6 +912,8 @@ class CUDA_advanced_domain(Domain):
     def apply_protection_against_isolated_degenerate_timesteps(self):
         """Overrided function since max_speed array is required to be 
         downloaded from device memory.
+
+        Testing point.
         """
 
         if self.using_gpu:
@@ -953,6 +955,8 @@ class CUDA_advanced_domain(Domain):
     def balance_deep_and_shallow(self):
         """Overrided function to invoke balance_deep_and_shallow kernel 
         function.
+
+        Testing point.
         """
 
         if  self.using_gpu:
@@ -995,7 +999,10 @@ class CUDA_advanced_domain(Domain):
     # 4th level cotesting
     # Using Stream
     def protect_against_infinitesimal_and_negative_heights(self):
-        """Overrided function to invoke protect series kernel functions."""
+        """Overrided function to invoke protect series kernel functions.
+
+        Testing point.
+        """
 
         if  self.using_gpu:
             N = self.number_of_elements
@@ -1053,6 +1060,8 @@ class CUDA_advanced_domain(Domain):
         """Overrided function to invoke extrapolate_velocity_second_order,
             extrapolate_second_order_sw_true and 
             extrapolate_second_order_sw_false kernel functions.
+
+        Testing point.
         """
 
         if  self.using_gpu:
@@ -1243,7 +1252,10 @@ class CUDA_advanced_domain(Domain):
     # Using Stream
     def manning_friction_implicit(self):
         """Overrided function to invoke manning_friction_sloped and 
-            manning_friction_flat kernel functions."""
+            manning_friction_flat kernel functions.
+
+        Testing point.
+        """
 
         if self.using_gpu:
             N = self.number_of_elements
@@ -1315,7 +1327,10 @@ class CUDA_advanced_domain(Domain):
     # 4th level cotesting
     def manning_friction_explicit(self):
         """Overrided function to invoke manning_friction_sloped and 
-            manning_friction_flat kernel functions."""
+            manning_friction_flat kernel functions.
+
+        Testing point.
+        """
 
         if self.using_gpu:
             N = self.number_of_elements
@@ -1373,6 +1388,8 @@ class CUDA_advanced_domain(Domain):
     def compute_forcing_terms(self):
         """Overrided function to invoke kernel version forcing term 
             functions.
+
+        Testing point.
         """
 
         if self.using_gpu:
@@ -1392,7 +1409,10 @@ class CUDA_advanced_domain(Domain):
     # Using Stream
     def update_conserved_quantities(self):
         """Overrided function to invoke update kernel function and for each
-            quantity set device memory of semi_implicit_update to 0."""
+            quantity set device memory of semi_implicit_update to 0.
+
+        Testing point.
+        """
 
         if self.using_gpu :
             N = self.number_of_elements
@@ -1426,7 +1446,10 @@ class CUDA_advanced_domain(Domain):
     # Using asynchronous_transfer
     def backup_conserved_quantities(self):
         """Overrided function to use device memory to temporarily backup
-            the centroid_values for quantity instances."""
+            the centroid_values for quantity instances.
+
+        Testing point.
+        """
 
         if self.using_gpu:
             for name in self.conserved_quantities:
@@ -1456,6 +1479,8 @@ class CUDA_advanced_domain(Domain):
     def saxpy_conserved_quantities(self, a, b):
         """Overrided function to invoke saxpy_centroid_values kernel 
             function.
+
+        Testing point.
         """
 
         if self.using_gpu:
@@ -1500,6 +1525,8 @@ class CUDA_advanced_domain(Domain):
     def update_centroids_of_velocities_and_height(self):
         """Overrided function to invoke set_boundary_values_from_edges and
             update_centroids_of_velocities_and_height kernel functions.
+
+        Testing point.
         """
 
         if self.using_gpu:
@@ -1566,6 +1593,8 @@ class CUDA_advanced_domain(Domain):
     def compute_fluxes(self):
         """Overrided function to invoke compute_fluxes and gravity series 
             kernel functions, and download calculated timestep information.
+
+        Testing point.
         """
 
         if self.using_gpu :
@@ -1670,7 +1699,10 @@ class CUDA_advanced_domain(Domain):
     # For cotesting purpose
     # 3rd level cotesting purpose
     def update_timestep(self, yieldstep, finaltime):
-        """Overrided function only for testing purpose."""
+        """Overrided function only for testing purpose.
+
+        Testing point.
+        """
 
         Domain.update_timestep(self, yieldstep, finaltime)
         if self.cotesting:
@@ -1708,7 +1740,10 @@ class CUDA_advanced_domain(Domain):
 
     # 2nd level cotesting
     def distribute_to_vertices_and_edges(self):
-        """Overrided function to invoke protect series kernel functions."""
+        """Overrided function to invoke protect series kernel functions.
+
+        Testing point.
+        """
 
         if  self.using_gpu:
             N = self.number_of_elements
@@ -1967,6 +2002,10 @@ class CUDA_advanced_domain(Domain):
 
     # 2nd level cotesting
     def update_boundary(self):
+        """Overrided functin
+
+        Testing point.
+        """
         if self.using_gpu:
             W2 = 1
             W3 = 1
@@ -2071,6 +2110,10 @@ class CUDA_advanced_domain(Domain):
     # 2nd level cotesting
     # Using Stream
     def update_other_quantities(self):
+        """Overrided function
+
+        Testing point.
+        """
         if self.using_gpu:
             if self.flow_algorithm == 'yusuke':
                 return
@@ -2131,6 +2174,12 @@ class CUDA_advanced_domain(Domain):
     # For cotesting purpose
     # 2nd level cotesting
     def evolve_one_euler_step(self, yieldstep, finaltime):
+        """Overrided function
+
+        Testing point.
+        """
+
+
         Domain.evolve_one_euler_step(self, yieldstep, finaltime)
         if self.cotesting:
             #Domain.evolve_one_euler_step(self.cotesting_domain, 
@@ -2143,6 +2192,11 @@ class CUDA_advanced_domain(Domain):
     # For cotesting purpose
     # 2nd level cotesting
     def evolve_one_rk2_step(self, yieldstep, finaltime):
+        """Overrided function
+
+        Testing point.
+        """
+        
         Domain.evolve_one_rk2_step(self, yieldstep, finaltime)
         if self.cotesting:
             Domain.evolve_one_rk2_step(self.cotesting_domain, 
@@ -2188,6 +2242,11 @@ class CUDA_advanced_domain(Domain):
     # For cotesting purpose
     # 2nd level cotesting
     def evolve_one_rk3_step(self, yieldstep, finaltime):
+        """Overrided function
+
+        Testing point.
+        """
+
         Domain.evolve_one_rk3_step(self, yieldstep, finaltime)
         if self.cotesting:
             Domain.evolve_one_rk3_step(self.cotesting_domain, 
@@ -2235,6 +2294,11 @@ class CUDA_advanced_domain(Domain):
                 finaltime=None,
                 duration=None,
                 skip_initial_step=False):
+        """Overrided function
+
+        Testing point.
+        """
+
         print " --> Number of elements: %d" % self.number_of_elements
 
 
@@ -2368,7 +2432,9 @@ class CUDA_advanced_domain(Domain):
             ini_time = time.time()
             ini_evo = time.time()
             
-
+        
+        #FIXME: 
+        self.decorate_test_check_point()
         
         if not self.using_gpu and self.cotesting:
             """ This is for testing purpose.
@@ -2633,4 +2699,105 @@ class CUDA_advanced_domain(Domain):
 
 
 
+    """Below process is used for the testing purpose
     
+    The attribute 'level' indicates the testing level of the supposed 
+    method
+    """
+
+    evolve.level = 1
+
+    # For cotesting purpose, not has device activity involved,
+    # but this is the main check point
+    evolve_one_euler_step.level = 2
+    evolve_one_rk2_step.level = 2
+    evolve_one_rk3_step.level = 2
+
+
+    # For cotesting purpose, not has device activity involved
+    store_timestep.level = 2
+    update_extrema.level = 2
+    update_ghosts.level = 2
+    apply_fractional_steps.level = 2
+    update_timestep.level = 2
+
+
+    update_other_quantities.level = 2
+    update_boundary.level = 2
+    distribute_to_vertices_and_edges.level = 2
+
+
+    compute_fluxes.level = 3
+    update_centroids_of_velocities_and_height.level = 3
+    saxpy_conserved_quantities.level = 3
+    backup_conserved_quantities.level = 3
+    update_conserved_quantities.level = 3
+    compute_forcing_terms.level = 3
+
+
+    manning_friction_explicit.level = 4
+    manning_friction_implicit.level = 4
+    extrapolate_second_order_sw.level = 4
+    protect_against_infinitesimal_and_negative_heights.level = 4
+    balance_deep_and_shallow.level = 4
+
+
+    apply_protection_against_isolated_degenerate_timesteps.level = 5
+
+
+    # May not be used at all
+    get_vertex_coordinates.level = None
+    get_absolute.level = None
+    ensure_numeric.level = None
+
+
+
+    def iter_attributes(self):
+        """Iterate the class, list and return all the attributes"""
+
+        return [ (name, getattr(self, name)) for name in dir(self) ]
+
+
+
+    def filter(self, fn, level=2):
+        """Pick up chose methods"""
+
+        if callable(fn) and hasattr(fn, "level") and fn.level <= level:
+            return True
+        else:
+            return False
+
+
+
+    def check_all_data(self):
+        """Check all the necessary data"""
+
+        pass
+
+
+
+    def add_check_point(self, name, fn, check_input):
+        """Add Python decorator as check point"""
+
+        def check_point(*args, **kv):
+            if check_input:
+                self.check_all_data()
+
+            fn(*args, **kv)
+            self.check_all_data()
+        
+        setattr(self, name, check_point)
+
+
+
+    def decorate_test_check_point(self, level=2, check_input=False):
+        """Add Python decorator as closure to all the methods that areas
+            chose as check point.
+        """
+
+        for name, fn in self.iter_attributes():
+            if self.filter(fn, level):
+                self.add_check_point(name, fn, check_input)
+
+
+
