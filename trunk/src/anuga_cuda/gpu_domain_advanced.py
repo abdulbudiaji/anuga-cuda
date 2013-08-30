@@ -128,6 +128,8 @@ class CUDA_advanced_domain(Domain):
 
         self.rearranged_domain = rearranged
 
+        self.level = 2
+
 
         print '\n --> Device attributes'
         print '    Name:', dev.name()
@@ -988,7 +990,7 @@ class CUDA_advanced_domain(Domain):
 
         else:
             Domain.balance_deep_and_shallow(self)
-        if self.cotesting:
+        if False:
             Domain.balance_deep_and_shallow(self.cotesting_domain)
             test_balance_deep_and_shallow(self)
 
@@ -1047,7 +1049,7 @@ class CUDA_advanced_domain(Domain):
         else:
             Domain.protect_against_infinitesimal_and_negative_heights(self)
 
-        if self.cotesting:
+        if False:
             Domain.protect_against_infinitesimal_and_negative_heights(
                     self.cotesting_domain)
             test_protect_against_infinitesimal_and_negative_heights(self)
@@ -1154,7 +1156,7 @@ class CUDA_advanced_domain(Domain):
         else:
             Domain.extrapolate_second_order_sw(self)
 
-        if self.cotesting:
+        if False:
             Domain.extrapolate_second_order_sw(self.cotesting_domain)
             test_extrapolate_second_order_sw(self)
             
@@ -1315,7 +1317,7 @@ class CUDA_advanced_domain(Domain):
                     manning_friction_implicit
             manning_friction_implicit(self)
 
-        if self.cotesting:
+        if False:
             from anuga.shallow_water.shallow_water_domain import \
                     manning_friction_implicit
             manning_friction_implicit(self.cotesting_domain)
@@ -1397,7 +1399,7 @@ class CUDA_advanced_domain(Domain):
                 f()
         else:
             Domain.compute_forcing_terms(self)
-        if self.cotesting:
+        if False:
             #Domain.compute_forcing_terms(self.cotesting_domain)
             test_compute_forcing_terms(self)
 
@@ -1435,7 +1437,7 @@ class CUDA_advanced_domain(Domain):
         else:
             Domain.update_conserved_quantities(self)
 
-        if self.cotesting:
+        if False:
             Domain.update_conserved_quantities(self.cotesting_domain)
             test_update_conserved_quantities(self)
 
@@ -1468,7 +1470,7 @@ class CUDA_advanced_domain(Domain):
         else:
             Domain.backup_conserved_quantities(self)
 
-        if self.cotesting:
+        if False:
             Domain.backup_conserved_quantities(self.cotesting_domain)
 
 
@@ -1506,7 +1508,7 @@ class CUDA_advanced_domain(Domain):
             Domain.saxpy_conserved_quantities(self, a, b)
 
 
-        if self.cotesting:
+        if False:
             Domain.saxpy_conserved_quantities(self.cotesting_domain, a, b)
             for name in self.conserved_quantities:
                 Q = self.quantities[name]
@@ -1580,7 +1582,7 @@ class CUDA_advanced_domain(Domain):
             Domain.update_centroids_of_velocities_and_height(self)
 
 
-        if self.cotesting:
+        if False:
             Domain.update_centroids_of_velocities_and_height(
                     self.cotesting_domain)
             test_update_centroids_of_velocities_and_height(self)
@@ -1689,7 +1691,7 @@ class CUDA_advanced_domain(Domain):
             #print self.flux_timestep
 
 
-        if self.cotesting:
+        if False:
             Domain.compute_fluxes(self.cotesting_domain)
             test_compute_fluxes(self)
 
@@ -1705,7 +1707,7 @@ class CUDA_advanced_domain(Domain):
         """
 
         Domain.update_timestep(self, yieldstep, finaltime)
-        if self.cotesting:
+        if False:
             Domain.update_timestep(
                     self.cotesting_domain, yieldstep, finaltime)
             
@@ -1732,7 +1734,7 @@ class CUDA_advanced_domain(Domain):
         """Overrided function only for testing purpose."""
 
         Domain.update_ghosts(self)
-        if self.cotesting:
+        if False:
             Domain.update_ghosts(self.cotesting_domain)
             test_update_ghosts(self)
 
@@ -1897,7 +1899,7 @@ class CUDA_advanced_domain(Domain):
                             drv.memset_d32( Q.y_gradient_gpu, 0, N*2)
                             
                             # cotesting point
-                            if self.cotesting:
+                            if False:
                                 Q2 = self.cotesting_domain.quantities[name]
                                 Q.extrapolate_first_order()
                                 test_extrapolate_first_order(self)
@@ -1929,7 +1931,7 @@ class CUDA_advanced_domain(Domain):
 
 
                             # cotesting point
-                            if self.cotesting:
+                            if False:
                                 Q2 = self.cotesting_domain.quantities[name]
                                 Q2.extrapolate_first_order()
                                 test_extrapolate_first_order(self)
@@ -1956,7 +1958,7 @@ class CUDA_advanced_domain(Domain):
                                 )
                                 
                             # cotesting point
-                            if self.cotesting:
+                            if False:
                                 Q2 = self.cotesting_domain.quantities[name]
                                 Q2.extrapolate_second_order_and_limit_by_vertex()
                                 test_extrapolate_second_order_and_limit_by_vertex(self)
@@ -1967,7 +1969,7 @@ class CUDA_advanced_domain(Domain):
                 self.balance_deep_and_shallow()
 
                 # cotesting point input of interpolate_from_vertices_to_edges
-                if self.cotesting:
+                if False:
                     test_interpolate_from_vertices_to_edges(self)
                     
                 for name in self.conserved_quantities:
@@ -1984,18 +1986,18 @@ class CUDA_advanced_domain(Domain):
                                     )
 
                 ## cotesting point output of interpolate_from_vertices_to_edges
-                    if self.cotesting:
+                    if False:
                         Q2 = self.cotesting_domain.quantities[name]
                         Q2.interpolate_from_vertices_to_edges()
                         test_interpolate_from_vertices_to_edges(self)
 
         else:
             Domain.distribute_to_vertices_and_edges(self)
-            if self.cotesting:
+            if False:
                 self.cotesting_domain.distribute_to_vertices_and_edges()
 
 
-        if self.cotesting:
+        if False:
             test_distribute_to_vertexs_and_edges(self)
 
 
@@ -2101,7 +2103,7 @@ class CUDA_advanced_domain(Domain):
             Generic_Domain.update_boundary(self)
 
 
-        if self.cotesting:
+        if False:
             Generic_Domain.update_boundary(self.cotesting_domain)
             test_update_boundary(self)
 
@@ -2142,7 +2144,7 @@ class CUDA_advanced_domain(Domain):
             Domain.update_other_quantities(self)
 
 
-        if self.cotesting:
+        if False:
             for name in ['height', 'xvelocity', 'yvelocity']:
                 Q = self.cotesting_domain.quantities[name]
                 Q.extrapolate_first_order()
@@ -2154,7 +2156,7 @@ class CUDA_advanced_domain(Domain):
     # 2nd level cotesting
     def update_extrema(self):
         Domain.update_extrema(self)
-        if self.cotesting:
+        if False:
             Domain.update_extrema(self.cotesting_domain)
             test_update_extrema(self)
 
@@ -2166,7 +2168,7 @@ class CUDA_advanced_domain(Domain):
         if self.using_gpu:
             self.copy_back_necessary_data()
         self.writer.store_timestep()
-        if self.cotesting_domain:
+        if False_domain:
             self.cotesting_domain.writer.store_timestep()
 
     
@@ -2181,7 +2183,7 @@ class CUDA_advanced_domain(Domain):
 
 
         Domain.evolve_one_euler_step(self, yieldstep, finaltime)
-        if self.cotesting:
+        if False:
             #Domain.evolve_one_euler_step(self.cotesting_domain, 
             #        yieldstep, finaltime)
             test_evolve_one_euler_step(self)
@@ -2198,7 +2200,7 @@ class CUDA_advanced_domain(Domain):
         """
         
         Domain.evolve_one_rk2_step(self, yieldstep, finaltime)
-        if self.cotesting:
+        if False:
             Domain.evolve_one_rk2_step(self.cotesting_domain, 
                     yieldstep, finaltime)
             s1 = self.quantities['stage']
@@ -2248,7 +2250,7 @@ class CUDA_advanced_domain(Domain):
         """
 
         Domain.evolve_one_rk3_step(self, yieldstep, finaltime)
-        if self.cotesting:
+        if False:
             Domain.evolve_one_rk3_step(self.cotesting_domain, 
                     yieldstep, finaltime)
             s1 = self.quantities['stage']
@@ -2319,8 +2321,10 @@ class CUDA_advanced_domain(Domain):
             step by step, and compare the result generated by each step 
             to check whether they agree on each other.
             """
-
-            if self.cotesting:
+            
+            #FIXME: 
+            #if self.cotesting:
+            if True:
                 print " *** Enable Cotesting ***"
 
 
@@ -2705,7 +2709,9 @@ class CUDA_advanced_domain(Domain):
     method
     """
 
-    evolve.level = 1
+    # The very beginning of the testing 
+    evolve.level = 0
+
 
     # For cotesting purpose, not has device activity involved,
     # but this is the main check point
@@ -2752,6 +2758,7 @@ class CUDA_advanced_domain(Domain):
 
 
 
+
     def iter_attributes(self):
         """Iterate the class, list and return all the attributes"""
 
@@ -2759,10 +2766,10 @@ class CUDA_advanced_domain(Domain):
 
 
 
-    def filter(self, fn, level=2):
+    def filter(self, fn, level=5):
         """Pick up chose methods"""
 
-        if callable(fn) and hasattr(fn, "level") and fn.level <= level:
+        if callable(fn) and hasattr(fn, "level") and fn.level and  fn.level <= level:
             return True
         else:
             return False
@@ -2772,11 +2779,59 @@ class CUDA_advanced_domain(Domain):
     def check_all_data(self):
         """Check all the necessary data"""
 
-        pass
+        # For time-dependence issues
+        #ctx.synchronize()
+    
+        gpu = self.using_gpu
+        rg = self.rearranged_domain
+        sc = self.cotesting_domain
+    
+        s1 = self.quantities['stage']
+        xm1 = self.quantities['xmomentum']
+        ym1 = self.quantities['ymomentum']
+        e1 = self.quantities['elevation']
+        h1 = self.quantities['height']
+        xv1 = self.quantities['xvelocity']
+        yv1 = self.quantities['yvelocity']
+        f1 = self.quantities['friction']
+    
+        s2 = sc.quantities['stage']
+        xm2 = sc.quantities['xmomentum']
+        ym2 = sc.quantities['ymomentum']
+        e2 = sc.quantities['elevation']
+        h2 = sc.quantities['height']
+        xv2 = sc.quantities['xvelocity']
+        yv2 = sc.quantities['yvelocity']
+        f2 = sc.quantities['friction']
+    
+    
+        res = []
+        res.append( numpy.allclose(self.flux_timestep, sc.flux_timestep))
+    
+    
+        res.append( cpy_back_and_cmp( s1, s2, 'explicit_update' , gpu, rg))
+        res.append( cpy_back_and_cmp( s1, s2, 'edge_values' , gpu, rg))
+        res.append( cpy_back_and_cmp( s1, s2, 'boundary_values' , gpu, rg))
+    
+    
+        res.append( cpy_back_and_cmp( xm1, xm2,'explicit_update', gpu, rg))
+        res.append( cpy_back_and_cmp( xm1, xm2,'edge_values', gpu, rg))
+        res.append( cpy_back_and_cmp( xm1, xm2,'boundary_values', gpu, rg))
+        
+    
+        res.append( cpy_back_and_cmp( ym1, ym2,'explicit_update', gpu, rg))
+        res.append( cpy_back_and_cmp( ym1, ym2,'edge_values', gpu, rg))
+        res.append( cpy_back_and_cmp( ym1, ym2,'boundary_values', gpu, rg))
+        
+    
+        if res.count(True) + res.count(-1) != res.__len__():
+            print res
+            raise Exception("Error")
 
 
 
-    def add_check_point(self, name, fn, check_input):
+
+    def add_check_point(self, name, fn, check_input=False):
         """Add Python decorator as check point"""
 
         def check_point(*args, **kv):
@@ -2784,19 +2839,37 @@ class CUDA_advanced_domain(Domain):
                 self.check_all_data()
 
             fn(*args, **kv)
+            print "--> Check function %s" % name
+            fn.original(self.cotesting_domain, *args, **kv)
             self.check_all_data()
         
-        setattr(self, name, check_point)
+        #if self.cotesting:
+        if True:
+            setattr(self, name, check_point)
 
 
 
-    def decorate_test_check_point(self, level=2, check_input=False):
+    def decorate_test_check_point(self, level=5, check_input=False):
         """Add Python decorator as closure to all the methods that areas
             chose as check point.
         """
 
         for name, fn in self.iter_attributes():
+            #FIXME: use self.level
             if self.filter(fn, level):
+                if name == 'manning_friction_explicit':
+                    from anuga.shallow_water.shallow_water_domain import \
+                        manning_friction_explicit
+                    fn.__func__.original = manning_friction_explicit
+
+                elif name == 'manning_friction_implicit':
+                    from anuga.shallow_water.shallow_water_domain import \
+                        manning_friction_implicit
+                    fn.__func__.original = manning_friction_implicit
+                    
+                else:
+                    fn.__func__.original = getattr(Domain, name)
+                #print fn.original
                 self.add_check_point(name, fn, check_input)
 
 

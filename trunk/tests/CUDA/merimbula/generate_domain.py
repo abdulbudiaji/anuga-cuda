@@ -14,7 +14,7 @@
 #--------------------------------------------------------------------------
 # Evolution
 #---------------------------------------------------------------------------
-def generate_merimbula_domain(gpu=False):
+def generate_merimbula_domain(gpu=True):
     #-----------------------------------------------------------------------
     # Import necessary modules
     #-----------------------------------------------------------------------
@@ -170,4 +170,5 @@ def evolve_merimbula_domain_single_step(domain):
 
 if __name__ == "__main__":
     domain = generate_merimbula_domain()
-    evolve_merimbula_domain(domain)
+    domain.decorate_test_check_point()
+    #evolve_merimbula_domain(domain)
