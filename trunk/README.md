@@ -1,4 +1,4 @@
-This is the GPU based ANUGA 
+[anuga-cuda](https://code.google.com/p/anuga-cuda/) - the GPU based ANUGA 
 ===========================
 
 
