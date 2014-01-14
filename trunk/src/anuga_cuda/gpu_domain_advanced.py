@@ -1163,7 +1163,7 @@ class CUDA_advanced_domain(Domain):
 
 
     # FIXME
-    def ensure_numeric(A, typecode=None):
+    def ensure_numeric(self, A, typecode=None):
         """From numerical_tools"""
         if A is None:
             return None
@@ -2180,9 +2180,11 @@ class CUDA_advanced_domain(Domain):
 
         Testing point.
         """
-
-
-        Domain.evolve_one_euler_step(self, yieldstep, finaltime)
+        #Domain.evolve_one_euler_step(self, yieldstep, finaltime)
+        self.compute_fluxes()
+        self.compute_forcing_terms()
+        self.update_timestep(self.yieldstep, self.finaltime)
+        self.update_conserved_quantities()
         if False:
             #Domain.evolve_one_euler_step(self.cotesting_domain, 
             #        yieldstep, finaltime)
@@ -2466,13 +2468,6 @@ class CUDA_advanced_domain(Domain):
         """
             
         st_time = time.time()
-
-        #for t in Domain.evolve(self, yieldstep=yieldstep,
-        #            finaltime=finaltime,
-        #            duration=duration,
-        #            skip_initial_step=skip_initial_step):
-        #    yield(t)
-
 
         from anuga.config import  epsilon
 
@@ -2767,7 +2762,7 @@ class CUDA_advanced_domain(Domain):
 
 
     def filter(self, fn, level=5):
-        """Pick up chose methods"""
+        """Pick up chosen methods"""
 
         if callable(fn) and hasattr(fn, "level") and fn.level and  fn.level <= level:
             return True
