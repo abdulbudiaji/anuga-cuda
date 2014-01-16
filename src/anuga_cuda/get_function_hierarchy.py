@@ -4,6 +4,7 @@ import re
 root_func = "evolve"
 
 def get_class_method_hierarchy(file_name=None, file_string=None, file_line_list=None):
+    """"""
     code_line_lsit = []
     func_dic = {}
     if file_name is not None:
@@ -32,17 +33,45 @@ def get_class_method_hierarchy(file_name=None, file_string=None, file_line_list=
     #    print func, func_dic[func][2:]
 
 
+def get_leaf_function(file_name):
+    """Return a list of leaf function"""
+    code_line_lsit = []
+    func_dic = {}
+    if os.path.exists(file_name):
+        with open(file_name, "r") as f:
+            code_line_lsit = f.readlines() # Read in file as a list of lines of code
+
+    find_func(code_line_lsit, func_dic)
+    for func in func_dic:
+        find_subfunc(func, code_line_lsit, func_dic)
+
+    leaf_list = [func for func in func_dic if func_dic[func][2] == 0]
+    print leaf_list
+    return leaf_list
+
+
+
 
 def find_func(code_list, func_dic):
+    """Find the position of each function definition, and the range of lines of the function body,
+    return a dictionary (hash map) of function name -> [function starting line + 1, function end line, subfunctions, parent functions]
+    """
+
     pre_func = ""
     for i in range(len(code_list)):
         line = code_list[i]
-        if re.findall("def.*\(", line):
-            func_name = re.split('[\t ]*\([\t ]*', re.split('[\t ]*def[\t ]*', line)[1])[0]
-            # Code beginning line #, ending #, height, subfunction list, parentfunction list
-            func_dic[func_name] = [i, -1, -1, [], []]
-            if func_dic.has_key(pre_func):
-                func_dic[pre_func][1] = i
+        if re.findall("def.*\(", line): # Use regular expression to find a pattern of function definition
+            func_name = re.split('[\t ]*\([\t ]*', re.split('[\t ]*def[\t ]*', line)[1])[0] # Use regular expression to pick up function name
+            """Build dictionary (hash map) of defined function with a list of 
+                1. the starting line + 1
+                2. the ending line 
+                3. function height (leaf function == 0)
+                4. list of subfunctions
+                5. list of parent functions
+            """
+            func_dic[func_name] = [i+1, -1, -1, [], []]
+            if func_dic.has_key(pre_func): # The line number of the line before the starting of this function is the ending line number of the next function
+                func_dic[pre_func][1] = i-1
             pre_func = func_name
 
     func_dic[pre_func][1] = len(code_list) - 1
@@ -50,18 +79,28 @@ def find_func(code_list, func_dic):
 
 
 def find_subfunc(parent_function, code_list, func_dic):
-    line_no_B, line_no_E = func_dic[parent_function][0:2]
+    """Giving function definition ( the range of starting and ending line number) find out its subfunction, 
+    and add this function to the parent function list of its subfunctions
+    """
+
+    line_no_B, line_no_E = func_dic[parent_function][0:2] # starting and ending line number
     subfunc_list = func_dic[parent_function][3]
     for line in code_list[line_no_B: line_no_E]:
-        if re.findall("\w* *\(", line):
-            subfunc_name_list = [re.split(" *\(", tmp_subfunc_name)[0] for tmp_subfunc_name in re.findall("[a-zA-Z_]\w* *\(", line)]
+        if re.findall("\w* *\(", line): # Use regular expression to find a function invocation pattern
+            # Use regular expression to pick up subfunction name
+            subfunc_name_list = [re.split(" *\(", tmp_subfunc_name)[0] for tmp_subfunc_name in re.findall("[a-zA-Z_]\w* *\(", line)] 
             for subfunc_name in subfunc_name_list:
+                """Sift through the funciton
+                    1. this function must defined in this new class -- all function defined in this class shell be the one either a leaf function 
+                       or branch function having to do with kernel functions
+                    2. recursive function if not calling other function shell be treated as leaf function
+                """
                 if func_dic.has_key(subfunc_name) and subfunc_name != parent_function:
                     subfunc_list.append(subfunc_name)
-                    if parent_function not in func_dic[subfunc_name][4]:
+                    if parent_function not in func_dic[subfunc_name][4]: # Update subfunction's parent function list
                         func_dic[subfunc_name][4].append(parent_function)
                     
-            if len(func_dic[parent_function][3]):
+            if len(func_dic[parent_function][3]) == 0: # Indicating leaf function
                 func_dic[parent_function][2] = 0
 
 
@@ -94,4 +133,7 @@ def indentation_analysier(code_line, level, calling_func):
 
 
 if __name__ == "__main__":
-    get_class_method_hierarchy("gpu_domain_advanced.py")
+    #get_class_method_hierarchy("gpu_domain_advanced.py")
+    get_leaf_function("gpu_domain_advanced.py")
+
+
