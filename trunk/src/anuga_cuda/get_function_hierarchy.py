@@ -33,7 +33,7 @@ def get_class_method_hierarchy(file_name=None, file_string=None, file_line_list=
     #    print func, func_dic[func][2:]
 
 
-def get_leaf_function(file_name):
+def get_leaf_function(file_name, require_func_dic=False):
     """Return a list of leaf function"""
     code_line_lsit = []
     func_dic = {}
@@ -46,8 +46,11 @@ def get_leaf_function(file_name):
         find_subfunc(func, code_line_lsit, func_dic)
 
     leaf_list = [func for func in func_dic if func_dic[func][2] == 0]
-    print leaf_list
-    return leaf_list
+    #print leaf_list
+    if require_func_dic:
+        return (leaf_list, func_dic)
+    else:
+        return leaf_list
 
 
 
@@ -134,6 +137,16 @@ def indentation_analysier(code_line, level, calling_func):
 
 if __name__ == "__main__":
     #get_class_method_hierarchy("gpu_domain_advanced.py")
-    get_leaf_function("gpu_domain_advanced.py")
+    gpu_domain_leaf_function, gpu_domain_dic = get_leaf_function("gpu_domain_advanced.py", True)
+    shallow_water_domain_leaf_function, shallow_water_domain_dic = \
+            get_leaf_function("/Users/YuanZheCSYZ/Documents/COMP4550/anuga_core/source/anuga/shallow_water/shallow_water_domain.py", True)
+    generic_domain_leaf_function, generic_domain_dic = \
+            get_leaf_function("/Users/YuanZheCSYZ/Documents/COMP4550/anuga_core/source/anuga/abstract_2d_finite_volumes/generic_domain.py", True)
 
+    for func in gpu_domain_leaf_function:
+        if shallow_water_domain_dic.has_key(func) and func not in shallow_water_domain_leaf_function or \
+                generic_domain_dic.has_key(func) and func not in generic_domain_leaf_function:
+            gpu_domain_leaf_function.remove(func)
+
+    print gpu_domain_leaf_function
 
